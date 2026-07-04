@@ -66,32 +66,44 @@
             </div>
 
             <div class="order-sheet-wrap">
-              <table class="order-sheet" id="orderSheetTable">
+              <table class="order-sheet pricing-table" id="orderSheetTable">
                 <thead>
                   <tr>
-                    <th scope="col">Product</th>
                     <th scope="col">SKU</th>
-                    <th scope="col">Wholesale</th>
+                    <th scope="col">Product</th>
+                    <th scope="col">Wholesale ex GST</th>
+                    <th scope="col">Order qty</th>
                     <th scope="col">RRP</th>
                     <th scope="col">Your margin</th>
+                    <th scope="col">Bulk / notes</th>
                     <th scope="col">MOQ</th>
-                    <th scope="col">Qty</th>
                     <th scope="col">Line total</th>
                   </tr>
                 </thead>
                 <tbody id="orderSheetBody">
-                  <tr><td colspan="8">Login to load the price list…</td></tr>
+                  <tr><td colspan="9">Login to load the price list…</td></tr>
                 </tbody>
               </table>
+
+              <div class="order-sheet-totals totals totals--sheet-footer" aria-live="polite">
+                <p id="pricingNote" class="order-sheet-totals__note">Add products to calculate pricing.</p>
+                <div class="order-sheet-totals__grid">
+                  <div><span>Subtotal ex GST</span><strong id="subtotal">$0.00</strong></div>
+                  <div><span>GST</span><strong id="gst">$0.00</strong></div>
+                  <div><span>Shipping</span><strong id="shipping">$0.00</strong></div>
+                  <div class="total-row"><span>Total inc GST</span><strong id="total">$0.00</strong></div>
+                </div>
+              </div>
             </div>
           </section>
 
-          <section class="section order-section" id="order-checkout">
+          <section class="section order-section order-checkout" id="order-checkout">
             <div class="section-heading centered">
               <p class="eyebrow">Checkout</p>
               <h2>Submit your order</h2>
             </div>
 
+            <div class="checkout-panel">
             <fieldset class="form-block">
               <legend>Retail store details</legend>
               <div class="form-grid">
@@ -116,13 +128,7 @@
 
             <label class="wide form-block"><span>Order notes</span><textarea id="notes" rows="3" placeholder="Delivery instructions, flavour mix requests, bulk enquiries…"></textarea></label>
 
-            <div class="totals totals--sticky" aria-live="polite">
-              <div><span>Subtotal ex GST</span><strong id="subtotal">$0.00</strong></div>
-              <div><span>GST</span><strong id="gst">$0.00</strong></div>
-              <div><span>Shipping</span><strong id="shipping">$0.00</strong></div>
-              <div class="total-row"><span>Total inc GST</span><strong id="total">$0.00</strong></div>
-              <p id="pricingNote">Add products to calculate pricing.</p>
-            </div>
+            <p class="checkout-totals-hint" aria-live="polite">Order totals update live in the bar beneath the price list as you enter quantities.</p>
 
             <button class="button primary full-width" type="submit">Submit wholesale order (invoice)</button>
 
@@ -138,6 +144,7 @@
                 <li>Submit for invoice or pay instantly with PayPal.</li>
                 <li>We confirm stock and arrange shipping across Australia.</li>
               </ol>
+            </div>
             </div>
           </section>
         </form>

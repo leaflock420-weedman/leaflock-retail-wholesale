@@ -207,28 +207,26 @@
 
     for (const section of pricing.orderSheet) {
       rows.push(
-        `<tr class="order-sheet__category"><td colspan="8"><strong>${section.label}</strong></td></tr>`,
+        `<tr class="order-sheet__category pricing-table__category"><td colspan="9"><strong>${section.label}</strong></td></tr>`,
       );
       for (const item of section.items) {
         sheetSkuIndex[item.sku] = item;
-        const bulk = item.bulkNote ? `<div class="order-sheet__note">${item.bulkNote}</div>` : "";
+        const bulk = item.bulkNote || "—";
         rows.push(`
-          <tr class="order-sheet__row" data-sheet-row data-search="${`${item.sku} ${item.name} ${section.label}`.toLowerCase()}">
+          <tr class="order-sheet__row" data-sheet-row data-search="${`${item.sku} ${item.name} ${section.label} ${item.bulkNote || ""}`.toLowerCase()}">
+            <td class="order-sheet__sku"><code>${item.sku}</code></td>
             <td class="order-sheet__product">
-              <img src="${item.image}" alt="" width="56" height="56" loading="lazy">
-              <div>
-                <strong>${item.name}</strong>
-                ${bulk}
-              </div>
+              <img src="${item.image}" alt="" width="40" height="40" loading="lazy">
+              <span>${item.name}</span>
             </td>
-            <td><code>${item.sku}</code></td>
-            <td>${money(item.wholesale)}</td>
-            <td>${money(item.rrp)}</td>
-            <td class="order-sheet__margin">${marginLabel(item)}</td>
-            <td>${item.moqLabel}</td>
+            <td class="order-sheet__money">${money(item.wholesale)}</td>
             <td class="order-sheet__qty">
               <input type="number" min="0" step="1" value="0" data-catalog-sku="${item.sku}" aria-label="Quantity for ${item.name}">
             </td>
+            <td class="order-sheet__money">${money(item.rrp)}</td>
+            <td class="order-sheet__margin">${marginLabel(item)}</td>
+            <td class="order-sheet__bulk">${bulk}</td>
+            <td class="order-sheet__moq">${item.moqLabel}</td>
             <td class="order-sheet__line" data-line-total="${item.sku}">—</td>
           </tr>`);
       }
@@ -522,7 +520,7 @@
     paypalLoaded = false;
     if (paypalContainer) paypalContainer.innerHTML = "";
     if (orderSheetBody) {
-      orderSheetBody.innerHTML = '<tr><td colspan="8">Login to load the price list…</td></tr>';
+      orderSheetBody.innerHTML = '<tr><td colspan="9">Login to load the price list…</td></tr>';
     }
   });
 
