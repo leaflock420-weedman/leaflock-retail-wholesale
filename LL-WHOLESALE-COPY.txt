@@ -5,7 +5,7 @@ Created: 4 July 2026
 Copied from: C:\Users\wordo\leaflock-pharmacy-wholesale
 Original site: unchanged
 
-This folder is an exact duplicate of the LeafLock pharmacy wholesale site
+This folder is an exact duplicate of the LeafLock retail wholesale site
 (code, assets, data, env backups, scripts, private documents).
 
 To run locally:

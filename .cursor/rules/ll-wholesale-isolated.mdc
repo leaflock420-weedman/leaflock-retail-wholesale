@@ -4,9 +4,9 @@ globs: *
 alwaysApply: true
 ---
 
-# LL Wholesale — isolated project
+# LeafLock Retail Wholesale — isolated project
 
-This workspace is **LL Wholesale** at `C:\Users\wordo\LL-Wholesale`.
+This workspace is **LeafLock Retail Wholesale** at `C:\Users\wordo\LL-Wholesale`.
 
 It is a **carbon copy** for separate use. It must **never** interfere with production:
 

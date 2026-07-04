@@ -1,4 +1,4 @@
-# Deploy LeafLock Pharmacy Wholesale to Render from GitHub
+# Deploy LeafLock Retail Wholesale to Render from GitHub
 # 1. Push latest code: git push
 # 2. Open Render Blueprint deploy (connects GitHub repo):
 $repo = "https://github.com/leaflock420-weedman/leaflock-pharmacy-wholesale"

@@ -53,7 +53,7 @@ def cred_table(rows):
 
 
 story = [
-    p("LeafLock Pharmacy Wholesale", TITLE),
+    p("LeafLock Retail Wholesale", TITLE),
     p("Private demo logins — keep confidential", SUB),
     p(f"Generated {datetime.now().strftime('%d %B %Y %H:%M')} (Australia/Brisbane)", SUB),
     Spacer(1, 0.4 * cm),
@@ -83,14 +83,14 @@ story = [
     Spacer(1, 0.25 * cm),
     HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#dce4df")),
     Spacer(1, 0.25 * cm),
-    p("2. Pharmacy wholesale portal (pricing + orders)", H1),
+    p("2. Retail wholesale portal (pricing + orders)", H1),
     cred_table(
         [
             ["Field", "Value"],
             ["URL", f'<a href="{site}/portal.html">{site}/portal.html</a>'],
             ["Login type", "Access code (no password)"],
             ["Demo access code", f"<b>{portal_code}</b>"],
-            ["Test account", "LeafLock Test Pharmacy"],
+            ["Test account", "LeafLock Test Retail"],
             ["What you can test", "Pricing, order form, PayPal LIVE buttons, company credentials badges (collapsed)"],
         ]
     ),

@@ -1,8 +1,8 @@
 {
-  "name": "ll-wholesale",
+  "name": "leaflock-retail-wholesale",
   "version": "1.0.0",
   "private": true,
-  "description": "LeafLock pharmacy wholesale site with analytics",
+  "description": "LeafLock retail wholesale site with analytics",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

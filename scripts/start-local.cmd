@@ -12,7 +12,7 @@ if %errorlevel%==0 (
   goto tryport
 )
 echo.
-echo LL Wholesale (isolated copy) — http://localhost:%PORT%/
+echo LeafLock Retail Wholesale (isolated copy) — http://localhost:%PORT%/
 echo Admin — http://localhost:%PORT%/admin/
 echo.
 echo This does NOT affect med.leaflock.com.au

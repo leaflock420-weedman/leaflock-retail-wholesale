@@ -52,7 +52,7 @@ function calculateOrder() {
     totals.gst.textContent = money(60.2);
     totals.shipping.textContent = money(25);
     totals.total.textContent = money(STARTER_BUNDLE_TOTAL);
-    totals.note.textContent = "Starter Pharmacy Bundle — fixed price inc. GST and shipping.";
+    totals.note.textContent = "Starter Retail Bundle — fixed price inc. GST and shipping.";
     return {
       starterBundle: true,
       singlePacks: 50,
@@ -63,7 +63,7 @@ function calculateOrder() {
       gst: 60.2,
       shipping: 25,
       total: STARTER_BUNDLE_TOTAL,
-      notes: ["Starter Pharmacy Bundle applied."],
+      notes: ["Starter Retail Bundle applied."],
     };
   }
 
@@ -120,7 +120,7 @@ function buildOrderEmail(order) {
     `Contact: ${fields.fullName?.value || "—"}`,
     `Role: ${fields.role?.value || "—"}`,
     `ABN: ${fields.abn?.value || "—"}`,
-    `Pharmacy Reg: ${fields.pharmacyReg?.value || "—"}`,
+    `Retail reg: ${fields.pharmacyReg?.value || "—"}`,
     `Email: ${fields.email?.value || "—"}`,
     `Phone: ${fields.phone?.value || "—"}`,
     `Address: ${fields.address?.value || "—"}`,
@@ -151,15 +151,15 @@ function updateAccountLink() {
   const email = document.querySelector("#accountEmail")?.value || "—";
   const abn = document.querySelector("#accountAbn")?.value || "—";
   const reg = document.querySelector("#accountReg")?.value || "—";
-  const subject = encodeURIComponent("LeafLock pharmacy wholesale account request");
+  const subject = encodeURIComponent("LeafLock retail wholesale account request");
   const body = encodeURIComponent(
     [
-      "LeafLock pharmacy wholesale account request",
+      "LeafLock retail wholesale account request",
       "",
-      `Pharmacy: ${pharmacy}`,
+      `Retailer: ${pharmacy}`,
       `Contact email: ${email}`,
       `ABN: ${abn}`,
-      `Pharmacy registration number: ${reg}`,
+      `Retail registration number: ${reg}`,
     ].join("\n"),
   );
   if (accountLink) accountLink.href = `mailto:${WHOLESALE_EMAIL}?subject=${subject}&body=${body}`;
@@ -293,7 +293,7 @@ orderForm?.addEventListener("submit", (event) => {
   if (!orderForm.reportValidity()) return;
 
   const order = calculateOrder();
-  const business = fields.businessName?.value || "Pharmacy";
+  const business = fields.businessName?.value || "Retail";
   const subject = encodeURIComponent(`Wholesale Order — ${business}`);
   const body = encodeURIComponent(buildOrderEmail(order));
 

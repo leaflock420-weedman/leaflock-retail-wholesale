@@ -309,7 +309,7 @@
         .Buttons({
           style: { layout: "vertical", color: "gold", shape: "rect", label: "paypal" },
           createOrder: async () => {
-            if (!orderForm.reportValidity()) throw new Error("Complete pharmacy details first");
+            if (!orderForm.reportValidity()) throw new Error("Complete retail details first");
             const calc = calculateOrder();
             if (!calc || calc.total <= 0) throw new Error("Add products to your order first");
 

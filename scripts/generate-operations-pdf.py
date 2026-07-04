@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""LeafLock Pharmacy Wholesale — full backup operations manual (PDF)."""
+"""LeafLock Retail Wholesale — full backup operations manual (PDF)."""
 import json
 from datetime import date, datetime
 from pathlib import Path
@@ -55,7 +55,7 @@ def tbl(rows, widths=None):
     return t
 
 story = []
-story.append(p("LeafLock Pharmacy Wholesale", TITLE))
+story.append(p("LeafLock Retail Wholesale", TITLE))
 story.append(p("Complete Backup Manual — use without Grok Build", SUB))
 story.append(p(f"Generated {datetime.now().strftime('%d %B %Y at %H:%M')} (Australia/Brisbane)", SUB))
 story.append(Spacer(1, 0.25 * cm))
@@ -70,8 +70,8 @@ story.append(p("Key URLs (bookmark these)", H2))
 story += steps([
     "Public site: <b>https://med.leaflock.com.au</b>",
     "Admin dashboard: <b>https://med.leaflock.com.au/admin/</b>",
-    "Pharmacy portal: <b>https://med.leaflock.com.au/portal.html</b>",
-    "New pharmacy signup: <b>https://med.leaflock.com.au/request-access.html</b>",
+    "Retail portal: <b>https://med.leaflock.com.au/portal.html</b>",
+    "New retail signup: <b>https://med.leaflock.com.au/request-access.html</b>",
     "Render dashboard: <b>https://dashboard.render.com/web/srv-d93nossvikkc73amkvv0</b>",
     "Render environment vars: <b>.../srv-d93nossvikkc73amkvv0/env</b>",
     "GoDaddy DNS: <b>https://dcc.godaddy.com/control/dnsmanagement?domainName=leaflock.com.au</b>",
@@ -126,7 +126,7 @@ story.append(p("Wholesale tab — your main workspace", H2))
 story += steps([
     "<b>System status</b> — green ticks = PayPal, email, secrets OK. Fix red items in Render Environment.",
     "<b>Access applications</b> — new pharmacies who filled request-access.html form.",
-    "<b>Pharmacy accounts</b> — approved pharmacies; regenerate codes here.",
+    "<b>Retail accounts</b> — approved pharmacies; regenerate codes here.",
     "<b>Orders</b> — all wholesale orders; change status to processing/shipped.",
     "<b>Recent logins</b> — who logged into portal (success and failed attempts).",
 ])
@@ -134,7 +134,7 @@ story.append(PageBreak())
 
 # NEW PHARMACY FLOW
 story.append(p("NEW PHARMACY SIGN-UP (end to end)", H1))
-story.append(p("What the pharmacy does", H2))
+story.append(p("What the retailer does", H2))
 story += steps([
     "Goes to <b>med.leaflock.com.au/request-access.html</b>.",
     "Fills: business name, full name, ABN, pharmacy reg number, email, phone, address.",
@@ -155,7 +155,7 @@ story += steps([
 ])
 story.append(p("Adding a pharmacy manually (skip the form)", H2))
 story += steps([
-    "Wholesale tab → <b>Add pharmacy</b> → enter business name and email.",
+    "Wholesale tab → <b>Add retailer</b> → enter business name and email.",
     "Copy the generated code from popup → email to pharmacy.",
 ])
 story.append(PageBreak())
@@ -167,7 +167,7 @@ story += steps([
     "URL: <b>https://med.leaflock.com.au/portal.html</b>",
     "Enter access code you gave them (e.g. LL-A1B2-C3D4).",
     "Session lasts 24 hours on that browser.",
-    f"<b>Your test account:</b> code <b>{env.get('SEED_ACCESS_CODE', '?')}</b> — LeafLock Test Pharmacy (for testing only).",
+    f"<b>Your test account:</b> code <b>{env.get('SEED_ACCESS_CODE', '?')}</b> — LeafLock Test Retail (for testing only).",
 ])
 story.append(p("What pharmacies see after login", H2))
 story += steps([
@@ -264,9 +264,9 @@ story.append(tbl([
 ], [3.5*cm, 5*cm, 6*cm]))
 story.append(Spacer(1, 0.4 * cm))
 story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#dce4df")))
-story.append(p("CONFIDENTIAL — LeafLock Pharmacy Wholesale — med.leaflock.com.au", SUB))
+story.append(p("CONFIDENTIAL — LeafLock Retail Wholesale — med.leaflock.com.au", SUB))
 
 doc = SimpleDocTemplate(str(OUT), pagesize=A4, leftMargin=1.8*cm, rightMargin=1.8*cm, topMargin=1.8*cm, bottomMargin=1.8*cm,
-    title="LeafLock Pharmacy Wholesale Backup Manual", author="LeafLock")
+    title="LeafLock Retail Wholesale Backup Manual", author="LeafLock")
 doc.build(story)
 print(f"Wrote {OUT}")

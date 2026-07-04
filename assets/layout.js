@@ -21,9 +21,9 @@
 
     header.innerHTML = `
       <div class="header-brand-wrap">
-        <a class="brand" href="index.html" aria-label="Pharmacy Wholesale home">
+        <a class="brand" href="index.html" aria-label="Retail Wholesale home">
           <img class="brand-logo" src="assets/brand/leaflock-logo.png" alt="" width="120" height="32">
-          <span class="brand-text">Pharmacy Wholesale</span>
+          <span class="brand-text">Retail Wholesale</span>
         </a>
       </div>
       <nav class="main-nav" aria-label="Primary navigation">
@@ -34,18 +34,18 @@
         ${link("portal.html", "<span class=\"nav-long\">Wholesale Portal</span><span class=\"nav-short\">Portal</span>", "portal")}
         ${link("lab-disclosure.html", "<span class=\"nav-long\">Lab Disclosure</span><span class=\"nav-short\">Lab</span>", "lab")}
       </nav>
-      <a class="header-action" href="portal.html">Pharmacy login</a>`;
+      <a class="header-action" href="portal.html">Retail login</a>`;
 
     footer.innerHTML = `
       <div class="footer-col">
-        <strong>LeafLock Pharmacy Wholesale</strong>
+        <strong>LeafLock Retail Wholesale</strong>
         <p>Surfers Paradise, QLD 4217</p>
       </div>
       <div class="footer-col">
         <a href="humidity-packs.html">Humidity Packs</a>
         <a href="gummies.html">DIY Gummy Mix</a>
         <a href="request-access.html">Request wholesale access</a>
-        <a href="portal.html">Approved pharmacy portal</a>
+        <a href="portal.html">Approved retail portal</a>
       </div>
       <div class="footer-col">
         <a href="lab-disclosure.html">Laboratory disclosure</a>
@@ -54,7 +54,7 @@
       </div>
       <p class="footer-tm">LeafLock<sup class="tm-mark">TM</sup> No. 2594215 (Classes 5 &amp; 16) · LeafLock &amp; Co Pty Ltd ACN 676 132 531</p>
       <p class="footer-disclaimer">
-        General product information only. Not medical advice. Wholesale pricing and ordering available to approved Australian pharmacy accounts.
+        General product information only. Not medical advice. Wholesale pricing and ordering available to approved Australian retail accounts.
         See <a href="lab-disclosure.html">lab disclosure</a> for testing data and limitations.
       </p>`;
   };

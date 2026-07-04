@@ -1,6 +1,6 @@
-# LeafLock Pharmacy Wholesale (med.leaflock.com.au)
+# LeafLock Retail Wholesale (med.leaflock.com.au)
 
-Multi-page pharmacy wholesale site with gated pricing, TGA-conscious copy, SEO landing pages, and built-in analytics.
+Multi-page retail wholesale site with gated pricing, TGA-conscious copy, SEO landing pages, and built-in analytics.
 
 **GitHub:** https://github.com/leaflock420-weedman/leaflock-pharmacy-wholesale
 
@@ -44,8 +44,8 @@ Open: http://127.0.0.1:4173/
 ## Approval workflow
 
 1. Pharmacy submits **Request Access** form → email to `med@leaflock.com.au`
-2. You review ABN + pharmacy registration
-3. Email the pharmacy an access code from `assets/config.js`
+2. You review ABN + retail registration
+3. Email the retailer an access code from `assets/config.js`
 4. They enter the code at **portal.html** → pricing and order form unlock
 
 ### Adding access codes
