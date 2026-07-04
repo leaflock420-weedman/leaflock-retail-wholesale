@@ -1,0 +1,13 @@
+{
+  "entries": [
+    {
+      "id": "login_1783191949727_9740c7fb",
+      "pharmacyId": "pharm_demo_stockist",
+      "businessName": "Demo Stockist (Preview)",
+      "ts": 1783191949727,
+      "ip": "127.0.0.1",
+      "userAgent": "node",
+      "success": true
+    }
+  ]
+}

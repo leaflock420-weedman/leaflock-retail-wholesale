@@ -101,6 +101,7 @@ const {
 } = require("./lib/catalog-csv");
 const { catalogForPortal, reloadCatalog } = require("./lib/wholesale-catalog");
 const auspost = require("./lib/auspost-pac");
+const gummyCheckoutAccess = require("./lib/gummy-checkout-access");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4173;
@@ -196,10 +197,20 @@ app.use((req, res, next) => {
 });
 app.use(blockSensitiveStatic);
 
+const NOINDEX_HTML =
+  /^\/(portal|gummy-checkout|demo|help|set-password|forgot-password|credit-application)\.html$/i;
+app.use((req, res, next) => {
+  if (NOINDEX_HTML.test(req.path) || req.path.startsWith("/admin")) {
+    res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
+  }
+  next();
+});
+
 // Never cache public gummy checkout — email links must always get the no-login page.
 app.get("/gummy-checkout.html", (req, res) => {
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
   res.setHeader("Pragma", "no-cache");
+  res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
   res.sendFile(path.join(ROOT, "gummy-checkout.html"));
 });
 
@@ -658,11 +669,11 @@ function isPublicGummyOrder(order) {
   return order?.source === "gummy-checkout" && (order.pharmacyId == null || order.pharmacyId === "");
 }
 
-app.get("/api/public/gummy-checkout/pricing", noStoreJson, (req, res) => {
+app.get("/api/public/gummy-checkout/pricing", noStoreJson, gummyCheckoutAccess.requireGummyCheckoutAccess, (req, res) => {
   res.json(gummyPricingPublic());
 });
 
-app.get("/api/public/gummy-checkout/paypal-config", noStoreJson, (req, res) => {
+app.get("/api/public/gummy-checkout/paypal-config", noStoreJson, gummyCheckoutAccess.requireGummyCheckoutAccess, (req, res) => {
   res.json({
     enabled: paypal.isConfigured(),
     clientId: paypal.clientId(),
@@ -671,7 +682,7 @@ app.get("/api/public/gummy-checkout/paypal-config", noStoreJson, (req, res) => {
   });
 });
 
-app.post("/api/public/gummy-checkout/orders", (req, res) => {
+app.post("/api/public/gummy-checkout/orders", gummyCheckoutAccess.requireGummyCheckoutAccess, (req, res) => {
   try {
     const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
     if (!rateLimitKey(`gummy-checkout:${ip}`, GUMMY_CHECKOUT_RATE_MAX)) {
@@ -741,7 +752,7 @@ app.post("/api/public/gummy-checkout/orders", (req, res) => {
   }
 });
 
-app.post("/api/public/gummy-checkout/paypal/create", async (req, res) => {
+app.post("/api/public/gummy-checkout/paypal/create", gummyCheckoutAccess.requireGummyCheckoutAccess, async (req, res) => {
   if (!paypal.isConfigured()) {
     return res.status(503).json({ error: "PayPal not configured" });
   }
@@ -777,7 +788,7 @@ app.post("/api/public/gummy-checkout/paypal/create", async (req, res) => {
   }
 });
 
-app.post("/api/public/gummy-checkout/paypal/capture", async (req, res) => {
+app.post("/api/public/gummy-checkout/paypal/capture", gummyCheckoutAccess.requireGummyCheckoutAccess, async (req, res) => {
   if (!paypal.isConfigured()) {
     return res.status(503).json({ error: "PayPal not configured" });
   }
@@ -817,21 +828,6 @@ app.post("/api/public/gummy-checkout/paypal/capture", async (req, res) => {
   }
 });
 
-app.get("/robots.txt", (_req, res) => {
-  res.type("text/plain");
-  res.send(
-    [
-      "User-agent: *",
-      "Disallow: /api/",
-      "Disallow: /admin/",
-      "Disallow: /portal.html",
-      "Disallow: /data/",
-      "Allow: /gummy-checkout.html",
-      "",
-    ].join("\n"),
-  );
-});
-
 // ——— Admin wholesale ———
 
 app.get("/api/admin/wholesale/summary", adminAuth, (req, res) => {
@@ -860,6 +856,7 @@ app.get("/api/admin/setup-status", adminAuth, (req, res) => {
     catalogSource: catalogSourceLabel(),
     auspostPac: auspost.isConfigured(),
     auspostFromPostcode: auspost.fromPostcode(),
+    gummyCheckoutKey: gummyCheckoutAccess.isCheckoutAccessConfigured(),
   });
 });
 

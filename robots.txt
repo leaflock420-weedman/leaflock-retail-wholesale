@@ -1,0 +1,12 @@
+User-agent: *
+Disallow: /api/
+Disallow: /admin/
+Disallow: /portal.html
+Disallow: /demo.html
+Disallow: /gummy-checkout.html
+Disallow: /help.html
+Disallow: /docs/
+Disallow: /data/
+Disallow: /set-password.html
+Disallow: /forgot-password.html
+Disallow: /credit-application.html

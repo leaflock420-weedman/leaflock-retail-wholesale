@@ -1,0 +1,28 @@
+{
+  "pharmacies": [
+    {
+      "id": "pharm_demo_stockist",
+      "businessName": "Demo Stockist (Preview)",
+      "email": "demo@leaflock.com.au",
+      "status": "active",
+      "passwordHash": {
+        "salt": "0677002532022fbe886363781020b395",
+        "hash": "95d23fb07b3758039cc63d2e945393da35152de6c5eaccba74c6c9bb6f110982be2555c19641a30b2eca474d4de58abbb33429e7c39fcae81aeb651c81ab943b"
+      },
+      "accessCodeHash": null,
+      "abn": "12 345 678 901",
+      "pharmacyReg": "DEMO-RETAIL-001",
+      "phone": "0431 295 201",
+      "address": "Surfers Paradise QLD 4217",
+      "compounding": "no",
+      "bulk": "no",
+      "createdAt": 1783191949389,
+      "approvedAt": 1783191949389,
+      "lastLoginAt": null,
+      "loginCount": 0,
+      "passwordTokenHash": null,
+      "passwordTokenExpiresAt": null,
+      "passwordTokenPurpose": null
+    }
+  ]
+}

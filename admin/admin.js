@@ -102,7 +102,9 @@ function renderSetupStatus(status) {
     { ok: status.complianceDocuments, label: status.complianceDocuments ? "Compliance PDFs ready (NDA + pack + TM cert)" : "Compliance PDFs missing on server" },
     { ok: (status.catalogItems || 0) > 0, label: `Order form catalogue: ${status.catalogItems || 0} products (${status.catalogSource || "unknown"})` },
     { ok: status.auspostPac, label: status.auspostPac ? `Australia Post PAC connected (from ${status.auspostFromPostcode || "4217"})` : "Australia Post PAC not set" },
+    { ok: status.gummyCheckoutKey, label: status.gummyCheckoutKey ? "Gummy email checkout private link key set" : "Set GUMMY_CHECKOUT_ACCESS_KEY on Render for email checkout" },
     { ok: true, label: "Secrets: Render env only — never paste keys in chat or GitHub" },
+    { ok: true, label: "Wholesale prices: portal login & private checkout links only (not public SEO)" },
   ];
   list.innerHTML = items
     .map((i) => `<li><span class="${i.ok ? "setup-ok" : "setup-warn"}">${i.ok ? "✓" : "!"}</span> ${i.label}</li>`)

@@ -21,14 +21,14 @@
         <form id="gummyCheckoutForm" class="order-form gummy-checkout-form" novalidate>
           <fieldset class="form-block gummy-pack-fieldset">
             <legend>Choose your pack</legend>
-            <p class="gummy-price-callout" id="gummyPricingCallout">Regular <span class="gummy-price-was">$15.99</span> → bulk <strong>$12.99</strong> each on 36+ pouches or mixed cartons. <span class="gummy-savings-badge">Save $3.00 per unit</span></p>
+            <p class="gummy-price-callout" id="gummyPricingCallout">Pricing loads from your private checkout link.</p>
             <div class="gummy-pack-grid" role="radiogroup" aria-label="Pack size">
               <label class="gummy-pack-option">
                 <input type="radio" name="packPreset" value="units-6" checked>
                 <span class="gummy-pack-option__inner">
                   <strong>6 pouches</strong>
                   <span>Individual 90g units</span>
-                  <em id="packPrice6">$130.53 inc</em>
+                  <em id="packPrice6">—</em>
                 </span>
               </label>
               <label class="gummy-pack-option">
@@ -36,7 +36,7 @@
                 <span class="gummy-pack-option__inner">
                   <strong>12 pouches</strong>
                   <span>Individual 90g units</span>
-                  <em id="packPrice12">$236.07 inc</em>
+                  <em id="packPrice12">—</em>
                 </span>
               </label>
               <label class="gummy-pack-option">
@@ -44,7 +44,7 @@
                 <span class="gummy-pack-option__inner">
                   <strong>Mixed carton</strong>
                   <span>24 units (6 per flavour)</span>
-                  <em id="packPriceCarton">$367.94 inc</em>
+                  <em id="packPriceCarton">—</em>
                 </span>
               </label>
               <label class="gummy-pack-option">
@@ -89,7 +89,7 @@
           </fieldset>
 
           <input type="hidden" id="flavours" value="Blue Raspberry, Grape, Strawberry, Create Your Own">
-          <p class="gummy-checkout-hint" id="pricingHint">$25 flat-rate shipping · 10% GST on subtotal</p>
+          <p class="gummy-checkout-hint" id="pricingHint">GST and shipping shown after your private link loads pricing.</p>
 
           <div class="totals gummy-checkout-totals" aria-live="polite">
             <div><span>Subtotal ex GST</span><strong id="subtotal">$0.00</strong></div>

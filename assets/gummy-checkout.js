@@ -2,6 +2,15 @@
   // Always use same-origin — avoids broken checkout when the page host differs from SITE_URL.
   const API_BASE = "";
   const MONEY = new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" });
+  const CHECKOUT_KEY = (() => {
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = params.get("key") || params.get("access");
+    if (fromUrl) {
+      sessionStorage.setItem("ll_gummy_checkout_key", fromUrl);
+      return fromUrl;
+    }
+    return sessionStorage.getItem("ll_gummy_checkout_key") || "";
+  })();
   let pricing = null;
   let currentOrderId = null;
 
@@ -159,10 +168,10 @@
     totals.note.textContent =
       subtotal > 0
         ? mixedCartons > 0
-          ? `Mixed carton rate ($${pricing.mixedCarton.wholesalePerUnit.toFixed(2)}/unit ex GST) applied.`
+          ? "Mixed carton bulk rate applied."
           : gummyIndividual >= minBulk
-            ? `Bulk rate ($${pricing.bulk.wholesalePerUnit.toFixed(2)}/unit ex GST) applied on ${minBulk}+ pouches.`
-            : `Standard rate ($${pricing.individual.wholesale.toFixed(2)}/unit ex GST) — order ${minBulk}+ pouches or a mixed carton for bulk savings.`
+            ? `Bulk rate applied on ${minBulk}+ pouches.`
+            : `Standard rate — order ${minBulk}+ pouches or a mixed carton for bulk savings.`
         : "Select a pack or add a custom quantity.";
 
     return { gummyIndividual, mixedCartons, subtotal, gst, shipping, total };
@@ -219,11 +228,22 @@
     };
   }
 
+  function withCheckoutKey(path) {
+    if (!CHECKOUT_KEY) return path;
+    const url = new URL(path.startsWith("http") ? path : `${API_BASE}${path}`, window.location.origin);
+    if (!url.searchParams.has("key")) url.searchParams.set("key", CHECKOUT_KEY);
+    return url.pathname + url.search;
+  }
+
   async function api(path, options = {}) {
-    const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
+    const url = withCheckoutKey(path.startsWith("http") ? path : `${API_BASE}${path}`);
     const res = await fetch(url, {
       ...options,
-      headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+      headers: {
+        "Content-Type": "application/json",
+        ...(CHECKOUT_KEY ? { "X-Gummy-Checkout-Key": CHECKOUT_KEY } : {}),
+        ...(options.headers || {}),
+      },
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || "Request failed");
@@ -327,8 +347,21 @@
     document.body.classList.add("gummy-checkout-page--embed");
   }
 
+  function showPrivateLinkRequired(message) {
+    if (pricingHint) pricingHint.textContent = message;
+    if (totals.note) totals.note.textContent = message;
+    if (paypalNote) paypalNote.textContent = message;
+    if (form) form.querySelectorAll("input, textarea, button").forEach((el) => { el.disabled = true; });
+  }
+
   async function boot() {
     applyEmbedMode();
+    if (!CHECKOUT_KEY) {
+      showPrivateLinkRequired(
+        "This checkout needs your private link from LeafLock. Approved stockists can also order at the portal.",
+      );
+      return;
+    }
     try {
       pricing = await api("/api/public/gummy-checkout/pricing");
       updatePackPriceLabels();
@@ -340,8 +373,11 @@
         pricingHint.textContent = `Ex GST · ${shipNote} · 10% GST on subtotal`;
       }
     } catch (err) {
-      if (pricingHint) pricingHint.textContent = "Could not load pricing.";
+      showPrivateLinkRequired(
+        err.message || "Private checkout link invalid or expired. Use the link from your LeafLock email.",
+      );
       console.error(err);
+      return;
     }
 
     packRadios.forEach((radio) => {

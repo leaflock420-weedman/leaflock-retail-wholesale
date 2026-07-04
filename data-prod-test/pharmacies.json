@@ -1,0 +1,21 @@
+{
+  "pharmacies": [
+    {
+      "id": "pharm_1783173938709_71be53ee",
+      "businessName": "Demo Stockist (Preview)",
+      "email": "info@leaflock.com.au",
+      "status": "active",
+      "accessCodeHash": "f3422bd5ae16502cbfaf0532501e2c3bb6a1ef6b5afa5715bf88b9550f4d40baafeb74eab09dbd4a2af42bc5808cedc5c549a4718bc76d2a871cb6dd9ed272c0",
+      "abn": "",
+      "pharmacyReg": "",
+      "phone": "",
+      "address": "",
+      "compounding": "no",
+      "bulk": "no",
+      "createdAt": 1783173938739,
+      "approvedAt": 1783173938739,
+      "lastLoginAt": 1783173938858,
+      "loginCount": 1
+    }
+  ]
+}

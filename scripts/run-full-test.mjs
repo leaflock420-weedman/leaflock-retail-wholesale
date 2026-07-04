@@ -104,6 +104,7 @@ const env = {
   PORTAL_SESSION_SECRET: "test-portal-secret-full",
   ADMIN_SESSION_SECRET: "test-admin-secret-full",
   DEMO_PORTAL_PASSWORD: "Demo-Test-Pass-2026!",
+  GUMMY_CHECKOUT_ACCESS_KEY: "test-gummy-checkout-key",
 };
 
 const serverProc = spawn("node", ["server.js"], {
@@ -133,7 +134,10 @@ await new Promise((resolve, reject) => {
 
 try {
   let r = await json(`${base}/api/public/gummy-checkout/pricing`);
-  assert("Gummy pricing API 200", r.res.status === 200);
+  assert("Gummy pricing blocked without key", r.res.status === 403);
+
+  r = await json(`${base}/api/public/gummy-checkout/pricing?key=${env.GUMMY_CHECKOUT_ACCESS_KEY}`);
+  assert("Gummy pricing API 200 with key", r.res.status === 200);
   assert("Gummy bulk min 36", r.body.bulk?.minUnits === 36);
   assert("Gummy free ship in API", r.body.freeShippingThreshold === 710);
 

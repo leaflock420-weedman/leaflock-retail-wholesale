@@ -58,3 +58,5 @@ services:
         sync: false
       - key: AUSPOST_FROM_POSTCODE
         value: "4217"
+      - key: GUMMY_CHECKOUT_ACCESS_KEY
+        sync: false

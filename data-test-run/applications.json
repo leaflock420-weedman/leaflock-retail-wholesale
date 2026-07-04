@@ -1,0 +1,20 @@
+{
+  "applications": [
+    {
+      "id": "app_1783191949859_8e04f221",
+      "status": "pending",
+      "createdAt": 1783191949859,
+      "businessName": "Apply Test Co",
+      "fullName": "Jane",
+      "role": "",
+      "abn": "98 765 432 109",
+      "pharmacyReg": "LIC-99",
+      "email": "apply-test@example.com",
+      "phone": "",
+      "address": "",
+      "compounding": "no",
+      "bulk": "no",
+      "notes": ""
+    }
+  ]
+}
