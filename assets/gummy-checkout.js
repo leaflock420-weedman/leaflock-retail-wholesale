@@ -219,7 +219,7 @@
       }
       const base = sdkBaseUrl || "https://www.paypal.com";
       const script = document.createElement("script");
-      script.src = `${base}/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=AUD&intent=capture`;
+      script.src = `${base}/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=AUD&intent=capture&components=buttons&enable-funding=card,venmo&disable-funding=paylater`;
       script.onload = resolve;
       script.onerror = reject;
       document.head.appendChild(script);
@@ -279,8 +279,15 @@
             });
             showSuccess();
           },
-          onError: () => {
-            totals.note.textContent = "PayPal checkout failed. Check your details and try again.";
+          onCancel: () => {
+            if (totals.note) totals.note.textContent = "Payment cancelled — you can try again when ready.";
+          },
+          onError: (err) => {
+            const msg = err?.message || "PayPal checkout failed";
+            if (totals.note) {
+              totals.note.textContent = `${msg}. Fill all store fields, tick terms, and ensure the total is above $0.`;
+            }
+            console.error("PayPal checkout error:", err);
           },
         })
         .render(paypalContainer);

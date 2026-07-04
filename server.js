@@ -155,8 +155,10 @@ app.use((req, res, next) => {
 });
 app.use((req, res, next) => {
   const isGummyCheckout = req.path === "/gummy-checkout.html";
+  const cspPayPal =
+    " https://*.paypal.com https://*.paypalobjects.com https://c.paypal.com https://www.gstatic.com";
   const cspCore =
-    "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.paypal.com https://www.sandbox.paypal.com; frame-src https://www.paypal.com https://www.sandbox.paypal.com; connect-src 'self' https://www.paypal.com https://www.sandbox.paypal.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com";
+    `default-src 'self'; script-src 'self' 'unsafe-inline' https://www.paypal.com https://www.sandbox.paypal.com${cspPayPal}; frame-src https://www.paypal.com https://www.sandbox.paypal.com${cspPayPal}; connect-src 'self' https://www.paypal.com https://www.sandbox.paypal.com${cspPayPal}; img-src 'self' data: https:${cspPayPal}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com`;
   const frameAncestors = isGummyCheckout
     ? "frame-ancestors https://mail.google.com https://*.google.com https://leaflock.com.au https://*.leaflock.com.au *"
     : "";
@@ -551,61 +553,73 @@ app.get("/api/public/gummy-checkout/paypal-config", noStoreJson, (req, res) => {
 });
 
 app.post("/api/public/gummy-checkout/orders", (req, res) => {
-  const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
-  if (!rateLimitKey(`gummy-checkout:${ip}`, GUMMY_CHECKOUT_RATE_MAX)) {
-    return res.status(429).json({ error: "Too many checkout attempts. Try again shortly." });
-  }
-
-  const body = req.body || {};
-  const contact = body.contact || {};
-  for (const field of ["businessName", "fullName", "email"]) {
-    if (!String(contact[field] || "").trim()) {
-      return res.status(400).json({ error: `Missing ${field}` });
+  try {
+    const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
+    if (!rateLimitKey(`gummy-checkout:${ip}`, GUMMY_CHECKOUT_RATE_MAX)) {
+      return res.status(429).json({ error: "Too many checkout attempts. Try again shortly." });
     }
+
+    const body = req.body || {};
+    const contact = body.contact || {};
+    for (const field of ["businessName", "fullName", "email", "address"]) {
+      if (!String(contact[field] || "").trim()) {
+        return res.status(400).json({ error: `Missing ${field}` });
+      }
+    }
+
+    if (!body.termsAccepted) {
+      return res.status(400).json({ error: "You must agree to the Wholesale Terms & Conditions." });
+    }
+
+    const lineItems = {
+      singlePacks: 0,
+      threePacks: 0,
+      gummyIndividual: Math.max(0, Number(body.gummyIndividual) || 0),
+      mixedCartons: Math.max(0, Number(body.mixedCartons) || 0),
+      starterBundle: false,
+    };
+
+    if (!isGummyOnlyLineItems(lineItems)) {
+      return res.status(400).json({ error: "Add at least one gummy mix product" });
+    }
+
+    const calculated = calculateGummyOrder(lineItems);
+    if (calculated.total <= 0) {
+      return res.status(400).json({ error: "Invalid order total" });
+    }
+
+    const totals = {
+      subtotal: calculated.subtotal,
+      gst: calculated.gst,
+      shipping: calculated.shipping,
+      total: calculated.total,
+    };
+
+    const order = createOrder({
+      pharmacyId: null,
+      pharmacyName: contact.businessName,
+      contact: { ...contact, flavours: body.flavours || "" },
+      lineItems,
+      totals,
+      notes: body.notes || "Public gummy checkout",
+      paymentMethod: "paypal",
+      source: "gummy-checkout",
+      termsAccepted: true,
+      termsVersion: TERMS_VERSION,
+      paymentTerms: paymentTermsLabel(null, { paymentMethod: "paypal" }),
+    });
+
+    res.status(201).json({
+      order: {
+        id: order.id,
+        status: order.status,
+        totals: order.totals,
+      },
+    });
+  } catch (err) {
+    console.error("[gummy-checkout] create order:", err);
+    res.status(500).json({ error: "Could not save order. Try again or email info@leaflock.com.au" });
   }
-
-  if (!body.termsAccepted) {
-    return res.status(400).json({ error: "You must agree to the Wholesale Terms & Conditions." });
-  }
-
-  const lineItems = {
-    singlePacks: 0,
-    threePacks: 0,
-    gummyIndividual: Math.max(0, Number(body.gummyIndividual) || 0),
-    mixedCartons: Math.max(0, Number(body.mixedCartons) || 0),
-    starterBundle: false,
-  };
-
-  if (!isGummyOnlyLineItems(lineItems)) {
-    return res.status(400).json({ error: "Add at least one gummy mix product" });
-  }
-
-  const totals = calculateGummyOrder(lineItems);
-  if (totals.total <= 0) {
-    return res.status(400).json({ error: "Invalid order total" });
-  }
-
-  const order = createOrder({
-    pharmacyId: null,
-    pharmacyName: contact.businessName,
-    contact: { ...contact, flavours: body.flavours || "" },
-    lineItems,
-    totals,
-    notes: body.notes || "Public gummy checkout",
-    paymentMethod: "paypal",
-    source: "gummy-checkout",
-    termsAccepted: true,
-    termsVersion: TERMS_VERSION,
-    paymentTerms: paymentTermsLabel(null, { paymentMethod: "paypal" }),
-  });
-
-  res.status(201).json({
-    order: {
-      id: order.id,
-      status: order.status,
-      totals: order.totals,
-    },
-  });
 });
 
 app.post("/api/public/gummy-checkout/paypal/create", async (req, res) => {
