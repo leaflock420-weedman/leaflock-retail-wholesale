@@ -8,14 +8,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const { EMBEDDED_CATALOG } = require("../lib/wholesale-catalog.js");
 const { categoriesToCsv, BUNDLED_CSV_PATH } = require("../lib/catalog-csv.js");
 
-const MOQ_FIVE = new Set(["STICKERS", "MAGNETS", "KEYCHAINS-TEXT", "KEYCHAINS-MONO"]);
-
-for (const cat of EMBEDDED_CATALOG) {
-  for (const item of cat.items) {
-    if (!item.moq && MOQ_FIVE.has(item.sku)) item.moq = 5;
-  }
-}
-
 const categories = EMBEDDED_CATALOG.map((cat) => ({
   ...cat,
   items: [...cat.items],

@@ -12,7 +12,7 @@
     fullName: document.querySelector("#fullName"),
     role: document.querySelector("#role"),
     abn: document.querySelector("#abn"),
-    pharmacyReg: document.querySelector("#storeReg"),
+    pharmacyReg: null,
     email: document.querySelector("#email"),
     phone: document.querySelector("#phone"),
     address: document.querySelector("#address"),
@@ -227,7 +227,7 @@
             </td>
             <td>${money(item.wholesale)}</td>
             <td class="portal-order-table__qty">
-              <input type="number" min="${moqMin}" step="1" value="0" data-catalog-sku="${item.sku}" data-moq="${moqMin}" aria-label="Quantity for ${item.name}">
+              <input type="number" min="0" step="1" value="0" data-catalog-sku="${item.sku}" data-moq="${moqMin}" aria-label="Quantity for ${item.name}">
             </td>
             <td>${money(item.rrp)}</td>
             <td>${item.moqLabel}</td>
@@ -330,7 +330,7 @@
         fullName: fields.fullName?.value || "",
         role: fields.role?.value || "",
         abn: fields.abn?.value || "",
-        pharmacyReg: fields.pharmacyReg?.value || "",
+        pharmacyReg: "",
         email: fields.email?.value || "",
         phone: fields.phone?.value || "",
         address: fields.address?.value || "",

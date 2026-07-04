@@ -473,7 +473,7 @@ app.post("/api/applications", (req, res) => {
     return res.status(429).json({ error: "Too many applications. Try again later." });
   }
   const body = req.body || {};
-  const required = ["businessName", "fullName", "abn", "pharmacyReg", "email"];
+  const required = ["businessName", "fullName", "abn", "email"];
   for (const field of required) {
     if (!String(body[field] || "").trim()) {
       return res.status(400).json({ error: `Missing field: ${field}` });
@@ -499,7 +499,7 @@ app.post("/api/orders", portalAuth, (req, res) => {
   if (!body.termsAccepted) {
     return res.status(400).json({ error: "You must agree to the Wholesale Terms & Conditions." });
   }
-  const required = ["businessName", "fullName", "abn", "pharmacyReg", "email"];
+  const required = ["businessName", "fullName", "abn", "email"];
   for (const field of required) {
     if (!String(contact[field] || "").trim()) {
       return res.status(400).json({ error: `Missing contact field: ${field}` });
