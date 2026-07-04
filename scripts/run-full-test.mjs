@@ -229,10 +229,46 @@ try {
     }),
   });
   assert("Application submit 201", r.res.status === 201);
+  const applicationId = r.body.id;
+  assert("Application id returned", Boolean(applicationId));
+
+  r = await json(`${base}/api/admin/applications/${applicationId}/approve`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${adminToken}` },
+  });
+  assert("Application approve 200", r.res.status === 200);
+  assert("Approve returns checkout link", Boolean(r.body.checkoutLink));
 
   r = await json(`${base}/gummy-checkout.html`);
   assert("Gummy checkout page 200", r.res.status === 200);
   assert("Checkout page public", r.body.raw?.includes("gummy-checkout") || typeof r.body === "object");
+
+  r = await json(`${base}/api/admin/pharmacies`, {
+    headers: { Authorization: `Bearer ${adminToken}` },
+  });
+  assert("Admin pharmacies list", r.res.status === 200);
+  const stockist = (r.body.pharmacies || []).find((p) => p.email === "apply-test@example.com");
+  assert("Approved stockist has checkout link", Boolean(stockist?.checkoutLink));
+  if (!stockist?.checkoutLink) throw new Error("Missing stockist checkout link for follow-up tests");
+
+  const stockistKey = new URL(stockist.checkoutLink).searchParams.get("key");
+  assert("Stockist checkout key present", Boolean(stockistKey));
+
+  r = await json(`${base}/api/public/gummy-checkout/pricing?key=${stockistKey}`);
+  assert("Stockist key opens pricing", r.res.status === 200);
+
+  r = await json(`${base}/api/public/gummy-checkout/context?key=${stockistKey}`);
+  assert("Stockist context API", r.res.status === 200);
+  assert("Context identifies stockist", r.body.source === "stockist" && r.body.businessName === "Apply Test Co");
+
+  r = await json(`${base}/api/admin/pharmacies/${stockist.id}/regenerate-checkout-key`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${adminToken}` },
+  });
+  assert("Regenerate checkout key", r.res.status === 200 && Boolean(r.body.checkoutLink));
+
+  const oldKeyStillWorks = await json(`${base}/api/public/gummy-checkout/pricing?key=${stockistKey}`);
+  assert("Old stockist key revoked", oldKeyStillWorks.res.status === 403);
 } finally {
   serverProc.kill("SIGTERM");
   await new Promise((r) => setTimeout(r, 400));

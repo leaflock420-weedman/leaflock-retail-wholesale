@@ -72,6 +72,8 @@ const {
   deletePharmacyAccount,
   setPharmacyStatus,
   publicPharmacy,
+  adminPharmacyView,
+  regenerateCheckoutAccessKey,
   wholesaleSummary,
   loadPharmacies,
   loadApplications,
@@ -669,6 +671,15 @@ function isPublicGummyOrder(order) {
   return order?.source === "gummy-checkout" && (order.pharmacyId == null || order.pharmacyId === "");
 }
 
+app.get("/api/public/gummy-checkout/context", noStoreJson, gummyCheckoutAccess.requireGummyCheckoutAccess, (req, res) => {
+  const pharmacy = req.gummyCheckoutPharmacy;
+  res.json({
+    source: req.gummyCheckoutAccess?.source || "unknown",
+    businessName: pharmacy?.businessName || null,
+    email: pharmacy?.email || null,
+  });
+});
+
 app.get("/api/public/gummy-checkout/pricing", noStoreJson, gummyCheckoutAccess.requireGummyCheckoutAccess, (req, res) => {
   res.json(gummyPricingPublic());
 });
@@ -725,9 +736,10 @@ app.post("/api/public/gummy-checkout/orders", gummyCheckoutAccess.requireGummyCh
       total: calculated.total,
     };
 
+    const stockist = req.gummyCheckoutPharmacy;
     const order = createOrder({
-      pharmacyId: null,
-      pharmacyName: contact.businessName,
+      pharmacyId: stockist?.id || null,
+      pharmacyName: stockist?.businessName || contact.businessName,
       contact: { ...contact, flavours: body.flavours || "" },
       lineItems,
       totals,
@@ -857,6 +869,9 @@ app.get("/api/admin/setup-status", adminAuth, (req, res) => {
     auspostPac: auspost.isConfigured(),
     auspostFromPostcode: auspost.fromPostcode(),
     gummyCheckoutKey: gummyCheckoutAccess.isCheckoutAccessConfigured(),
+    stockistCheckoutKeys: loadPharmacies().pharmacies.filter(
+      (p) => p.status === "active" && p.checkoutAccessKey,
+    ).length,
   });
 });
 
@@ -920,6 +935,7 @@ app.post("/api/admin/applications/:id/approve", adminAuth, async (req, res) => {
     result.emailSent = await notifyPharmacyApproved({
       app: result.application,
       setupToken: result.setupToken,
+      checkoutLink: result.checkoutLink,
     });
   } catch (err) {
     console.warn("[mail] approval notify:", err.message);
@@ -935,8 +951,14 @@ app.post("/api/admin/applications/:id/reject", adminAuth, (req, res) => {
 });
 
 app.get("/api/admin/pharmacies", adminAuth, (req, res) => {
-  const pharmacies = loadPharmacies().pharmacies.map(publicPharmacy);
+  const pharmacies = loadPharmacies().pharmacies.map(adminPharmacyView);
   res.json({ pharmacies });
+});
+
+app.post("/api/admin/pharmacies/:id/regenerate-checkout-key", adminAuth, (req, res) => {
+  const result = regenerateCheckoutAccessKey(req.params.id);
+  if (!result) return res.status(404).json({ error: "Pharmacy not found" });
+  res.json(result);
 });
 
 app.post("/api/admin/pharmacies", adminAuth, (req, res) => {

@@ -354,6 +354,16 @@
     if (form) form.querySelectorAll("input, textarea, button").forEach((el) => { el.disabled = true; });
   }
 
+  function applyStockistContext(context) {
+    if (!context || context.source !== "stockist") return;
+    if (context.businessName && fields.businessName && !fields.businessName.value.trim()) {
+      fields.businessName.value = context.businessName;
+    }
+    if (context.email && fields.email && !fields.email.value.trim()) {
+      fields.email.value = context.email;
+    }
+  }
+
   async function boot() {
     applyEmbedMode();
     if (!CHECKOUT_KEY) {
@@ -363,7 +373,12 @@
       return;
     }
     try {
-      pricing = await api("/api/public/gummy-checkout/pricing");
+      const [pricingData, context] = await Promise.all([
+        api("/api/public/gummy-checkout/pricing"),
+        api("/api/public/gummy-checkout/context").catch(() => null),
+      ]);
+      pricing = pricingData;
+      applyStockistContext(context);
       updatePackPriceLabels();
       updatePricingCallout();
       if (pricingHint) {

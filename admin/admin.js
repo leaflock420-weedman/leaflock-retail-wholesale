@@ -58,16 +58,33 @@ function setupPasswordUrl(token) {
   return `${base}/set-password.html?token=${encodeURIComponent(token)}`;
 }
 
-function showSetupLinkModal(token, label = "Password setup link") {
+function showLinkModal(url, label = "Link", description = "Copy this link and email it to the retail store if SMTP did not send automatically.") {
   const modal = document.getElementById("codeModal");
   const codeEl = document.getElementById("generatedCode");
   const title = modal?.querySelector("h2");
   const desc = modal?.querySelector("p");
-  const url = setupPasswordUrl(token);
+  const copyBtn = document.getElementById("copyCodeBtn");
   if (title) title.textContent = label;
-  if (desc) desc.textContent = "Copy this one-time link and email it to the retail store if SMTP did not send automatically.";
+  if (desc) desc.textContent = description;
   if (codeEl) codeEl.textContent = url;
+  if (copyBtn) copyBtn.textContent = "Copy link";
   if (modal) modal.hidden = false;
+}
+
+function showSetupLinkModal(token, label = "Password setup link") {
+  showLinkModal(
+    setupPasswordUrl(token),
+    label,
+    "Copy this one-time password setup link and email it to the retail store if SMTP did not send automatically.",
+  );
+}
+
+function showCheckoutLinkModal(checkoutLink, businessName = "Retail store") {
+  showLinkModal(
+    checkoutLink,
+    `Gummy checkout link — ${businessName}`,
+    "Each stockist has a unique private link. Copy and paste into gummy campaign emails. Regenerating invalidates the old link.",
+  );
 }
 
 document.getElementById("closeCodeModal")?.addEventListener("click", () => {
@@ -102,7 +119,16 @@ function renderSetupStatus(status) {
     { ok: status.complianceDocuments, label: status.complianceDocuments ? "Compliance PDFs ready (NDA + pack + TM cert)" : "Compliance PDFs missing on server" },
     { ok: (status.catalogItems || 0) > 0, label: `Order form catalogue: ${status.catalogItems || 0} products (${status.catalogSource || "unknown"})` },
     { ok: status.auspostPac, label: status.auspostPac ? `Australia Post PAC connected (from ${status.auspostFromPostcode || "4217"})` : "Australia Post PAC not set" },
-    { ok: status.gummyCheckoutKey, label: status.gummyCheckoutKey ? "Gummy email checkout private link key set" : "Set GUMMY_CHECKOUT_ACCESS_KEY on Render for email checkout" },
+    {
+      ok: (status.stockistCheckoutKeys || 0) > 0,
+      label: `${status.stockistCheckoutKeys || 0} active stockist(s) with personal gummy checkout links`,
+    },
+    {
+      ok: status.gummyCheckoutKey,
+      label: status.gummyCheckoutKey
+        ? "Optional campaign checkout key set (GUMMY_CHECKOUT_ACCESS_KEY)"
+        : "Optional: set GUMMY_CHECKOUT_ACCESS_KEY for mass email blasts without per-store links",
+    },
     { ok: true, label: "Secrets: Render env only — never paste keys in chat or GitHub" },
     { ok: true, label: "Wholesale prices: portal login & private checkout links only (not public SEO)" },
   ];
@@ -138,13 +164,16 @@ async function refreshTraffic() {
 }
 
 async function approveApplication(id) {
-  if (!confirm("Approve this application? The store will receive a private password setup link.")) return;
+  if (!confirm("Approve this application? The store will receive a private password setup link and gummy checkout link.")) return;
   const result = await api(`/api/admin/applications/${id}/approve`, { method: "POST" });
   if (result.setupToken) showSetupLinkModal(result.setupToken, "Account approved — setup link");
+  if (result.checkoutLink) {
+    showCheckoutLinkModal(result.checkoutLink, result.application?.businessName || result.pharmacy?.businessName);
+  }
   if (result.emailSent) {
-    alert(`Approved — password setup link emailed to ${result.application.email}`);
+    alert(`Approved — setup and checkout links emailed to ${result.application.email}`);
   } else {
-    alert("Approved — copy the setup link and email it to the retail store (SMTP not configured).");
+    alert("Approved — copy the setup and checkout links and email them to the retail store (SMTP not configured).");
   }
   await refreshWholesale();
 }
@@ -194,6 +223,27 @@ async function addPharmacy() {
     body: JSON.stringify({ businessName, email }),
   });
   if (result.setupToken) showSetupLinkModal(result.setupToken, "New account — setup link");
+  if (result.checkoutLink) showCheckoutLinkModal(result.checkoutLink, businessName);
+  await refreshWholesale();
+}
+
+async function copyCheckoutLink(link) {
+  if (!link) {
+    alert("No checkout link for this account.");
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(link);
+    alert("Gummy checkout link copied.");
+  } catch {
+    showCheckoutLinkModal(link);
+  }
+}
+
+async function regenerateCheckoutKey(id, businessName) {
+  if (!confirm(`Regenerate gummy checkout link for ${businessName}? The old link will stop working.`)) return;
+  const result = await api(`/api/admin/pharmacies/${id}/regenerate-checkout-key`, { method: "POST" });
+  if (result.checkoutLink) showCheckoutLinkModal(result.checkoutLink, businessName);
   await refreshWholesale();
 }
 
@@ -266,18 +316,25 @@ async function refreshWholesale() {
   renderTable(
     pharmBody,
     pharmacies.pharmacies,
-    (p) => `<tr>
+    (p) => {
+      const checkoutBtn = p.checkoutLink
+        ? `<button class="btn-inline" data-action="copy-checkout-link" data-link="${encodeURIComponent(p.checkoutLink)}">Copy checkout</button>
+           <button class="btn-inline btn-muted" data-action="regenerate-checkout-key" data-id="${p.id}" data-name="${p.businessName.replace(/"/g, "&quot;")}">New checkout link</button>`
+        : `<span class="badge badge--inactive">no key</span>`;
+      return `<tr>
       <td>${p.businessName}</td>
       <td>${p.email}</td>
       <td><span class="badge badge--${p.status}">${p.status}</span></td>
       <td>${p.loginCount || 0}</td>
       <td>${fmtDate(p.lastLoginAt)}</td>
-      <td>
+      <td class="actions-cell">
+        ${checkoutBtn}
         <button class="btn-inline" data-action="reset-password" data-id="${p.id}">Reset password</button>
         <button class="btn-inline btn-muted" data-action="send-compliance-pharm" data-id="${p.id}">Send docs</button>
         <button class="btn-inline btn-muted" data-action="toggle-status" data-id="${p.id}" data-status="${p.status}">${p.status === "active" ? "Deactivate" : "Activate"}</button>
       </td>
-    </tr>`,
+    </tr>`;
+    },
   );
 
   const ordersBody = document.getElementById("ordersTable");
@@ -328,6 +385,8 @@ document.getElementById("tabWholesale")?.addEventListener("click", async (event)
     else if (action === "send-compliance-pharm") await sendComplianceToPharmacy(id);
     else if (action === "send-compliance-app") await sendComplianceToApplication(id);
     else if (action === "toggle-status") await togglePharmacyStatus(id, btn.dataset.status);
+    else if (action === "copy-checkout-link") await copyCheckoutLink(decodeURIComponent(btn.dataset.link || ""));
+    else if (action === "regenerate-checkout-key") await regenerateCheckoutKey(id, btn.dataset.name || "this store");
   } catch (err) {
     alert(err.message || "Action failed");
   }

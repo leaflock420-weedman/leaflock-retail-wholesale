@@ -25,15 +25,16 @@ Wholesale for store owners (~50% margins):
 - 36+ pouches or mixed carton (24): $12.99/unit ex GST — save $3 per unit
 - $25 shipping · 10% GST added at checkout
 
-Order now — tap your pack size (no login, pay with PayPal):
-- Mixed carton (24) — $367.94 inc GST & shipping
-  https://www.wholesale.leaflock.com.au/gummy-checkout.html?cartons=1
-- 12 pouches — $236.07 inc GST & shipping
-  https://www.wholesale.leaflock.com.au/gummy-checkout.html?units=12
-- 6 pouches — $130.53 inc GST & shipping
-  https://www.wholesale.leaflock.com.au/gummy-checkout.html?units=6
+Order now — tap your pack size (no login, pay with PayPal).
+Use this stockist's private key from Admin → Copy checkout (append &cartons=1, &units=12, etc. as needed):
+- Mixed carton (24)
+  https://www.wholesale.leaflock.com.au/gummy-checkout.html?key=STOCKIST_KEY_FROM_ADMIN&cartons=1
+- 12 pouches
+  https://www.wholesale.leaflock.com.au/gummy-checkout.html?key=STOCKIST_KEY_FROM_ADMIN&units=12
+- 6 pouches
+  https://www.wholesale.leaflock.com.au/gummy-checkout.html?key=STOCKIST_KEY_FROM_ADMIN&units=6
 - Choose your own quantity & flavours
-  https://www.wholesale.leaflock.com.au/gummy-checkout.html
+  https://www.wholesale.leaflock.com.au/gummy-checkout.html?key=STOCKIST_KEY_FROM_ADMIN
 
 Questions? Reply to this email or email info@leaflock.com.au
 
