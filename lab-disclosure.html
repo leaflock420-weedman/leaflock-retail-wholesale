@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Laboratory Disclosure — LeafLock Pharmacy Wholesale</title>
+    <meta name="description" content="LeafLock independent Cannalysis laboratory measurement disclosure. Moisture, cannabinoid and terpene data under ambient and refrigerated storage conditions.">
+    <link rel="canonical" href="https://med.leaflock.com.au/lab-disclosure.html">
+    <link rel="stylesheet" href="assets/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
+  </head>
+  <body data-nav="lab">
+    <header class="site-header" id="site-header"></header>
+
+    <main>
+      <section class="page-hero">
+        <p class="eyebrow">Disclosure</p>
+        <h1>Laboratory measurement data</h1>
+        <p class="page-lead">Cannalysis COA comparison — Month 3 dried flower samples with and without LeafLock 62% humidity packs under ambient and refrigerated storage. For healthcare professional reference only.</p>
+      </section>
+
+      <section class="section disclaimer-box">
+        <h2>Important notice</h2>
+        <p>This page presents laboratory measurement data only. It is not intended to make therapeutic claims about cannabis products. Results reflect a specific comparative sample set and test conditions — not guaranteed outcomes for all products or storage scenarios. Healthcare professionals should exercise independent clinical judgement.</p>
+        <p><strong>Do not claim</strong> that LeafLock increases potency, treats, cures, or prevents mould. The supported wording is that packed samples showed higher retained moisture and cannabinoid readings in the supplied COA comparison.</p>
+      </section>
+
+      <section class="section lab-section">
+        <div class="lab-pills">
+          <span>Cannalysis COA</span>
+          <span>Month 3 comparison</span>
+          <span>Moisture · Cannabinoids · Terpenes</span>
+          <span>Microbial: Pass all samples</span>
+        </div>
+
+        <div class="lab-compare">
+          <article class="lab-card lab-card--bad">
+            <header>
+              <span>−</span>
+              <div>
+                <h3>Refrigerated without pack</h3>
+                <p>Lowest terpene reading in comparison set</p>
+              </div>
+            </header>
+            <ul class="lab-stat-list">
+              <li><strong>Moisture</strong> 11.94%</li>
+              <li><strong>Total THC</strong> 173.0 mg/g</li>
+              <li><strong>Total terpenes</strong> 0.0115 mg/g</li>
+              <li><strong>Microbial</strong> Pass</li>
+            </ul>
+          </article>
+          <article class="lab-card lab-card--good">
+            <header>
+              <span>+</span>
+              <div>
+                <h3>Refrigerated with LeafLock</h3>
+                <p>Strongest comparative result in supplied data</p>
+              </div>
+            </header>
+            <ul class="lab-stat-list">
+              <li><strong>Moisture</strong> 13.65% <em>(+14.3%)</em></li>
+              <li><strong>Total THC</strong> 183.1 mg/g <em>(+5.8%)</em></li>
+              <li><strong>Total terpenes</strong> 0.3756 mg/g</li>
+              <li><strong>Microbial</strong> Pass</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="chart-grid">
+          <div class="chart-panel chart-panel--full">
+            <canvas id="leafLockChart" aria-label="Moisture and cannabinoid laboratory comparison chart"></canvas>
+          </div>
+          <div class="chart-panel">
+            <canvas id="moistureChart" aria-label="Moisture comparison by storage type"></canvas>
+          </div>
+          <div class="chart-panel">
+            <canvas id="terpeneChart" aria-label="Total terpenes comparison chart"></canvas>
+          </div>
+          <div class="chart-panel chart-panel--full">
+            <canvas id="refrigeratedChart" aria-label="Refrigerated storage with versus without pack"></canvas>
+          </div>
+        </div>
+
+        <div class="lab-table-wrap">
+          <h3>Full COA comparison table</h3>
+          <table class="lab-data-table">
+            <thead>
+              <tr>
+                <th>Storage condition</th>
+                <th>Moisture</th>
+                <th>Total THC</th>
+                <th>Total cannabinoids</th>
+                <th>D9-THC</th>
+                <th>THCa</th>
+                <th>Total terpenes*</th>
+                <th>Microbial</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Ambient — no pack</td>
+                <td>12.06%</td>
+                <td>174.0 mg/g</td>
+                <td>201.2 mg/g</td>
+                <td>14.47 mg/g</td>
+                <td>181.9 mg/g</td>
+                <td>0.4283 mg/g</td>
+                <td>Pass</td>
+              </tr>
+              <tr>
+                <td>Ambient — with LeafLock</td>
+                <td>13.97%</td>
+                <td>176.2 mg/g</td>
+                <td>201.9 mg/g</td>
+                <td>14.77 mg/g</td>
+                <td>184.1 mg/g</td>
+                <td>0.3513 mg/g</td>
+                <td>Pass</td>
+              </tr>
+              <tr>
+                <td>Refrigerated — no pack</td>
+                <td>11.94%</td>
+                <td>173.0 mg/g</td>
+                <td>199.9 mg/g</td>
+                <td>11.68 mg/g</td>
+                <td>183.9 mg/g</td>
+                <td>0.0115 mg/g</td>
+                <td>Pass</td>
+              </tr>
+              <tr class="lab-data-table__highlight">
+                <td>Refrigerated — with LeafLock</td>
+                <td>13.65%</td>
+                <td>183.1 mg/g</td>
+                <td>211.4 mg/g</td>
+                <td>13.04 mg/g</td>
+                <td>193.9 mg/g</td>
+                <td>0.3756 mg/g</td>
+                <td>Pass</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="lab-table-note">*Total terpenes summed from detected analytes. ND treated as zero. Source: supplied Cannalysis COA / Month 3 comparative sample set.</p>
+        </div>
+
+        <div class="science-grid" style="margin-top:24px">
+          <article>
+            <h3>Test conditions</h3>
+            <p>Month 3 flower samples compared with and without LeafLock 62% two-way humidity packs under ambient Australian conditions (approximately 20–25°C) and refrigerated storage.</p>
+          </article>
+          <article>
+            <h3>Parameters measured</h3>
+            <p>Moisture content (%), total THC, total cannabinoids, D9-THC (mg/g), THCa (mg/g), total terpenes (mg/g), and microbial panel — all samples passed.</p>
+          </article>
+          <article>
+            <h3>Detected terpene analytes</h3>
+            <p>Limonene, linalool, alpha-pinene, beta-pinene, beta-caryophyllene, alpha-humulene, beta-myrcene, geraniol, nerolidol, p-cymene, alpha-bisabolol and camphene.</p>
+          </article>
+          <article>
+            <h3>Microbial panel</h3>
+            <p>Aspergillus (fumigatus, niger, flavus, terreus), Salmonella spp, and STEC — not detected / pass on all tested samples, including those stored with moisture packs.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <p class="disclosure-link">For wholesale enquiries, <a href="request-access.html">request pharmacy access</a> or email <a href="mailto:med@leaflock.com.au">med@leaflock.com.au</a>.</p>
+      </section>
+    </main>
+
+    <footer class="site-footer" id="site-footer"></footer>
+    <script src="assets/config.js"></script>
+    <script src="assets/layout.js"></script>
+    <script src="assets/charts.js"></script>
+  </body>
+</html>

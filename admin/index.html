@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>LeafLock Admin Dashboard</title>
+    <link rel="stylesheet" href="admin.css">
+  </head>
+  <body data-admin="true">
+    <div id="loginScreen" class="login-screen">
+      <form id="loginForm" class="login-card">
+        <h1>LeafLock Admin</h1>
+        <p>Traffic analytics, pharmacy accounts, and wholesale orders.</p>
+        <p id="hostWarning" class="login-hint login-hint--warn" hidden></p>
+        <label>
+          <span>Admin password</span>
+          <input type="password" id="adminPassword" required autocomplete="current-password" placeholder="Admin password">
+        </label>
+        <p id="loginError" class="error" hidden>Incorrect password</p>
+        <button type="submit">View dashboard</button>
+      </form>
+    </div>
+
+    <div id="dashboard" class="dashboard" hidden>
+      <header class="dash-header">
+        <div>
+          <h1>LeafLock admin</h1>
+          <p id="lastUpdated">—</p>
+        </div>
+        <div class="dash-actions">
+          <button type="button" id="sendReportBtn" class="btn-secondary">Email report now</button>
+          <button type="button" id="logoutBtn" class="btn-secondary">Log out</button>
+        </div>
+      </header>
+
+      <nav class="dash-tabs" role="tablist">
+        <button type="button" class="dash-tab active" data-tab="traffic" role="tab">Traffic</button>
+        <button type="button" class="dash-tab" data-tab="wholesale" role="tab">Wholesale</button>
+      </nav>
+
+      <div id="tabTraffic" class="tab-panel" role="tabpanel">
+        <section class="stat-grid">
+          <article class="stat-card stat-card--live">
+            <span class="stat-label">Live now</span>
+            <strong id="liveVisitors">0</strong>
+            <span class="stat-hint">Last 5 minutes</span>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">Pageviews today</span>
+            <strong id="pageviewsToday">0</strong>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">Sessions today</span>
+            <strong id="sessionsToday">0</strong>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">Portal views today</span>
+            <strong id="portalViews">0</strong>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">Access requests today</span>
+            <strong id="accessViews">0</strong>
+          </article>
+        </section>
+
+        <section class="panel">
+          <h2>Highlights</h2>
+          <ul id="highlights" class="highlight-list"></ul>
+        </section>
+
+        <div class="two-col">
+          <section class="panel">
+            <h2>Top pages (7 days)</h2>
+            <table class="data-table">
+              <thead><tr><th>Page</th><th>Views</th></tr></thead>
+              <tbody id="topPages"></tbody>
+            </table>
+          </section>
+          <section class="panel">
+            <h2>Traffic sources (7 days)</h2>
+            <table class="data-table">
+              <thead><tr><th>Source</th><th>Views</th></tr></thead>
+              <tbody id="topSources"></tbody>
+            </table>
+          </section>
+        </div>
+
+        <section class="panel">
+          <h2>Daily pageviews (7 days)</h2>
+          <div id="dailyChart" class="bar-chart"></div>
+        </section>
+
+        <p class="foot-note">Daily email reports send automatically at 7:00 AM (set TZ=Australia/Brisbane on your host).</p>
+      </div>
+
+      <div id="tabWholesale" class="tab-panel" hidden role="tabpanel">
+        <section class="panel setup-panel">
+          <h2>System status</h2>
+          <ul id="setupStatus" class="setup-list"></ul>
+          <p class="foot-note">PayPal sandbox uses test money. Approve applications below — access codes are emailed if SMTP is configured, otherwise copy from the popup.</p>
+        </section>
+
+        <section class="stat-grid">
+          <article class="stat-card">
+            <span class="stat-label">Pending applications</span>
+            <strong id="pendingApps">0</strong>
+          </article>
+          <article class="stat-card stat-card--live">
+            <span class="stat-label">Active pharmacies</span>
+            <strong id="activePharmacies">0</strong>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">Orders today</span>
+            <strong id="ordersToday">0</strong>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">Logins today</span>
+            <strong id="loginsToday">0</strong>
+          </article>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Access applications</h2>
+            <button type="button" id="refreshWholesaleBtn" class="btn-secondary btn-small">Refresh</button>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table data-table--wide">
+              <thead>
+                <tr>
+                  <th>Submitted</th>
+                  <th>Pharmacy</th>
+                  <th>Contact</th>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="applicationsTable"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Pharmacy accounts</h2>
+            <button type="button" id="addPharmacyBtn" class="btn-secondary btn-small">Add pharmacy</button>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table data-table--wide">
+              <thead>
+                <tr>
+                  <th>Pharmacy</th>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Logins</th>
+                  <th>Last login</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="pharmaciesTable"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Orders</h2>
+          <div class="table-scroll">
+            <table class="data-table data-table--wide">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Pharmacy</th>
+                  <th>Total</th>
+                  <th>Payment</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="ordersTable"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Recent logins</h2>
+          <div class="table-scroll">
+            <table class="data-table data-table--wide">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Pharmacy</th>
+                  <th>Result</th>
+                </tr>
+              </thead>
+              <tbody id="loginLogTable"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div id="codeModal" class="modal-overlay" hidden>
+      <div class="modal-card-admin">
+        <h2>Access code generated</h2>
+        <p>Copy this code and email it to the pharmacy. It is only shown once.</p>
+        <code id="generatedCode" class="code-display"></code>
+        <div class="modal-actions">
+          <button type="button" id="copyCodeBtn" class="btn-secondary">Copy code</button>
+          <button type="button" id="closeCodeModal" class="btn-secondary">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="admin.js"></script>
+  </body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "folders": [
+    {
+      "name": "LL Wholesale (isolated — not med.leaflock)",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "terminal.integrated.cwd": "${workspaceFolder}",
+    "files.exclude": {
+      "**/node_modules": true
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "ll-wholesale",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LeafLock pharmacy wholesale site with analytics",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "deploy:render": "node scripts/render-deploy.mjs",
+    "process:gummies": "python scripts/process-gummy-lineup.py",
+    "process:humidity-photo": "python scripts/process-community-pack.py",
+    "build:banners": "python scripts/process-community-pack.py && python scripts/process-gummy-lineup.py && python scripts/build-banners.py"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "nodemailer": "^6.10.0"
+  }
+}

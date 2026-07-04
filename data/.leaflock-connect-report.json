@@ -1,0 +1,15 @@
+{
+  "serviceId": "srv-d93nossvikkc73amkvv0",
+  "serviceAccessible": false,
+  "envSynced": false,
+  "dnsOnOld": true,
+  "dnsOnNew": false,
+  "newRenderHost": "leaflock-pharmacy-wholesale-9kbz.onrender.com",
+  "urls": {
+    "dashboard": "https://dashboard.render.com/web/srv-d93nossvikkc73amkvv0",
+    "env": "https://dashboard.render.com/web/srv-d93nossvikkc73amkvv0/env",
+    "domains": "https://dashboard.render.com/web/srv-d93nossvikkc73amkvv0/settings#custom-domains",
+    "live": "https://leaflock-pharmacy-wholesale-9kbz.onrender.com",
+    "production": "https://med.leaflock.com.au"
+  }
+}

@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Approved Pharmacy Portal — LeafLock Wholesale</title>
+    <meta name="description" content="LeafLock approved pharmacy wholesale portal. Login with your access code to view pricing and submit orders.">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="assets/styles.css">
+  </head>
+  <body data-nav="portal">
+    <header class="site-header" id="site-header"></header>
+
+    <main>
+      <section class="page-hero">
+        <p class="eyebrow">Approved accounts</p>
+        <h1>Pharmacy wholesale portal</h1>
+        <p class="page-lead">Enter the access code we emailed after approval to view wholesale pricing and submit orders.</p>
+      </section>
+
+      <section class="section" id="accessGate">
+        <div class="access-panel">
+          <p id="pendingNote" class="pending-note" hidden>Your access request is being reviewed. We will email your code once approved.</p>
+          <form id="accessLoginForm" class="portal-card">
+            <h3>Pharmacy login</h3>
+            <p id="portalHostHint" class="pending-note" hidden></p>
+            <label><span>Access code</span><input type="text" id="accessCode" required placeholder="Code from your approval email" autocomplete="one-time-code"></label>
+            <p id="accessError" class="form-error" hidden></p>
+            <button class="button primary full-width" type="submit">Enter portal</button>
+            <p>Need access? <a href="request-access.html">Submit an application</a></p>
+            <p>Repeat orders: <a href="mailto:med@leaflock.com.au?subject=LeafLock%20Repeat%20Order">email med@leaflock.com.au</a></p>
+          </form>
+        </div>
+      </section>
+
+      <div id="gatedContent" hidden>
+        <section class="section portal-toolbar">
+          <p id="portalSessionLabel">Logged in</p>
+          <button class="button secondary" type="button" id="accessLogout">Log out</button>
+        </section>
+
+        <section class="section compliance-section" id="compliance-panel">
+          <details class="compliance-disclosure">
+            <summary>Company credentials</summary>
+            <div class="compliance-body">
+              <p id="complianceCompany" class="compliance-meta"></p>
+              <ul id="credentialBadgeList" class="credential-badge-list" aria-label="Company credentials on file"></ul>
+            </div>
+          </details>
+        </section>
+
+        <section class="section pricing-section" id="humidity-pricing">
+          <div class="section-heading">
+            <p class="eyebrow">Core range</p>
+            <h2>Humidity pack wholesale pricing</h2>
+          </div>
+          <article class="product-card" id="humidityPricingCard">
+            <p class="pricing-placeholder">Loading wholesale pricing…</p>
+          </article>
+
+          <article class="bundle-panel bundle-panel--featured" id="starterBundlePanel">
+            <p class="pricing-placeholder">Loading bundle pricing…</p>
+          </article>
+        </section>
+
+        <section class="section" id="gummy-pricing">
+          <div class="section-heading">
+            <p class="eyebrow">Newest line</p>
+            <h2>DIY Gummy Mix wholesale pricing</h2>
+          </div>
+          <article class="product-card" id="gummyPricingCard">
+            <p class="pricing-placeholder">Loading wholesale pricing…</p>
+          </article>
+
+          <div class="pricing-table-wrap">
+            <table class="pricing-table">
+              <thead>
+                <tr><th>Product</th><th>Wholesale ex GST</th><th>Volume price</th><th>Suggested retail</th></tr>
+              </thead>
+              <tbody id="pricingTableBody">
+                <tr><td colspan="4">Login to view pricing</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section order-section" id="order-form">
+          <div class="section-heading centered">
+            <p class="eyebrow">Place order</p>
+            <h2>Wholesale order form</h2>
+          </div>
+
+          <form class="order-form" id="orderForm" novalidate>
+            <fieldset class="form-block">
+              <legend>Pharmacy details</legend>
+              <div class="form-grid">
+                <label><span>Pharmacy / Business Name *</span><input type="text" id="businessName" required autocomplete="organization"></label>
+                <label><span>Your Full Name *</span><input type="text" id="fullName" required autocomplete="name"></label>
+                <label><span>Position / Role</span><input type="text" id="role" autocomplete="organization-title"></label>
+                <label><span>ABN *</span><input type="text" id="abn" required></label>
+                <label><span>Pharmacy Registration Number *</span><input type="text" id="pharmacyReg" required></label>
+                <label><span>Email Address *</span><input type="email" id="email" required autocomplete="email"></label>
+                <label><span>Phone Number</span><input type="tel" id="phone" autocomplete="tel"></label>
+                <label class="wide"><span>Delivery Address</span><textarea id="address" rows="2" autocomplete="street-address"></textarea></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="form-block product-order-block">
+              <legend>Humidity packs</legend>
+              <div class="form-grid">
+                <label><span>Single Humidity Packs</span><input type="number" min="0" step="1" value="0" id="singlePacks"></label>
+                <label><span>3-Pack Humidity Packs</span><input type="number" min="0" step="1" value="0" id="threePacks"></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="form-block product-order-block">
+              <legend>DIY Gummy Mix — 90g</legend>
+              <div class="form-grid">
+                <label><span>Individual units</span><input type="number" min="0" step="1" value="0" id="gummyIndividual"></label>
+                <label><span>Mixed Carton of 24</span><input type="number" min="0" step="1" value="0" id="mixedCartons"></label>
+                <label class="wide"><span>Preferred flavours</span><input type="text" id="flavours" placeholder="Blue Raspberry, Grape, Strawberry, CYO"></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="form-block">
+              <legend>Bundle &amp; notes</legend>
+              <label class="check-row">
+                <input type="checkbox" id="starterBundle">
+                <span id="starterBundleLabel">Starter Pharmacy Bundle</span>
+              </label>
+              <label class="wide" style="margin-top:12px"><span>Special notes / bulk request</span><textarea id="notes" rows="3"></textarea></label>
+            </fieldset>
+
+            <div class="totals" aria-live="polite">
+              <div><span>Subtotal ex GST</span><strong id="subtotal">$0.00</strong></div>
+              <div><span>GST</span><strong id="gst">$0.00</strong></div>
+              <div><span>Shipping</span><strong id="shipping">$0.00</strong></div>
+              <div class="total-row"><span>Total inc GST</span><strong id="total">$0.00</strong></div>
+              <p id="pricingNote">Add products to calculate pricing.</p>
+            </div>
+
+            <button class="button primary full-width" type="submit">Submit wholesale order (invoice)</button>
+
+            <div class="paypal-checkout" style="margin-top:16px">
+              <p id="paypalNote" class="pricing-placeholder" style="margin-bottom:10px">Instant PayPal checkout available after login.</p>
+              <div id="paypalButtons"></div>
+            </div>
+          </form>
+
+          <div class="order-steps">
+            <h3>How ordering works</h3>
+            <ol>
+              <li>Submit this form or pay instantly with PayPal.</li>
+              <li>We confirm stock and email confirmation.</li>
+              <li>Invoice orders: pay by bank transfer. PayPal orders: paid immediately.</li>
+              <li>Fast shipping across Australia.</li>
+            </ol>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer" id="site-footer"></footer>
+
+    <div id="formSuccess" class="modal" hidden role="alertdialog">
+      <div class="modal-card">
+        <h2>Thank you!</h2>
+        <p>We've received your order and will email a confirmation + invoice within 24 hours.</p>
+        <button class="button primary" type="button" id="closeSuccess">Got it</button>
+      </div>
+    </div>
+
+    <script src="assets/config.js"></script>
+    <script src="assets/access.js"></script>
+    <script src="assets/layout.js"></script>
+    <script src="assets/portal.js"></script>
+    <script>
+      window.LeafLockAccess.boot().then(() => {
+        window.LeafLockAccess.bindAccessForm();
+        if (window.LeafLockAccess.isApproved()) {
+          document.dispatchEvent(new CustomEvent("leaflock:portal-login"));
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,33 @@
+LL WHOLESALE — OPEN IN A SEPARATE CURSOR WINDOW / CHAT
+======================================================
+
+This folder is an ISOLATED COPY. It must never interfere with:
+
+  Production project:  C:\Users\wordo\leaflock-pharmacy-wholesale
+  Live website:        https://med.leaflock.com.au
+
+HOW TO OPEN (separate from LeafLock production)
+-----------------------------------------------
+1. In Cursor: File → Open Folder
+2. Choose: C:\Users\wordo\LL-Wholesale
+   OR double-click: LL-Wholesale.code-workspace
+3. Start a NEW chat in that window — do not mix with med.leaflock tasks
+
+RUN LOCALLY (this copy only — port 4280)
+----------------------------------------
+  scripts\start-local.cmd
+
+  Site:  http://localhost:4280/
+  Admin: http://localhost:4280/admin/
+
+WHAT IS ISOLATED
+----------------
+  - Own folder, own data/, own node_modules
+  - Own git repo (not linked to production deploy)
+  - Deploy scripts BLOCKED (won't touch Render production)
+  - Local .env.local → localhost:4280
+
+SAFE TO EXPERIMENT HERE
+-----------------------
+Change anything in THIS folder. Production stays untouched
+as long as you work in a separate Cursor window on LL-Wholesale.

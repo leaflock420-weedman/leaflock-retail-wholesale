@@ -1,0 +1,11 @@
+{
+  "id": "ll-wholesale",
+  "name": "LL Wholesale",
+  "isolated": true,
+  "blockProductionDeploy": true,
+  "blockProductionDomain": "med.leaflock.com.au",
+  "productionServiceId": "DO_NOT_USE_srv-d93nossvikkc73amkvv0",
+  "localPort": 4280,
+  "parentProject": "C:\\Users\\wordo\\leaflock-pharmacy-wholesale",
+  "openInstructions": "Open C:\\Users\\wordo\\LL-Wholesale in a SEPARATE Cursor window (File → Open Folder). Do not work on both projects in one chat."
+}
