@@ -100,6 +100,7 @@ const {
   catalogWritePath,
 } = require("./lib/catalog-csv");
 const { catalogForPortal, reloadCatalog } = require("./lib/wholesale-catalog");
+const auspost = require("./lib/auspost-pac");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4173;
@@ -857,7 +858,15 @@ app.get("/api/admin/setup-status", adminAuth, (req, res) => {
     catalogItems: catalogForPortal().reduce((n, cat) => n + cat.items.length, 0),
     catalogCategories: catalogForPortal().length,
     catalogSource: catalogSourceLabel(),
+    auspostPac: auspost.isConfigured(),
+    auspostFromPostcode: auspost.fromPostcode(),
   });
+});
+
+app.post("/api/admin/postage/quote", adminAuth, async (req, res) => {
+  const result = await auspost.quoteDomesticParcel(req.body || {});
+  if (!result.ok) return res.status(400).json({ error: result.error });
+  res.json(result);
 });
 
 app.get("/api/admin/catalog/download", adminAuth, (req, res) => {

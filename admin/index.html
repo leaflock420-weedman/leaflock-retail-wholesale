@@ -120,6 +120,24 @@
           <p id="catalogStatus" class="foot-note">—</p>
         </section>
 
+        <section class="panel">
+          <h2>Postage estimate (Australia Post)</h2>
+          <p class="foot-note">Check real AusPost parcel cost when packing an order. Stockist checkout still uses your flat rate ($25, free over $710 ex GST).</p>
+          <div class="postage-form">
+            <label><span>To postcode</span><input type="text" id="postageTo" inputmode="numeric" maxlength="4" placeholder="e.g. 2000"></label>
+            <label><span>Weight (kg)</span><input type="number" id="postageWeight" min="0.1" step="0.1" value="2"></label>
+            <label><span>L × W × H (cm)</span>
+              <span class="postage-dims">
+                <input type="number" id="postageLength" min="1" value="30" aria-label="Length cm">
+                <input type="number" id="postageWidth" min="1" value="25" aria-label="Width cm">
+                <input type="number" id="postageHeight" min="1" value="15" aria-label="Height cm">
+              </span>
+            </label>
+            <button type="button" id="postageQuoteBtn" class="btn-secondary btn-small">Get estimate</button>
+          </div>
+          <p id="postageResult" class="foot-note">Ship from postcode 4217 (Surfers Paradise).</p>
+        </section>
+
         <section class="panel setup-panel">
           <h2>System status</h2>
           <ul id="setupStatus" class="setup-list"></ul>

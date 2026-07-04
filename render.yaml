@@ -54,3 +54,7 @@ services:
         value: https://www.wholesale.leaflock.com.au
       - key: WHOLESALE_EMAIL_TO
         value: info@leaflock.com.au
+      - key: AUSPOST_PAC_API_KEY
+        sync: false
+      - key: AUSPOST_FROM_POSTCODE
+        value: "4217"

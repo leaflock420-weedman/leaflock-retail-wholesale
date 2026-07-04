@@ -101,6 +101,7 @@ function renderSetupStatus(status) {
     { ok: status.httpsOnly, label: status.httpsOnly ? "HTTPS security headers active" : "Dev mode" },
     { ok: status.complianceDocuments, label: status.complianceDocuments ? "Compliance PDFs ready (NDA + pack + TM cert)" : "Compliance PDFs missing on server" },
     { ok: (status.catalogItems || 0) > 0, label: `Order form catalogue: ${status.catalogItems || 0} products (${status.catalogSource || "unknown"})` },
+    { ok: status.auspostPac, label: status.auspostPac ? `Australia Post PAC connected (from ${status.auspostFromPostcode || "4217"})` : "Australia Post PAC not set" },
   ];
   list.innerHTML = items
     .map((i) => `<li><span class="${i.ok ? "setup-ok" : "setup-warn"}">${i.ok ? "✓" : "!"}</span> ${i.label}</li>`)
@@ -513,6 +514,48 @@ document.getElementById("catalogFileInput")?.addEventListener("change", async (e
     }
   } finally {
     input.value = "";
+  }
+});
+
+document.getElementById("postageQuoteBtn")?.addEventListener("click", async () => {
+  const resultEl = document.getElementById("postageResult");
+  const btn = document.getElementById("postageQuoteBtn");
+  const toPostcode = document.getElementById("postageTo")?.value?.trim();
+  if (!toPostcode) {
+    if (resultEl) resultEl.textContent = "Enter a destination postcode.";
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = "Calculating…";
+  try {
+    const res = await fetch("/api/admin/postage/quote", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token()}`,
+      },
+      body: JSON.stringify({
+        toPostcode,
+        weight: Number(document.getElementById("postageWeight")?.value || 2),
+        length: Number(document.getElementById("postageLength")?.value || 30),
+        width: Number(document.getElementById("postageWidth")?.value || 25),
+        height: Number(document.getElementById("postageHeight")?.value || 15),
+      }),
+    });
+    const quote = await res.json();
+    if (!res.ok) throw new Error(quote.error || "Quote failed");
+    if (resultEl) {
+      resultEl.textContent = `${quote.service}: $${quote.totalCost?.toFixed(2)} to ${quote.toPostcode}${quote.deliveryTime ? ` · ${quote.deliveryTime}` : ""}`;
+      resultEl.className = "foot-note catalog-status--ok";
+    }
+  } catch (err) {
+    if (resultEl) {
+      resultEl.textContent = err.message || "Could not get postage estimate.";
+      resultEl.className = "foot-note catalog-status--err";
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Get estimate";
   }
 });
 

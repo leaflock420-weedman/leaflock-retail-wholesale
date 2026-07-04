@@ -46,6 +46,8 @@ const RETAIL_ENV = {
   ANALYTICS_EMAIL_TO: "info@leaflock.com.au",
   ANALYTICS_EMAIL_FROM: "info@leaflock.com.au",
   WHOLESALE_EMAIL_TO: "info@leaflock.com.au",
+  AUSPOST_PAC_API_KEY: envJson.AUSPOST_PAC_API_KEY || "",
+  AUSPOST_FROM_POSTCODE: envJson.AUSPOST_FROM_POSTCODE || "4217",
   SITE_URL,
 };
 

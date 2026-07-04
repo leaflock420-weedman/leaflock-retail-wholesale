@@ -634,6 +634,44 @@
   color: #ff8a8a;
 }
 
+.postage-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 8px;
+}
+
+.postage-form label span {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.postage-form input {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  color: var(--ink);
+  background: var(--surface-elevated);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.postage-dims {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+#postageQuoteBtn {
+  width: auto;
+  margin: 0;
+  justify-self: start;
+}
+
 button.btn-secondary,
 #sendReportBtn,
 #logoutBtn,
