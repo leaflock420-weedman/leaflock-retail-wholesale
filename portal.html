@@ -49,12 +49,12 @@
           </details>
         </section>
 
-        <form class="order-form order-form--sheet" id="orderForm" novalidate>
-          <section class="section order-sheet-section" id="order-sheet">
+        <form class="portal-order-flow" id="orderForm" novalidate>
+          <section class="section pricing-section order-sheet-section" id="order-sheet">
             <div class="section-heading">
               <p class="eyebrow">Wholesale price list</p>
               <h2>Order sheet</h2>
-              <p class="section-lead">Enter quantities beside each line. Most products have no minimum order — MOQ shown only where it applies. Margins are your profit per unit at suggested retail.</p>
+              <p class="section-lead">Enter a quantity on any line — your cart total updates instantly at the bottom of the screen.</p>
             </div>
 
             <div class="order-sheet-toolbar">
@@ -65,86 +65,82 @@
               <p id="orderSheetSummary" class="order-sheet-summary" aria-live="polite">0 lines · $0.00 ex GST</p>
             </div>
 
-            <div class="order-sheet-wrap">
-              <table class="order-sheet pricing-table" id="orderSheetTable">
+            <div class="pricing-table-wrap">
+              <table class="pricing-table portal-order-table" id="orderSheetTable">
                 <thead>
                   <tr>
                     <th scope="col">SKU</th>
                     <th scope="col">Product</th>
                     <th scope="col">Wholesale ex GST</th>
-                    <th scope="col">Order qty</th>
+                    <th scope="col">Qty</th>
                     <th scope="col">RRP</th>
-                    <th scope="col">Your margin</th>
                     <th scope="col">Bulk / notes</th>
-                    <th scope="col">MOQ</th>
                     <th scope="col">Line total</th>
                   </tr>
                 </thead>
                 <tbody id="orderSheetBody">
-                  <tr><td colspan="9">Login to load the price list…</td></tr>
+                  <tr><td colspan="7">Login to load the price list…</td></tr>
                 </tbody>
               </table>
-
-              <div class="order-sheet-totals totals totals--sheet-footer" aria-live="polite">
-                <p id="pricingNote" class="order-sheet-totals__note">Add products to calculate pricing.</p>
-                <div class="order-sheet-totals__grid">
-                  <div><span>Subtotal ex GST</span><strong id="subtotal">$0.00</strong></div>
-                  <div><span>GST</span><strong id="gst">$0.00</strong></div>
-                  <div><span>Shipping</span><strong id="shipping">$0.00</strong></div>
-                  <div class="total-row"><span>Total inc GST</span><strong id="total">$0.00</strong></div>
-                </div>
-              </div>
             </div>
           </section>
 
-          <section class="section order-section order-checkout" id="order-checkout">
-            <div class="section-heading centered">
-              <p class="eyebrow">Checkout</p>
-              <h2>Submit your order</h2>
+          <div class="portal-cart-bar" id="portalCartBar" aria-live="polite">
+            <p id="pricingNote" class="portal-cart-bar__note">Add products to calculate pricing.</p>
+            <div class="portal-cart-bar__totals">
+              <div><span>Subtotal ex GST</span><strong id="subtotal">$0.00</strong></div>
+              <div><span>GST</span><strong id="gst">$0.00</strong></div>
+              <div><span>Shipping</span><strong id="shipping">$0.00</strong></div>
+              <div class="total-row"><span>Total inc GST</span><strong id="total">$0.00</strong></div>
             </div>
+          </div>
 
-            <div class="checkout-panel">
-            <fieldset class="form-block">
-              <legend>Retail store details</legend>
-              <div class="form-grid">
-                <label><span>Retail store / business name *</span><input type="text" id="businessName" required autocomplete="organization"></label>
-                <label><span>Your full name *</span><input type="text" id="fullName" required autocomplete="name"></label>
-                <label><span>Position / role</span><input type="text" id="role" autocomplete="organization-title"></label>
-                <label><span>ABN *</span><input type="text" id="abn" required></label>
-                <label><span>Business licence or registration number *</span><input type="text" id="storeReg" required></label>
-                <label><span>Email address *</span><input type="email" id="email" required autocomplete="email"></label>
-                <label><span>Phone number</span><input type="tel" id="phone" autocomplete="tel"></label>
-                <label class="wide"><span>Delivery address</span><textarea id="address" rows="2" autocomplete="street-address"></textarea></label>
+          <section class="section order-section" id="order-checkout">
+            <div class="order-form">
+              <div class="section-heading centered">
+                <p class="eyebrow">Checkout</p>
+                <h2>Submit your order</h2>
               </div>
-            </fieldset>
 
-            <fieldset class="form-block">
-              <legend>Bundle option</legend>
-              <label class="check-row">
-                <input type="checkbox" id="starterBundle">
-                <span id="starterBundleLabel">Starter retail store bundle</span>
-              </label>
-            </fieldset>
+              <fieldset class="form-block">
+                <legend>Retail store details</legend>
+                <div class="form-grid">
+                  <label><span>Retail store / business name *</span><input type="text" id="businessName" required autocomplete="organization"></label>
+                  <label><span>Your full name *</span><input type="text" id="fullName" required autocomplete="name"></label>
+                  <label><span>Position / role</span><input type="text" id="role" autocomplete="organization-title"></label>
+                  <label><span>ABN *</span><input type="text" id="abn" required></label>
+                  <label><span>Business licence or registration number *</span><input type="text" id="storeReg" required></label>
+                  <label><span>Email address *</span><input type="email" id="email" required autocomplete="email"></label>
+                  <label><span>Phone number</span><input type="tel" id="phone" autocomplete="tel"></label>
+                  <label class="wide"><span>Delivery address</span><textarea id="address" rows="2" autocomplete="street-address"></textarea></label>
+                </div>
+              </fieldset>
 
-            <label class="wide form-block"><span>Order notes</span><textarea id="notes" rows="3" placeholder="Delivery instructions, flavour mix requests, bulk enquiries…"></textarea></label>
+              <fieldset class="form-block">
+                <legend>Bundle option</legend>
+                <label class="check-row">
+                  <input type="checkbox" id="starterBundle">
+                  <span id="starterBundleLabel">Starter retail store bundle</span>
+                </label>
+              </fieldset>
 
-            <p class="checkout-totals-hint" aria-live="polite">Order totals update live in the bar beneath the price list as you enter quantities.</p>
+              <label class="wide form-block"><span>Order notes</span><textarea id="notes" rows="3" placeholder="Delivery instructions, flavour mix requests, bulk enquiries…"></textarea></label>
 
-            <button class="button primary full-width" type="submit">Submit wholesale order (invoice)</button>
+              <button class="button primary full-width" type="submit">Submit wholesale order (invoice)</button>
 
-            <div class="paypal-checkout">
-              <p id="paypalNote" class="pricing-placeholder">Instant PayPal checkout available after login.</p>
-              <div id="paypalButtons"></div>
-            </div>
+              <div class="paypal-checkout">
+                <p id="paypalNote" class="pricing-placeholder">Instant PayPal checkout available after login.</p>
+                <div id="paypalButtons"></div>
+              </div>
 
-            <div class="order-steps">
-              <h3>How ordering works</h3>
-              <ol>
-                <li>Enter quantities in the order sheet above.</li>
-                <li>Submit for invoice or pay instantly with PayPal.</li>
-                <li>We confirm stock and arrange shipping across Australia.</li>
-              </ol>
-            </div>
+              <div class="order-steps">
+                <h3>How ordering works</h3>
+                <ol>
+                  <li>Enter quantities in the order sheet above.</li>
+                  <li>Watch the cart bar update as you go.</li>
+                  <li>Submit for invoice or pay instantly with PayPal.</li>
+                </ol>
+              </div>
             </div>
           </section>
         </form>

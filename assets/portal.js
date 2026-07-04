@@ -90,7 +90,7 @@
     return Math.round((singlePacks * rate + threePacks * threeRate) * 100) / 100;
   }
 
-  function updateLineTotals() {
+  function updateLineTotals(subtotalForSummary) {
     const catalog = readCatalogQty();
     document.querySelectorAll("[data-line-total]").forEach((cell) => {
       const sku = cell.dataset.lineTotal;
@@ -120,10 +120,9 @@
       cell.textContent = money(Math.round(line * 100) / 100);
     });
 
-    const lines = Object.values(catalog).filter((n) => n > 0).length;
-    const calc = calculateOrder();
-    if (orderSheetSummary && calc) {
-      orderSheetSummary.textContent = `${lines} line${lines === 1 ? "" : "s"} · ${money(calc.subtotal)} ex GST`;
+    if (orderSheetSummary && subtotalForSummary !== undefined) {
+      const lines = Object.values(catalog).filter((n) => n > 0).length;
+      orderSheetSummary.textContent = `${lines} line${lines === 1 ? "" : "s"} · ${money(subtotalForSummary)} ex GST`;
     }
   }
 
@@ -137,7 +136,7 @@
       totals.shipping.textContent = money(b.shipping);
       totals.total.textContent = money(b.totalIncGstShipping);
       totals.note.textContent = `${b.label} — fixed price inc. GST and shipping.`;
-      updateLineTotals();
+      updateLineTotals(b.subtotal);
       return {
         starterBundle: true,
         singlePacks: 50,
@@ -181,7 +180,7 @@
     totals.shipping.textContent = money(shipping);
     totals.total.textContent = money(total);
     totals.note.textContent = notes.join(" ");
-    updateLineTotals();
+    updateLineTotals(subtotal);
 
     return {
       starterBundle: false,
@@ -207,27 +206,25 @@
 
     for (const section of pricing.orderSheet) {
       rows.push(
-        `<tr class="order-sheet__category pricing-table__category"><td colspan="9"><strong>${section.label}</strong></td></tr>`,
+        `<tr class="pricing-table__category"><td colspan="7"><strong>${section.label}</strong></td></tr>`,
       );
       for (const item of section.items) {
         sheetSkuIndex[item.sku] = item;
         const bulk = item.bulkNote || "—";
         rows.push(`
-          <tr class="order-sheet__row" data-sheet-row data-search="${`${item.sku} ${item.name} ${section.label} ${item.bulkNote || ""}`.toLowerCase()}">
-            <td class="order-sheet__sku"><code>${item.sku}</code></td>
-            <td class="order-sheet__product">
-              <img src="${item.image}" alt="" width="40" height="40" loading="lazy">
+          <tr class="portal-order-table__row" data-sheet-row data-search="${`${item.sku} ${item.name} ${section.label} ${item.bulkNote || ""}`.toLowerCase()}">
+            <td>${item.sku}</td>
+            <td class="portal-order-table__product">
+              <img src="${item.image}" alt="" width="48" height="48" loading="lazy">
               <span>${item.name}</span>
             </td>
-            <td class="order-sheet__money">${money(item.wholesale)}</td>
-            <td class="order-sheet__qty">
+            <td>${money(item.wholesale)}</td>
+            <td class="portal-order-table__qty">
               <input type="number" min="0" step="1" value="0" data-catalog-sku="${item.sku}" aria-label="Quantity for ${item.name}">
             </td>
-            <td class="order-sheet__money">${money(item.rrp)}</td>
-            <td class="order-sheet__margin">${marginLabel(item)}</td>
-            <td class="order-sheet__bulk">${bulk}</td>
-            <td class="order-sheet__moq">${item.moqLabel}</td>
-            <td class="order-sheet__line" data-line-total="${item.sku}">—</td>
+            <td>${money(item.rrp)}</td>
+            <td>${bulk}</td>
+            <td class="portal-order-table__line" data-line-total="${item.sku}">—</td>
           </tr>`);
       }
     }
@@ -251,10 +248,10 @@
       const hay = row.getAttribute("data-search") || "";
       row.hidden = q.length > 0 && !hay.includes(q);
     });
-    document.querySelectorAll(".order-sheet__category").forEach((row) => {
+    document.querySelectorAll(".pricing-table__category").forEach((row) => {
       let next = row.nextElementSibling;
       let anyVisible = false;
-      while (next && !next.classList.contains("order-sheet__category")) {
+      while (next && !next.classList.contains("pricing-table__category")) {
         if (!next.hidden) anyVisible = true;
         next = next.nextElementSibling;
       }
@@ -520,7 +517,7 @@
     paypalLoaded = false;
     if (paypalContainer) paypalContainer.innerHTML = "";
     if (orderSheetBody) {
-      orderSheetBody.innerHTML = '<tr><td colspan="9">Login to load the price list…</td></tr>';
+      orderSheetBody.innerHTML = '<tr><td colspan="7">Login to load the price list…</td></tr>';
     }
   });
 
