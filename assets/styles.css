@@ -1501,6 +1501,68 @@ textarea:focus {
   padding-bottom: 60px;
 }
 
+.partners-section--carousel {
+  padding-bottom: 72px;
+}
+
+.stockists-carousel {
+  max-width: 1440px;
+  margin: 0 auto;
+  background: #000;
+  border: 1px solid var(--line);
+}
+
+.stockists-carousel__viewport {
+  overflow: hidden;
+}
+
+.stockists-carousel__track {
+  display: flex;
+  transition: transform 520ms ease;
+}
+
+.stockists-carousel__slide {
+  flex: 0 0 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 3vw, 42px);
+  min-height: clamp(120px, 18vw, 180px);
+  padding: clamp(24px, 4vw, 42px) clamp(18px, 3vw, 36px);
+}
+
+.stockists-carousel__slide img {
+  width: auto;
+  height: clamp(42px, 7vw, 72px);
+  max-width: min(180px, 28vw);
+  object-fit: contain;
+}
+
+.stockists-carousel__dots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 0 18px;
+  background: #000;
+}
+
+.stockists-carousel__dot {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(246, 244, 239, 0.28);
+  cursor: pointer;
+  transition: background-color 200ms ease, transform 200ms ease;
+}
+
+.stockists-carousel__dot.is-active {
+  background: var(--ll-cream);
+  transform: scale(1.05);
+}
+
 .partner-logos {
   display: flex;
   flex-wrap: wrap;
