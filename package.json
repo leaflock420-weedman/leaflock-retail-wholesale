@@ -10,7 +10,8 @@
     "deploy:render": "node scripts/render-deploy.mjs",
     "test": "node scripts/run-full-test.mjs",
     "test:full": "node scripts/run-full-test.mjs",
-    "catalog:export": "node scripts/export-catalog-csv.mjs"
+    "catalog:export": "node scripts/export-catalog-csv.mjs",
+    "guide:pack": "python scripts/make-novice-guide-pack.py"
   },
   "engines": {
     "node": ">=18"

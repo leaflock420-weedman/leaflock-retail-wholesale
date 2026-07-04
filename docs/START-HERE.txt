@@ -1,0 +1,25 @@
+LEAFLOCK WHOLESALE — START HERE
+================================
+Folder created: 05 July 2026
+
+OPEN FIRST:
+  LeafLock-Wholesale-Complete-Guide.pdf
+  (Complete instructions for a beginner — print or keep on your desktop)
+
+MOST COMMON TASK — update order form prices:
+  1. Open wholesale-catalog-template.csv in Excel
+  2. Edit prices (keep the top header row unchanged)
+  3. Save As -> CSV (Comma delimited)
+  4. Go to https://www.wholesale.leaflock.com.au/admin/
+  5. Wholesale tab -> Upload updated CSV
+
+LINKS:
+  Admin:    https://www.wholesale.leaflock.com.au/admin/
+  Portal:   https://www.wholesale.leaflock.com.au/portal.html
+  Demo:     https://www.wholesale.leaflock.com.au/demo.html
+
+DEMO LOGIN:
+  Email:    demo@leaflock.com.au
+  Password: Demo-Stockist-2026!
+
+EMAIL: info@leaflock.com.au
