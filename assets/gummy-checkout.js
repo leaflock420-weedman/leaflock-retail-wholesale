@@ -28,6 +28,16 @@
   const successModal = document.querySelector("#checkoutSuccess");
   const closeSuccess = document.querySelector("#closeCheckoutSuccess");
   const pricingHint = document.querySelector("#pricingHint");
+  const customQtyPanel = document.querySelector("#customQtyPanel");
+  const flavourPicks = document.querySelector("#flavourPicks");
+  const packRadios = document.querySelectorAll('input[name="packPreset"]');
+
+  const PACK_PRESETS = {
+    "units-6": { gummyIndividual: 6, mixedCartons: 0 },
+    "units-12": { gummyIndividual: 12, mixedCartons: 0 },
+    "cartons-1": { gummyIndividual: 0, mixedCartons: 1 },
+    custom: null,
+  };
 
   function money(value) {
     return MONEY.format(value);
@@ -37,17 +47,87 @@
     return Math.max(0, Number.parseInt(el?.value || "0", 10));
   }
 
-  function calculateLocal() {
-    if (!pricing) return null;
+  function selectedPack() {
+    return document.querySelector('input[name="packPreset"]:checked')?.value || "units-6";
+  }
 
-    const gummyIndividual = quantity(fields.gummyIndividual);
-    const mixedCartons = quantity(fields.mixedCartons);
+  function totalsFromCounts(gummyIndividual, mixedCartons) {
     const subtotal =
       gummyIndividual * pricing.individual.wholesale +
       mixedCartons * pricing.mixedCarton.cartonSubtotal;
     const gst = subtotal * pricing.gstRate;
     const shipping = subtotal > 0 ? pricing.shipping : 0;
-    const total = subtotal + gst + shipping;
+    return { subtotal, gst, shipping, total: subtotal + gst + shipping };
+  }
+
+  function updatePackPriceLabels() {
+    if (!pricing) return;
+    const el6 = document.querySelector("#packPrice6");
+    const el12 = document.querySelector("#packPrice12");
+    const elCarton = document.querySelector("#packPriceCarton");
+    if (el6) el6.textContent = `${money(totalsFromCounts(6, 0).total)} inc`;
+    if (el12) el12.textContent = `${money(totalsFromCounts(12, 0).total)} inc`;
+    if (elCarton) elCarton.textContent = `${money(totalsFromCounts(0, 1).total)} inc`;
+  }
+
+  function syncFlavoursFromPicks() {
+    const selected = [...flavourPicks.querySelectorAll('input[type="checkbox"]:checked')].map(
+      (el) => el.value,
+    );
+    if (fields.flavours) {
+      fields.flavours.value = selected.join(", ");
+    }
+    return selected;
+  }
+
+  function applyPackPreset(packKey) {
+    const preset = PACK_PRESETS[packKey];
+    const isCustom = packKey === "custom";
+
+    if (customQtyPanel) customQtyPanel.hidden = !isCustom;
+
+    if (isCustom) {
+      calculateLocal();
+      return;
+    }
+
+    if (preset && fields.gummyIndividual && fields.mixedCartons) {
+      fields.gummyIndividual.value = preset.gummyIndividual;
+      fields.mixedCartons.value = preset.mixedCartons;
+    }
+
+    if (packKey === "cartons-1" && flavourPicks) {
+      flavourPicks.querySelectorAll('input[type="checkbox"]').forEach((el) => {
+        el.checked = true;
+        el.disabled = true;
+      });
+    } else if (flavourPicks) {
+      flavourPicks.querySelectorAll('input[type="checkbox"]').forEach((el) => {
+        el.disabled = false;
+      });
+    }
+
+    syncFlavoursFromPicks();
+    calculateLocal();
+  }
+
+  function calculateLocal() {
+    if (!pricing) return null;
+
+    const pack = selectedPack();
+    let gummyIndividual;
+    let mixedCartons;
+
+    if (pack === "custom") {
+      gummyIndividual = quantity(fields.gummyIndividual);
+      mixedCartons = quantity(fields.mixedCartons);
+    } else {
+      const preset = PACK_PRESETS[pack] || PACK_PRESETS["units-6"];
+      gummyIndividual = preset.gummyIndividual;
+      mixedCartons = preset.mixedCartons;
+    }
+
+    const { subtotal, gst, shipping, total } = totalsFromCounts(gummyIndividual, mixedCartons);
 
     totals.subtotal.textContent = money(subtotal);
     totals.gst.textContent = money(gst);
@@ -58,7 +138,7 @@
         ? mixedCartons > 0
           ? "Mixed carton wholesale rate applied."
           : "Gummy mix wholesale pricing applied."
-        : "Add gummy mix to see your total.";
+        : "Select a pack or add a custom quantity.";
 
     return { gummyIndividual, mixedCartons, subtotal, gst, shipping, total };
   }
@@ -67,18 +147,31 @@
     const params = new URLSearchParams(window.location.search);
     const units = params.get("units");
     const cartons = params.get("cartons");
-    if (units != null && fields.gummyIndividual) {
-      fields.gummyIndividual.value = Math.max(0, Number.parseInt(units, 10) || 0);
+    if (cartons != null) {
+      document.querySelector('input[name="packPreset"][value="cartons-1"]')?.click();
+      return;
     }
-    if (cartons != null && fields.mixedCartons) {
-      fields.mixedCartons.value = Math.max(0, Number.parseInt(cartons, 10) || 0);
+    if (units === "12") {
+      document.querySelector('input[name="packPreset"][value="units-12"]')?.click();
+      return;
+    }
+    if (units === "6") {
+      document.querySelector('input[name="packPreset"][value="units-6"]')?.click();
+      return;
+    }
+    if (units != null) {
+      const custom = document.querySelector('input[name="packPreset"][value="custom"]');
+      if (custom) custom.checked = true;
+      if (fields.gummyIndividual) fields.gummyIndividual.value = Math.max(0, Number.parseInt(units, 10) || 0);
+      applyPackPreset("custom");
     }
   }
 
   function orderPayload() {
+    const calc = calculateLocal();
     return {
-      gummyIndividual: quantity(fields.gummyIndividual),
-      mixedCartons: quantity(fields.mixedCartons),
+      gummyIndividual: calc?.gummyIndividual || 0,
+      mixedCartons: calc?.mixedCartons || 0,
       flavours: fields.flavours?.value || "",
       contact: {
         businessName: fields.businessName?.value || "",
@@ -126,7 +219,8 @@
       const config = await api("/api/public/gummy-checkout/paypal-config");
       if (!config.enabled) {
         if (paypalNote) {
-          paypalNote.textContent = "PayPal is not configured yet — email info@leaflock.com.au to complete your order.";
+          paypalNote.textContent =
+            "PayPal not configured locally — selection and totals still work. Add PAYPAL_CLIENT_ID on Render for live pay.";
         }
         return;
       }
@@ -141,8 +235,10 @@
           style: { layout: "vertical", color: "gold", shape: "rect", label: "paypal" },
           createOrder: async () => {
             if (!form.reportValidity()) throw new Error("Complete your store details first");
+            const flavours = syncFlavoursFromPicks();
+            if (!flavours.length) throw new Error("Select at least one flavour");
             const calc = calculateLocal();
-            if (!calc || calc.total <= 0) throw new Error("Add at least one gummy mix product");
+            if (!calc || calc.total <= 0) throw new Error("Select a pack with at least one product");
 
             const orderData = await api("/api/public/gummy-checkout/orders", {
               method: "POST",
@@ -180,6 +276,7 @@
   async function boot() {
     try {
       pricing = await api("/api/public/gummy-checkout/pricing");
+      updatePackPriceLabels();
       if (pricingHint) {
         pricingHint.textContent = `$${pricing.individual.wholesale.toFixed(2)} ex GST per pouch · $${pricing.mixedCarton.cartonSubtotal.toFixed(2)} ex GST per mixed carton (24) · $${pricing.shipping} shipping · GST on subtotal`;
       }
@@ -188,10 +285,22 @@
       console.error(err);
     }
 
-    applyUrlPreset();
-    calculateLocal();
+    packRadios.forEach((radio) => {
+      radio.addEventListener("change", () => applyPackPreset(radio.value));
+    });
 
-    document.querySelectorAll("#gummyCheckoutForm input, #gummyCheckoutForm textarea").forEach((el) => {
+    flavourPicks?.querySelectorAll('input[type="checkbox"]').forEach((el) => {
+      el.addEventListener("change", () => {
+        syncFlavoursFromPicks();
+        if (!syncFlavoursFromPicks().length) {
+          totals.note.textContent = "Select at least one flavour.";
+        } else {
+          calculateLocal();
+        }
+      });
+    });
+
+    document.querySelectorAll("#gummyCheckoutForm input:not([name='packPreset']), #gummyCheckoutForm textarea").forEach((el) => {
       el.addEventListener("input", calculateLocal);
       el.addEventListener("change", calculateLocal);
     });
@@ -199,6 +308,12 @@
     closeSuccess?.addEventListener("click", () => {
       if (successModal) successModal.hidden = true;
     });
+
+    applyUrlPreset();
+    if (!window.location.search) {
+      applyPackPreset("units-6");
+    }
+    syncFlavoursFromPicks();
 
     await setupPayPal();
   }

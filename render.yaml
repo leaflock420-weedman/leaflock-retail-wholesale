@@ -49,7 +49,7 @@ services:
       - key: PAYPAL_CLIENT_SECRET
         sync: false
       - key: PAYPAL_MODE
-        value: sandbox
+        value: live
       - key: SITE_URL
         value: https://leaflock-retail-wholesale.onrender.com
       - key: WHOLESALE_EMAIL_TO

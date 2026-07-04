@@ -1838,3 +1838,102 @@ dd small {
   color: var(--leaf-dark);
   font-weight: 700;
 }
+
+.gummy-pack-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.gummy-pack-option {
+  cursor: pointer;
+}
+
+.gummy-pack-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.gummy-pack-option__inner {
+  display: grid;
+  gap: 4px;
+  height: 100%;
+  padding: 14px;
+  background: var(--white);
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.gummy-pack-option__inner strong {
+  font-size: 0.95rem;
+}
+
+.gummy-pack-option__inner span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.gummy-pack-option__inner em {
+  margin-top: 4px;
+  color: var(--leaf-dark);
+  font-style: normal;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.gummy-pack-option input:checked + .gummy-pack-option__inner {
+  border-color: var(--candy-strawberry);
+  box-shadow: 0 0 0 3px rgba(255, 77, 141, 0.15);
+  background: var(--tint-strawberry);
+}
+
+.gummy-flavour-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gummy-flavour-pick {
+  cursor: pointer;
+}
+
+.gummy-flavour-pick input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.gummy-flavour-pick span {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 2px solid var(--line);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.gummy-flavour-pick input:checked + span {
+  color: var(--white);
+  border-color: transparent;
+}
+
+.gummy-flavour-pick--blue input:checked + span { background: var(--candy-blue); color: var(--ink); }
+.gummy-flavour-pick--grape input:checked + span { background: var(--candy-grape); }
+.gummy-flavour-pick--berry input:checked + span { background: var(--candy-strawberry); }
+.gummy-flavour-pick--custom input:checked + span { background: var(--candy-lemon); color: var(--ink); }
+
+.gummy-flavour-pick input:disabled + span {
+  opacity: 0.85;
+}
+
+@media (max-width: 520px) {
+  .gummy-pack-grid {
+    grid-template-columns: 1fr;
+  }
+}
