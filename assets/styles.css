@@ -2574,6 +2574,39 @@ textarea {
   max-width: 720px;
 }
 
+.gummy-price-callout {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--muted);
+  background: rgba(149, 208, 93, 0.08);
+  border: 1px solid rgba(149, 208, 93, 0.28);
+  border-radius: 8px;
+}
+
+.gummy-price-callout strong {
+  color: var(--ll-green);
+}
+
+.gummy-price-was {
+  text-decoration: line-through;
+  opacity: 0.72;
+}
+
+.gummy-savings-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ll-ink);
+  background: var(--ll-green);
+  border-radius: 999px;
+}
+
 .gummy-checkout-hint {
   margin: 8px 0 0;
   font-size: 0.86rem;

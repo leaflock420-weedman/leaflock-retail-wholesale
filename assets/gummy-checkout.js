@@ -53,13 +53,31 @@
     return document.querySelector('input[name="packPreset"]:checked')?.value || "units-6";
   }
 
+  function individualUnitRate(quantity) {
+    const minUnits = pricing.bulk?.minUnits || 6;
+    if (quantity >= minUnits) return pricing.bulk.wholesalePerUnit;
+    return pricing.individual.wholesale;
+  }
+
   function totalsFromCounts(gummyIndividual, mixedCartons) {
-    const subtotal =
-      gummyIndividual * pricing.individual.wholesale +
-      mixedCartons * pricing.mixedCarton.cartonSubtotal;
-    const gst = subtotal * pricing.gstRate;
+    const subtotal = Math.round(
+      (gummyIndividual * individualUnitRate(gummyIndividual) +
+        mixedCartons * pricing.mixedCarton.cartonSubtotal) *
+        100,
+    ) / 100;
+    const gst = Math.round(subtotal * pricing.gstRate * 100) / 100;
     const shipping = subtotal > 0 ? pricing.shipping : 0;
-    return { subtotal, gst, shipping, total: subtotal + gst + shipping };
+    const total = Math.round((subtotal + gst + shipping) * 100) / 100;
+    return { subtotal, gst, shipping, total };
+  }
+
+  function updatePricingCallout() {
+    const el = document.querySelector("#gummyPricingCallout");
+    if (!el || !pricing) return;
+    const regular = pricing.individual.wholesale.toFixed(2);
+    const bulk = pricing.bulk.wholesalePerUnit.toFixed(2);
+    const save = pricing.bulk.savingsPerUnit.toFixed(2);
+    el.innerHTML = `Regular <span class="gummy-price-was">$${regular}</span> → bulk <strong>$${bulk}</strong> each on ${pricing.bulk.minUnits}+ pouches or mixed cartons. <span class="gummy-savings-badge">Save $${save} per unit</span>`;
   }
 
   function updatePackPriceLabels() {
@@ -135,11 +153,14 @@
     totals.gst.textContent = money(gst);
     totals.shipping.textContent = money(shipping);
     totals.total.textContent = money(total);
+    const minBulk = pricing.bulk?.minUnits || 6;
     totals.note.textContent =
       subtotal > 0
         ? mixedCartons > 0
-          ? "Mixed carton wholesale rate applied."
-          : "Gummy mix wholesale pricing applied."
+          ? "Mixed carton rate ($12.99/unit ex GST) applied."
+          : gummyIndividual >= minBulk
+            ? `Bulk rate ($${pricing.bulk.wholesalePerUnit.toFixed(2)}/unit ex GST) applied.`
+            : `Standard rate ($${pricing.individual.wholesale.toFixed(2)}/unit ex GST) — order ${minBulk}+ for bulk savings.`
         : "Select a pack or add a custom quantity.";
 
     return { gummyIndividual, mixedCartons, subtotal, gst, shipping, total };
@@ -309,8 +330,9 @@
     try {
       pricing = await api("/api/public/gummy-checkout/pricing");
       updatePackPriceLabels();
+      updatePricingCallout();
       if (pricingHint) {
-        pricingHint.textContent = `$${pricing.shipping} flat-rate shipping · 10% GST on subtotal`;
+        pricingHint.textContent = `Ex GST · $${pricing.shipping} shipping · 10% GST on subtotal`;
       }
     } catch (err) {
       if (pricingHint) pricingHint.textContent = "Could not load pricing.";
