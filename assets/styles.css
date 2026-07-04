@@ -461,11 +461,34 @@ dd {
 }
 
 .pricing-table th {
-  color: var(--leaf-dark);
-  background: var(--tint-strawberry);
+  color: var(--ll-cream);
+  background: rgba(149, 208, 93, 0.18);
   font-size: 0.86rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+
+.pricing-table__category td {
+  background: rgba(149, 208, 93, 0.1);
+  color: var(--leaf);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.catalog-order-blocks label span small {
+  color: var(--ll-muted);
+  font-weight: 600;
+}
+
+.catalog-order-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 920px) {
+  .catalog-order-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .pricing-table tr:last-child td {

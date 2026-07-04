@@ -327,6 +327,7 @@ app.post("/api/orders", portalAuth, (req, res) => {
     gummyIndividual: Number(body.gummyIndividual) || 0,
     mixedCartons: Number(body.mixedCartons) || 0,
     starterBundle: Boolean(body.starterBundle),
+    catalog: body.catalog && typeof body.catalog === "object" ? body.catalog : {},
   };
 
   const totals = calculateOrder(lineItems);

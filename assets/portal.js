@@ -44,6 +44,36 @@
     return Math.max(0, Number.parseInt(el?.value || "0", 10));
   }
 
+  function readCatalogQty() {
+    const catalog = {};
+    document.querySelectorAll("[data-catalog-sku]").forEach((input) => {
+      const sku = input.dataset.catalogSku;
+      const qty = Math.max(0, Number.parseInt(input.value || "0", 10));
+      if (sku && qty > 0) catalog[sku] = qty;
+    });
+    return catalog;
+  }
+
+  function catalogSubtotal(catalog) {
+    if (!pricing?.catalog) return { subtotal: 0, lines: [] };
+    const bySku = {};
+    for (const category of pricing.catalog) {
+      for (const item of category.items) {
+        bySku[item.sku] = item;
+      }
+    }
+    let subtotal = 0;
+    const lines = [];
+    for (const [sku, qty] of Object.entries(catalog)) {
+      const item = bySku[sku];
+      if (!item || qty <= 0) continue;
+      const lineTotal = Math.round(item.wholesale * qty * 100) / 100;
+      subtotal += lineTotal;
+      lines.push({ sku, name: item.name, qty, lineTotal });
+    }
+    return { subtotal: Math.round(subtotal * 100) / 100, lines };
+  }
+
   function calculateOrder() {
     if (!pricing || !totals.subtotal) return null;
 
@@ -60,6 +90,8 @@
         threePacks: 50,
         gummyIndividual: 0,
         mixedCartons: 1,
+        catalog: {},
+        catalogLines: [],
         subtotal: b.subtotal,
         gst: b.gst,
         shipping: b.shipping,
@@ -89,16 +121,22 @@
       gummyIndividual * pricing.gummy.individual.wholesale +
       mixedCartons * pricing.gummy.mixedCarton.units * pricing.gummy.mixedCarton.wholesalePerUnit;
 
-    const subtotal = singlesSubtotal + threePackSubtotal + gummySubtotal;
-    const gst = subtotal * pricing.gstRate;
+    const catalog = readCatalogQty();
+    const catalogTotals = catalogSubtotal(catalog);
+    const subtotal =
+      Math.round((singlesSubtotal + threePackSubtotal + gummySubtotal + catalogTotals.subtotal) * 100) / 100;
+    const gst = Math.round(subtotal * pricing.gstRate * 100) / 100;
     const shipping = subtotal > 0 ? pricing.shipping : 0;
-    const total = subtotal + gst + shipping;
+    const total = Math.round((subtotal + gst + shipping) * 100) / 100;
 
     const notes = [];
     if (totalHumidityPacks >= pricing.humidity.single.volumeThreshold) {
       notes.push("500+ humidity pack rate applied.");
     }
     if (mixedCartons > 0) notes.push("Mixed carton gummy rate applied.");
+    if (catalogTotals.lines.length > 0) {
+      notes.push(`${catalogTotals.lines.length} catalogue line(s) included.`);
+    }
     if (!notes.length) {
       notes.push(subtotal > 0 ? "Standard wholesale pricing applied." : "Add products to calculate pricing.");
     }
@@ -115,12 +153,67 @@
       threePacks,
       gummyIndividual,
       mixedCartons,
+      catalog,
+      catalogLines: catalogTotals.lines,
       subtotal,
       gst,
       shipping,
       total,
       notes,
     };
+  }
+
+  function renderCatalogTable() {
+    const tableBody = document.querySelector("#catalogTableBody");
+    if (!tableBody || !pricing?.catalog) return;
+
+    const rows = [];
+    for (const category of pricing.catalog) {
+      rows.push(
+        `<tr class="pricing-table__category"><td colspan="5"><strong>${category.label}</strong></td></tr>`,
+      );
+      for (const item of category.items) {
+        const bulk = item.bulkNote || item.note || (item.isBundle ? "Bundle price" : "—");
+        rows.push(
+          `<tr>
+            <td>${item.sku}</td>
+            <td>${item.name}</td>
+            <td>${money(item.wholesale)}</td>
+            <td>${bulk}</td>
+            <td>${money(item.rrp)}</td>
+          </tr>`,
+        );
+      }
+    }
+    tableBody.innerHTML = rows.join("");
+  }
+
+  function renderCatalogOrderBlocks() {
+    const mount = document.querySelector("#catalogOrderBlocks");
+    if (!mount || !pricing?.catalog) return;
+
+    const blocks = pricing.catalog.map((category) => {
+      const fields = category.items
+        .map(
+          (item) => `
+          <label>
+            <span>${item.name} <small>(${item.sku})</small></span>
+            <input type="number" min="0" step="1" value="0" data-catalog-sku="${item.sku}">
+          </label>`,
+        )
+        .join("");
+      return `
+        <fieldset class="form-block product-order-block">
+          <legend>${category.label}</legend>
+          <div class="form-grid catalog-order-grid">${fields}</div>
+        </fieldset>`;
+    });
+
+    mount.innerHTML = blocks.join("");
+    mount.querySelectorAll("input[data-catalog-sku]").forEach((input) => {
+      input.addEventListener("input", calculateOrder);
+      input.addEventListener("change", calculateOrder);
+    });
   }
 
   function renderPricing() {
@@ -166,10 +259,16 @@
     const tableBody = document.querySelector("#pricingTableBody");
     if (tableBody) {
       tableBody.innerHTML = `
-        <tr><td>Humidity Pack Single</td><td>${money(p.humidity.single.wholesale)}</td><td>${money(p.humidity.single.volume)} on 500+</td><td>${money(p.humidity.single.srp)}</td></tr>
-        <tr><td>Humidity Pack 3-pack</td><td>${money(p.humidity.threePack.wholesale)}</td><td>Volume on 500+ total packs</td><td>${money(p.humidity.threePack.srp)}</td></tr>
-        <tr><td>DIY Gummy Mix 90g</td><td>${money(p.gummy.individual.wholesale)}</td><td>${money(p.gummy.mixedCarton.wholesalePerUnit)} mixed carton of 24</td><td>${money(p.gummy.individual.srp)}</td></tr>`;
+        <tr class="pricing-table__category"><td colspan="5"><strong>Humidity packs</strong></td></tr>
+        <tr><td>HP-SINGLE</td><td>Humidity Pack Single</td><td>${money(p.humidity.single.wholesale)}</td><td>${money(p.humidity.single.volume)} on 500+ packs</td><td>${money(p.humidity.single.srp)}</td></tr>
+        <tr><td>HP-3PACK</td><td>Humidity Pack 3-pack</td><td>${money(p.humidity.threePack.wholesale)}</td><td>Volume on 500+ total packs</td><td>${money(p.humidity.threePack.srp)}</td></tr>
+        <tr class="pricing-table__category"><td colspan="5"><strong>Gummy mix 90g</strong></td></tr>
+        <tr><td>GUM-90</td><td>DIY Gummy Mix 90g (per unit)</td><td>${money(p.gummy.individual.wholesale)}</td><td>—</td><td>${money(p.gummy.individual.srp)}</td></tr>
+        <tr><td>GUM-90-BUN</td><td>Mixed carton of 24</td><td>${money(p.gummy.mixedCarton.units * p.gummy.mixedCarton.wholesalePerUnit)}</td><td>${money(p.gummy.mixedCarton.wholesalePerUnit)}/unit</td><td>${money(p.gummy.individual.srp)}</td></tr>`;
     }
+
+    renderCatalogTable();
+    renderCatalogOrderBlocks();
 
     const bundleLabel = document.querySelector("#starterBundleLabel");
     if (bundleLabel) {
@@ -205,6 +304,7 @@
       gummyIndividual: calc?.gummyIndividual ?? 0,
       mixedCartons: calc?.mixedCartons ?? 0,
       starterBundle: calc?.starterBundle ?? false,
+      catalog: calc?.catalog ?? {},
       flavours: fields.flavours?.value || "",
       notes: fields.notes?.value || "",
       contact: {

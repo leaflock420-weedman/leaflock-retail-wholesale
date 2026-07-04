@@ -75,10 +75,28 @@
           <div class="pricing-table-wrap">
             <table class="pricing-table">
               <thead>
-                <tr><th>Product</th><th>Wholesale ex GST</th><th>Volume price</th><th>Suggested retail</th></tr>
+                <tr><th>SKU</th><th>Product</th><th>Wholesale ex GST</th><th>Bulk / notes</th><th>RRP</th></tr>
               </thead>
               <tbody id="pricingTableBody">
-                <tr><td colspan="4">Login to view pricing</td></tr>
+                <tr><td colspan="5">Login to view pricing</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section" id="catalog-pricing">
+          <div class="section-heading">
+            <p class="eyebrow">Full catalogue</p>
+            <h2>Wholesale price list</h2>
+            <p class="section-lead">Replenishment pricing from your July 2026 order form. Humidity packs listed above. More bulk deals can be added as you finalise them.</p>
+          </div>
+          <div class="pricing-table-wrap">
+            <table class="pricing-table pricing-table--catalog">
+              <thead>
+                <tr><th>SKU</th><th>Product</th><th>Wholesale ex GST</th><th>Bulk / notes</th><th>RRP</th></tr>
+              </thead>
+              <tbody id="catalogTableBody">
+                <tr><td colspan="5">Login to view catalogue</td></tr>
               </tbody>
             </table>
           </div>
@@ -121,6 +139,8 @@
                 <label class="wide"><span>Preferred flavours</span><input type="text" id="flavours" placeholder="Blue Raspberry, Grape, Strawberry, CYO"></label>
               </div>
             </fieldset>
+
+            <div id="catalogOrderBlocks" class="catalog-order-blocks" aria-label="Catalogue order quantities"></div>
 
             <fieldset class="form-block">
               <legend>Bundle &amp; notes</legend>
