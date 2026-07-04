@@ -137,6 +137,9 @@ app.use((req, res, next) => {
   const isGummyCheckout = req.path === "/gummy-checkout.html";
   const cspCore =
     "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.paypal.com https://www.sandbox.paypal.com; frame-src https://www.paypal.com https://www.sandbox.paypal.com; connect-src 'self' https://www.paypal.com https://www.sandbox.paypal.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com";
+  const frameAncestors = isGummyCheckout
+    ? "frame-ancestors https://mail.google.com https://*.google.com https://leaflock.com.au https://*.leaflock.com.au *"
+    : "";
 
   res.setHeader("X-Content-Type-Options", "nosniff");
   if (!isGummyCheckout) {
@@ -149,7 +152,7 @@ app.use((req, res, next) => {
   }
   res.setHeader(
     "Content-Security-Policy",
-    isGummyCheckout ? `${cspCore}; frame-ancestors *` : cspCore,
+    isGummyCheckout ? `${cspCore}; ${frameAncestors}` : cspCore,
   );
   next();
 });

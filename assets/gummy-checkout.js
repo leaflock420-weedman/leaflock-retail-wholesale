@@ -279,7 +279,19 @@
     }
   }
 
+  function applyEmbedMode() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("embed") !== "1") return;
+    document.body.dataset.embed = "1";
+    document.body.classList.add("gummy-checkout-page--embed");
+    const intro = document.querySelector(".gummy-checkout-intro");
+    if (intro) intro.hidden = true;
+    const foot = document.querySelector(".gummy-checkout-foot");
+    if (foot) foot.hidden = true;
+  }
+
   async function boot() {
+    applyEmbedMode();
     try {
       pricing = await api("/api/public/gummy-checkout/pricing");
       updatePackPriceLabels();

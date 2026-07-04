@@ -1759,6 +1759,21 @@ dd small {
   min-height: 100vh;
 }
 
+.gummy-checkout-page--embed {
+  min-height: 0;
+  background: #ffffff;
+}
+
+.gummy-checkout-page--embed .gummy-checkout-header {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.gummy-checkout-page--embed .gummy-checkout-main {
+  padding-top: 16px;
+  padding-bottom: 24px;
+}
+
 .gummy-checkout-header {
   display: flex;
   align-items: center;
