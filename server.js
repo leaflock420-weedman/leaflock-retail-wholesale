@@ -348,11 +348,16 @@ app.post("/api/applications", (req, res) => {
       return res.status(400).json({ error: `Missing field: ${field}` });
     }
   }
-  const application = submitApplication(body);
-  notifyAdminNewApplication(application).catch((err) => {
-    console.warn("[mail] application notify:", err.message);
-  });
-  res.status(201).json({ id: application.id, status: application.status });
+  try {
+    const application = submitApplication(body);
+    notifyAdminNewApplication(application).catch((err) => {
+      console.warn("[mail] application notify:", err.message);
+    });
+    res.status(201).json({ id: application.id, status: application.status });
+  } catch (err) {
+    console.error("[applications] submit:", err);
+    res.status(500).json({ error: "Could not save application. Email info@leaflock.com.au" });
+  }
 });
 
 // ——— Orders ———
