@@ -2635,6 +2635,32 @@ textarea {
   margin-top: 8px;
 }
 
+.gummy-checkout-terms {
+  margin: 10px 0 0;
+  font-size: 0.7rem;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.gummy-checkout-terms label {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.gummy-checkout-terms input {
+  margin: 1px 0 0;
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.gummy-checkout-terms a {
+  color: var(--leaf-dark);
+  font-weight: 700;
+}
+
 .gummy-checkout-pay {
   margin-top: 20px;
   padding-top: 20px;

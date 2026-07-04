@@ -159,6 +159,14 @@ app.use((req, res, next) => {
   next();
 });
 app.use(blockSensitiveStatic);
+
+// Never cache public gummy checkout — email links must always get the no-login page.
+app.get("/gummy-checkout.html", (req, res) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  res.setHeader("Pragma", "no-cache");
+  res.sendFile(path.join(ROOT, "gummy-checkout.html"));
+});
+
 app.use(express.static(ROOT));
 
 function rateLimitKey(key, max) {
