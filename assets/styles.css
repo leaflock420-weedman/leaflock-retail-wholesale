@@ -1031,6 +1031,42 @@ input:focus {
   border-top: 1px solid var(--line);
 }
 
+.legal-doc__disclosure {
+  margin-top: 36px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(15, 17, 16, 0.08);
+  font-size: 0.5rem;
+  line-height: 1.45;
+  color: rgba(63, 73, 57, 0.72);
+}
+
+.legal-doc__disclosure-heading {
+  margin: 0 0 8px;
+  font-size: 0.48rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(63, 73, 57, 0.55);
+}
+
+.legal-doc__disclosure p {
+  margin: 0 0 6px;
+}
+
+.legal-doc__disclosure p:last-child {
+  margin-bottom: 0;
+}
+
+.legal-doc__disclosure strong {
+  font-weight: 600;
+  color: rgba(63, 73, 57, 0.78);
+}
+
+.legal-doc__disclosure a {
+  color: inherit;
+  text-decoration: underline;
+}
+
 .check-row--required {
   border: 1px solid rgba(149, 208, 93, 0.35);
 }
