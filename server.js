@@ -497,23 +497,17 @@ app.post("/api/paypal/capture-order", portalAuth, async (req, res) => {
   }
 });
 
-// ——— Gummy checkout (portal login required — wholesale pricing is never public) ———
+// ——— Public gummy checkout (email links, confectionery stores — no portal login) ———
 
-function isPortalGummyOrder(order) {
-  return order?.source === "gummy-checkout";
+function isPublicGummyOrder(order) {
+  return order?.source === "gummy-checkout" && (order.pharmacyId == null || order.pharmacyId === "");
 }
 
-function assertPortalGummyOrder(order, pharmacyId) {
-  if (!order || !isPortalGummyOrder(order)) return false;
-  if (pharmacyId && order.pharmacyId && order.pharmacyId !== pharmacyId) return false;
-  return true;
-}
-
-app.get("/api/gummy-checkout/pricing", portalAuth, noStoreJson, (req, res) => {
+app.get("/api/public/gummy-checkout/pricing", (req, res) => {
   res.json(gummyPricingPublic());
 });
 
-app.get("/api/gummy-checkout/paypal-config", portalAuth, noStoreJson, (req, res) => {
+app.get("/api/public/gummy-checkout/paypal-config", (req, res) => {
   res.json({
     enabled: paypal.isConfigured(),
     clientId: paypal.clientId(),
@@ -522,7 +516,7 @@ app.get("/api/gummy-checkout/paypal-config", portalAuth, noStoreJson, (req, res)
   });
 });
 
-app.post("/api/gummy-checkout/orders", portalAuth, (req, res) => {
+app.post("/api/public/gummy-checkout/orders", (req, res) => {
   const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
   if (!rateLimitKey(`gummy-checkout:${ip}`, GUMMY_CHECKOUT_RATE_MAX)) {
     return res.status(429).json({ error: "Too many checkout attempts. Try again shortly." });
@@ -558,17 +552,17 @@ app.post("/api/gummy-checkout/orders", portalAuth, (req, res) => {
   }
 
   const order = createOrder({
-    pharmacyId: req.portalPharmacy.id,
-    pharmacyName: req.portalPharmacy.businessName || contact.businessName,
+    pharmacyId: null,
+    pharmacyName: contact.businessName,
     contact: { ...contact, flavours: body.flavours || "" },
     lineItems,
     totals,
-    notes: body.notes || "Portal gummy checkout",
+    notes: body.notes || "Public gummy checkout",
     paymentMethod: "paypal",
     source: "gummy-checkout",
     termsAccepted: true,
     termsVersion: TERMS_VERSION,
-    paymentTerms: paymentTermsLabel(req.portalPharmacy, { paymentMethod: "paypal" }),
+    paymentTerms: paymentTermsLabel(null, { paymentMethod: "paypal" }),
   });
 
   res.status(201).json({
@@ -580,14 +574,14 @@ app.post("/api/gummy-checkout/orders", portalAuth, (req, res) => {
   });
 });
 
-app.post("/api/gummy-checkout/paypal/create", portalAuth, async (req, res) => {
+app.post("/api/public/gummy-checkout/paypal/create", async (req, res) => {
   if (!paypal.isConfigured()) {
     return res.status(503).json({ error: "PayPal not configured" });
   }
 
   const { orderId } = req.body || {};
   const order = findOrder(orderId);
-  if (!assertPortalGummyOrder(order, req.portalPharmacy.id)) {
+  if (!order || !isPublicGummyOrder(order)) {
     return res.status(404).json({ error: "Order not found" });
   }
   if (!isGummyOnlyLineItems(order.lineItems)) {
@@ -611,19 +605,19 @@ app.post("/api/gummy-checkout/paypal/create", portalAuth, async (req, res) => {
     });
     res.json({ paypalOrderId: ppOrder.id });
   } catch (err) {
-    console.error("[paypal] gummy create:", err.message);
+    console.error("[paypal] public gummy create:", err.message);
     res.status(502).json({ error: "Could not create PayPal order" });
   }
 });
 
-app.post("/api/gummy-checkout/paypal/capture", portalAuth, async (req, res) => {
+app.post("/api/public/gummy-checkout/paypal/capture", async (req, res) => {
   if (!paypal.isConfigured()) {
     return res.status(503).json({ error: "PayPal not configured" });
   }
 
   const { orderId, paypalOrderId } = req.body || {};
   const order = findOrder(orderId);
-  if (!assertPortalGummyOrder(order, req.portalPharmacy.id)) {
+  if (!order || !isPublicGummyOrder(order)) {
     return res.status(404).json({ error: "Order not found" });
   }
   if (!paypalOrderId || order.paypalOrderId !== paypalOrderId) {
@@ -635,7 +629,7 @@ app.post("/api/gummy-checkout/paypal/capture", portalAuth, async (req, res) => {
     const paid = paypal.captureAmount(capture);
     const expected = Number(order.totals?.total || 0).toFixed(2);
     if (paid == null || Number(paid).toFixed(2) !== expected) {
-      console.error("[paypal] gummy amount mismatch", { paid, expected, orderId: order.id });
+      console.error("[paypal] public gummy amount mismatch", { paid, expected, orderId: order.id });
       return res.status(400).json({ error: "Payment amount mismatch" });
     }
     const captureId = capture?.purchase_units?.[0]?.payments?.captures?.[0]?.id || null;
@@ -647,13 +641,9 @@ app.post("/api/gummy-checkout/paypal/capture", portalAuth, async (req, res) => {
     });
     res.json({ status: "paid", captureId });
   } catch (err) {
-    console.error("[paypal] gummy capture:", err.message);
+    console.error("[paypal] public gummy capture:", err.message);
     res.status(502).json({ error: "Payment capture failed" });
   }
-});
-
-app.use("/api/public/gummy-checkout", (_req, res) => {
-  res.status(403).json({ error: "Wholesale pricing requires portal login." });
 });
 
 // ——— Admin wholesale ———
