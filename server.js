@@ -751,9 +751,12 @@ async function maybeSendDailyReport() {
 setInterval(maybeSendDailyReport, 60 * 1000);
 setTimeout(maybeSendDailyReport, 5000);
 
-loadPharmacies();
-
 app.listen(PORT, "0.0.0.0", () => {
+  try {
+    loadPharmacies();
+  } catch (err) {
+    console.error("[retail] Startup pharmacy seed failed:", err.message);
+  }
   const demo = demoPortalInfo();
   console.log(`LeafLock Retail Store Wholesale + Analytics at http://0.0.0.0:${PORT}`);
   console.log(`Admin dashboard: http://0.0.0.0:${PORT}/admin/`);
