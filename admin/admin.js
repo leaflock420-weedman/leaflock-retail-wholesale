@@ -128,7 +128,7 @@ async function approveApplication(id) {
   if (result.emailSent) {
     alert(`Approved — access code emailed to ${result.application.email}`);
   } else {
-    alert("Approved — copy the access code and email it to the retailer (SMTP not configured).");
+    alert("Approved — copy the access code and email it to the retail store (SMTP not configured).");
   }
   await refreshWholesale();
 }
@@ -164,7 +164,7 @@ async function updateOrderStatus(id, status) {
 }
 
 async function addPharmacy() {
-  const businessName = prompt("Retail / business name:");
+  const businessName = prompt("Retail store / business name:");
   if (!businessName) return;
   const email = prompt("Contact email:");
   if (!email) return;
@@ -177,7 +177,7 @@ async function addPharmacy() {
 }
 
 async function sendComplianceToPharmacy(id) {
-  if (!confirm("Email the compliance pack (NDA + gummy pack + TM certificate) to this retailer?")) return;
+  if (!confirm("Email the compliance pack (NDA + gummy pack + TM certificate) to this retail store?")) return;
   const result = await api(`/api/admin/pharmacies/${id}/send-compliance`, { method: "POST" });
   if (result.sent) alert(`Compliance documents sent to ${result.email}`);
   else alert("Send failed — check SMTP and that PDFs are on the server.");

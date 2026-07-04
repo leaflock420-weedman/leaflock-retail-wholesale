@@ -87,7 +87,7 @@
     } catch {
       if (hint) {
         hint.hidden = false;
-        hint.textContent = "Cannot reach the portal service. Try again shortly or contact med@leaflock.com.au.";
+        hint.textContent = "Cannot reach the portal service. Try again shortly or contact info@leaflock.com.au.";
       }
       return false;
     }
@@ -159,7 +159,7 @@
           error.textContent =
             err.message === "Invalid access code" || err.message === "Unauthorized"
               ? "Invalid access code. Use the code from your approval email, or request access if you have not applied."
-              : err.message || "Login failed. Please try again or email med@leaflock.com.au.";
+              : err.message || "Login failed. Please try again or email info@leaflock.com.au.";
         }
       } finally {
         if (btn) {

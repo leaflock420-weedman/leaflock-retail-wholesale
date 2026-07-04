@@ -3,9 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Request Retail Wholesale Access — LeafLock</title>
-    <meta name="description" content="Apply for LeafLock retail wholesale access. Submit your ABN and retail registration for approval to view pricing and place orders.">
-    <link rel="canonical" href="https://med.leaflock.com.au/request-access.html">
+    <title>Request Retail Store Wholesale Access — LeafLock</title>
+    <meta name="description" content="Apply for LeafLock retail store wholesale access. Submit your ABN and store registration for approval to view pricing and place orders.">
+    <link rel="canonical" href="https://leaflock-retail-wholesale.onrender.com/request-access.html">
     <link rel="stylesheet" href="assets/styles.css">
   </head>
   <body data-nav="access">
@@ -13,25 +13,25 @@
 
     <main>
       <section class="page-hero">
-        <p class="eyebrow">New retail accounts</p>
+        <p class="eyebrow">New retail store accounts</p>
         <h1>Request wholesale access</h1>
-        <p class="page-lead">Complete this form to apply. We verify your retail business details and email an access code once approved — usually within 24–48 hours.</p>
+        <p class="page-lead">Complete this form to apply. We verify your retail store details and email an access code once approved — usually within 24–48 hours.</p>
       </section>
 
       <section class="section">
         <form class="order-form" id="signupForm" novalidate>
           <fieldset class="form-block">
-            <legend>Retail details</legend>
+            <legend>Retail store details</legend>
             <div class="form-grid">
-              <label><span>Retail / business name *</span><input name="business_name" required autocomplete="organization"></label>
+              <label><span>Retail store / business name *</span><input name="business_name" required autocomplete="organization"></label>
               <label><span>Your Full Name *</span><input name="full_name" required autocomplete="name"></label>
               <label><span>Position / Role</span><input name="role" autocomplete="organization-title"></label>
               <label><span>ABN *</span><input name="abn" required pattern="[0-9\s]{11,14}"></label>
-              <label><span>Retail registration number *</span><input name="pharmacy_reg" required></label>
+              <label><span>Store registration number *</span><input name="pharmacy_reg" required></label>
               <label><span>Email Address *</span><input type="email" name="email" required autocomplete="email"></label>
               <label><span>Phone Number</span><input type="tel" name="phone" autocomplete="tel"></label>
               <label class="wide"><span>Delivery Address</span><textarea name="address" rows="2" autocomplete="street-address"></textarea></label>
-              <label><span>Compounding retail partner?</span>
+              <label><span>Compounding partner?</span>
                 <select name="compounding">
                   <option value="no">No</option>
                   <option value="yes">Yes</option>
@@ -52,11 +52,11 @@
         <div class="order-steps">
           <h3>What happens next</h3>
           <ol>
-            <li>We review your retail registration and ABN.</li>
+            <li>We review your store registration and ABN.</li>
             <li>You receive an email with your wholesale access code if approved.</li>
             <li>Enter the code at the <a href="portal.html">wholesale portal</a> to view pricing and order.</li>
           </ol>
-          <p>Already approved? <a href="portal.html">Go to retail login</a></p>
+          <p>Already approved? <a href="portal.html">Go to retail store login</a></p>
         </div>
       </section>
     </main>
@@ -66,7 +66,7 @@
     <div id="signupSuccess" class="modal" hidden role="alertdialog">
       <div class="modal-card">
         <h2>Application received</h2>
-        <p>Thank you. We will review your retail details and email your access code within 24–48 hours if approved.</p>
+        <p>Thank you. We will review your retail store details and email your access code within 24–48 hours if approved.</p>
         <button class="button primary" type="button" id="closeSignupSuccess">Got it</button>
       </div>
     </div>

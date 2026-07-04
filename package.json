@@ -2,15 +2,12 @@
   "name": "leaflock-retail-wholesale",
   "version": "1.0.0",
   "private": true,
-  "description": "LeafLock retail wholesale site with analytics",
+  "description": "LeafLock retail store wholesale site (separate from med.leaflock.com.au)",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "deploy:render": "node scripts/render-deploy.mjs",
-    "process:gummies": "python scripts/process-gummy-lineup.py",
-    "process:humidity-photo": "python scripts/process-community-pack.py",
-    "build:banners": "python scripts/process-community-pack.py && python scripts/process-gummy-lineup.py && python scripts/build-banners.py"
+    "deploy:render": "node scripts/render-deploy.mjs"
   },
   "engines": {
     "node": ">=18"

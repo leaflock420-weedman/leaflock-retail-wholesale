@@ -1,21 +1,5 @@
-const fs = require("fs");
-const path = require("path");
-
-// LL Wholesale isolated copy — load .env.local without affecting production project
-const envLocal = path.join(__dirname, ".env.local");
-if (fs.existsSync(envLocal)) {
-  for (const line of fs.readFileSync(envLocal, "utf8").split(/\r?\n/)) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
-    const eq = trimmed.indexOf("=");
-    if (eq === -1) continue;
-    const key = trimmed.slice(0, eq).trim();
-    const value = trimmed.slice(eq + 1).trim();
-    if (key && process.env[key] === undefined) process.env[key] = value;
-  }
-}
-
 const express = require("express");
+const path = require("path");
 const crypto = require("crypto");
 const {
   recordEvent,
@@ -79,9 +63,9 @@ const ROOT = __dirname;
 const REPORT_HOUR = Number(process.env.ANALYTICS_REPORT_HOUR || 7);
 const SITE_HOST = (() => {
   try {
-    return new URL(process.env.SITE_URL || "https://med.leaflock.com.au").hostname.toLowerCase();
+    return new URL(process.env.SITE_URL || "https://leaflock-retail-wholesale.onrender.com").hostname.toLowerCase();
   } catch {
-    return "med.leaflock.com.au";
+    return "leaflock-retail-wholesale.onrender.com";
   }
 })();
 
@@ -402,7 +386,7 @@ app.get("/api/admin/setup-status", adminAuth, (req, res) => {
     email: emailConfigured(),
     smtpConfigured: Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS),
     portalSalt: Boolean(process.env.PORTAL_CODE_SALT),
-    siteUrl: process.env.SITE_URL || "https://med.leaflock.com.au",
+    siteUrl: process.env.SITE_URL || "https://leaflock-retail-wholesale.onrender.com",
     adminPasswordFromEnv: Boolean(process.env.ANALYTICS_ADMIN_PASSWORD),
     portalSessionSecret: Boolean(process.env.PORTAL_SESSION_SECRET),
     adminSessionSecret: Boolean(process.env.ADMIN_SESSION_SECRET || process.env.PORTAL_SESSION_SECRET),
@@ -457,21 +441,21 @@ app.post("/api/admin/pharmacies", adminAuth, (req, res) => {
 
 app.post("/api/admin/pharmacies/:id/regenerate-code", adminAuth, (req, res) => {
   const result = regenerateCode(req.params.id);
-  if (!result) return res.status(404).json({ error: "Retailer not found" });
+  if (!result) return res.status(404).json({ error: "Pharmacy not found" });
   res.json(result);
 });
 
 app.patch("/api/admin/pharmacies/:id", adminAuth, (req, res) => {
   const { status } = req.body || {};
   const pharmacy = setPharmacyStatus(req.params.id, status);
-  if (!pharmacy) return res.status(404).json({ error: "Retailer not found" });
+  if (!pharmacy) return res.status(404).json({ error: "Pharmacy not found" });
   res.json({ pharmacy });
 });
 
 app.post("/api/admin/pharmacies/:id/send-compliance", adminAuth, async (req, res) => {
   const pharmacy = findById(req.params.id);
-  if (!pharmacy) return res.status(404).json({ error: "Retailer not found" });
-  if (!pharmacy.email) return res.status(400).json({ error: "Retailer has no email" });
+  if (!pharmacy) return res.status(404).json({ error: "Pharmacy not found" });
+  if (!pharmacy.email) return res.status(400).json({ error: "Pharmacy has no email" });
   if (!documentsReady()) return res.status(503).json({ error: "Compliance documents not available on server" });
   try {
     const sent = await sendCompliancePack({
@@ -563,7 +547,7 @@ setInterval(maybeSendDailyReport, 60 * 1000);
 setTimeout(maybeSendDailyReport, 5000);
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`LeafLock Retail Wholesale + Analytics at http://0.0.0.0:${PORT}`);
+  console.log(`LeafLock Retail Store Wholesale + Analytics at http://0.0.0.0:${PORT}`);
   console.log(`Admin dashboard: http://0.0.0.0:${PORT}/admin/`);
   if (paypal.isConfigured()) {
     console.log(`[paypal] ${paypal.mode()} checkout enabled`);

@@ -1,9 +1,9 @@
 :root {
-  --ink: #17211d;
-  --muted: #5c6963;
-  --leaf: #2d7a44;
-  --mint: #eaf5ed;
-  --line: #dce4df;
+  --ink: #0f1110;
+  --muted: #3f4939;
+  --leaf: #ff4d8d;
+  --mint: #ffedf7;
+  --line: #ffd0ea;
   --white: #fff;
 }
 
@@ -13,7 +13,7 @@ body {
   margin: 0;
   font-family: Inter, system-ui, sans-serif;
   color: var(--ink);
-  background: #f4f7f5;
+  background: #fff0f8;
 }
 
 .login-screen {

@@ -1,4 +1,4 @@
-const WHOLESALE_EMAIL = "med@leaflock.com.au";
+const WHOLESALE_EMAIL = "info@leaflock.com.au";
 const GST_RATE = 0.1;
 const SHIPPING = 25;
 const STARTER_BUNDLE_TOTAL = 687.2;
@@ -52,7 +52,7 @@ function calculateOrder() {
     totals.gst.textContent = money(60.2);
     totals.shipping.textContent = money(25);
     totals.total.textContent = money(STARTER_BUNDLE_TOTAL);
-    totals.note.textContent = "Starter Retail Bundle — fixed price inc. GST and shipping.";
+    totals.note.textContent = "Starter Retail Store Bundle — fixed price inc. GST and shipping.";
     return {
       starterBundle: true,
       singlePacks: 50,
@@ -63,7 +63,7 @@ function calculateOrder() {
       gst: 60.2,
       shipping: 25,
       total: STARTER_BUNDLE_TOTAL,
-      notes: ["Starter Retail Bundle applied."],
+      notes: ["Starter Retail Store Bundle applied."],
     };
   }
 
@@ -115,12 +115,12 @@ function buildOrderEmail(order) {
   const lines = [
     "=== LEAFLOCK WHOLESALE ORDER ===",
     "",
-    "PHARMACY DETAILS",
+    "RETAIL STORE DETAILS",
     `Business: ${fields.businessName?.value || "—"}`,
     `Contact: ${fields.fullName?.value || "—"}`,
     `Role: ${fields.role?.value || "—"}`,
     `ABN: ${fields.abn?.value || "—"}`,
-    `Retail reg: ${fields.pharmacyReg?.value || "—"}`,
+    `Store reg: ${fields.pharmacyReg?.value || "—"}`,
     `Email: ${fields.email?.value || "—"}`,
     `Phone: ${fields.phone?.value || "—"}`,
     `Address: ${fields.address?.value || "—"}`,
@@ -151,15 +151,15 @@ function updateAccountLink() {
   const email = document.querySelector("#accountEmail")?.value || "—";
   const abn = document.querySelector("#accountAbn")?.value || "—";
   const reg = document.querySelector("#accountReg")?.value || "—";
-  const subject = encodeURIComponent("LeafLock retail wholesale account request");
+  const subject = encodeURIComponent("LeafLock retail store wholesale account request");
   const body = encodeURIComponent(
     [
-      "LeafLock retail wholesale account request",
+      "LeafLock retail store wholesale account request",
       "",
-      `Retailer: ${pharmacy}`,
+      `Retail store: ${pharmacy}`,
       `Contact email: ${email}`,
       `ABN: ${abn}`,
-      `Retail registration number: ${reg}`,
+      `Store registration number: ${reg}`,
     ].join("\n"),
   );
   if (accountLink) accountLink.href = `mailto:${WHOLESALE_EMAIL}?subject=${subject}&body=${body}`;
@@ -169,7 +169,7 @@ function initCharts() {
   if (!window.Chart) return;
 
   Chart.defaults.font.family = "Inter, system-ui, sans-serif";
-  Chart.defaults.color = "#5c6963";
+  Chart.defaults.color = "#3f4939";
 
   const chartEl = document.getElementById("leafLockChart");
   if (!chartEl) return;
@@ -293,7 +293,7 @@ orderForm?.addEventListener("submit", (event) => {
   if (!orderForm.reportValidity()) return;
 
   const order = calculateOrder();
-  const business = fields.businessName?.value || "Retail";
+  const business = fields.businessName?.value || "Retail store";
   const subject = encodeURIComponent(`Wholesale Order — ${business}`);
   const body = encodeURIComponent(buildOrderEmail(order));
 

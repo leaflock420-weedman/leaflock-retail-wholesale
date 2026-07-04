@@ -11,9 +11,14 @@ LeafLock-Pharmacy-Wholesale-Operations-Guide.pdf
 QUICK-START.txt
 admin-settings.json
 .env
-.env.local
-.chrome-render-leaflock/
 .chrome-render-profile/
+.chrome-render-leaflock/
 .edge-automation-med/
 .chrome-godaddy-leaflock/
+.tools/
 godaddy-med-dns.png
+render-leaflock-connected.png
+render-med-domains.png
+data/render-env-paste.env
+data/.leaflock-connect-report.json
+.env.local

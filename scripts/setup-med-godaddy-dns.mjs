@@ -24,8 +24,7 @@ if (!chromium) {
 
 const DOMAIN = "leaflock.com.au";
 const SUBDOMAIN = "med";
-const TARGET = "216.24.57.1";
-const RECORD_TYPE = "A";
+const TARGET = "leaflock-pharmacy-wholesale.onrender.com";
 const DNS_URL = `https://dcc.godaddy.com/control/dnsmanagement?domainName=${DOMAIN}`;
 const LOGIN_URL = "https://sso.godaddy.com/?app=dcc&path=%2Fcontrol%2Fdnsmanagement%3FdomainName%3Dleaflock.com.au";
 const GODADDY_USER = process.env.GODADDY_USERNAME || "leaflock420@gmail.com";
@@ -85,10 +84,10 @@ async function waitForDnsPage(page) {
   return false;
 }
 
-async function upsertMedRecord(page) {
+async function upsertMedCname(page) {
   const body = await page.locator("body").innerText();
   if (new RegExp(`${SUBDOMAIN}[^\\n]*${TARGET.replace(/\./g, "\\.")}`, "i").test(body)) {
-    console.log(`med ${RECORD_TYPE} already points to Render.`);
+    console.log("med CNAME already points to Render.");
     return true;
   }
 
@@ -119,7 +118,7 @@ async function upsertMedRecord(page) {
     }
   }
 
-  console.log(`Adding med ${RECORD_TYPE}...`);
+  console.log("Adding med CNAME...");
   await tryClick(page, [
     page.getByRole("button", { name: /add.*record/i }),
     page.getByRole("button", { name: /^add$/i }),
@@ -128,11 +127,11 @@ async function upsertMedRecord(page) {
   await sleep(2000);
 
   await tryClick(page, [
-    page.getByRole("option", { name: new RegExp(`^${RECORD_TYPE}$`, "i") }),
-    page.getByText(new RegExp(`^${RECORD_TYPE}$`, "i")),
+    page.getByRole("option", { name: /^cname$/i }),
+    page.getByText(/^CNAME$/i),
     page.locator("select"),
   ]);
-  await tryClick(page, [page.getByText(new RegExp(`^${RECORD_TYPE}$`, "i"))]);
+  await tryClick(page, [page.getByText(/^CNAME$/i)]);
 
   await tryFill(page, [
     page.getByLabel(/name|host/i),
@@ -196,10 +195,10 @@ async function main() {
 
   const onPage = /dnsmanagement/i.test(page.url());
   if (onPage) {
-    await upsertMedRecord(page);
+    await upsertMedCname(page);
   } else {
     console.log("On URL:", page.url());
-    console.log(`After login, set ${RECORD_TYPE}: med →`, TARGET);
+    console.log("After login, set CNAME: med →", TARGET);
   }
 
   const shot = path.join(root, "godaddy-med-dns.png");

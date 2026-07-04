@@ -1,16 +1,16 @@
-# Blueprint: https://render.com/deploy?repo=https://github.com/leaflock420-weedman/leaflock-pharmacy-wholesale
+# Blueprint: https://render.com/deploy?repo=https://github.com/leaflock420-weedman/leaflock-retail-wholesale
 services:
   - type: web
-    name: leaflock-pharmacy-wholesale
+    name: leaflock-retail-wholesale
     runtime: node
     plan: free
-    repo: https://github.com/leaflock420-weedman/leaflock-pharmacy-wholesale
+    repo: https://github.com/leaflock420-weedman/leaflock-retail-wholesale
     branch: master
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /
     disk:
-      name: wholesale-data
+      name: retail-wholesale-data
       mountPath: /var/data
       sizeGB: 1
     envVars:
@@ -29,15 +29,15 @@ services:
       - key: ADMIN_SESSION_SECRET
         sync: false
       - key: ANALYTICS_EMAIL_TO
-        value: med@leaflock.com.au
+        value: info@leaflock.com.au
       - key: ANALYTICS_EMAIL_FROM
-        value: med@leaflock.com.au
+        value: info@leaflock.com.au
       - key: SMTP_HOST
         value: smtp.gmail.com
       - key: SMTP_PORT
         value: "587"
       - key: SMTP_USER
-        value: med@leaflock.com.au
+        sync: false
       - key: SMTP_PASS
         sync: false
       - key: PORTAL_CODE_SALT
@@ -51,6 +51,6 @@ services:
       - key: PAYPAL_MODE
         value: sandbox
       - key: SITE_URL
-        value: https://med.leaflock.com.au
+        value: https://leaflock-retail-wholesale.onrender.com
       - key: WHOLESALE_EMAIL_TO
-        value: med@leaflock.com.au
+        value: info@leaflock.com.au

@@ -51,7 +51,7 @@
       }
       form.reset();
     } catch (err) {
-      alert(err.message || "Could not submit application. Please try again or email med@leaflock.com.au");
+      alert(err.message || "Could not submit application. Please try again or email info@leaflock.com.au");
     } finally {
       if (btn) {
         btn.disabled = false;

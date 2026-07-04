@@ -20,9 +20,9 @@
     }
 
     header.innerHTML = `
-      <a class="brand" href="index.html" aria-label="LeafLock Retail Wholesale home">
+      <a class="brand" href="index.html" aria-label="LeafLock Retail Store Wholesale home">
         <img class="brand-logo" src="assets/brand/leaflock-logo.png" alt="" width="120" height="32">
-        <span class="brand-text"><strong>LeafLock</strong><small>Retail Wholesale</small></span>
+        <span class="brand-text"><strong>LeafLock</strong><small>Retail Store Wholesale</small></span>
       </a>
       <nav class="main-nav" aria-label="Primary navigation">
         ${link("index.html", "Home", "home")}
@@ -32,26 +32,26 @@
         ${link("portal.html", "Wholesale Portal", "portal")}
         ${link("lab-disclosure.html", "Lab Disclosure", "lab")}
       </nav>
-      <a class="header-action" href="portal.html">Retail login</a>`;
+      <a class="header-action" href="portal.html">Retail store login</a>`;
 
     footer.innerHTML = `
       <div class="footer-col">
-        <strong>LeafLock Retail Wholesale</strong>
+        <strong>LeafLock Retail Store Wholesale</strong>
         <p>Surfers Paradise, QLD 4217</p>
       </div>
       <div class="footer-col">
         <a href="humidity-packs.html">Humidity Packs</a>
         <a href="gummies.html">DIY Gummy Mix</a>
         <a href="request-access.html">Request wholesale access</a>
-        <a href="portal.html">Approved retail portal</a>
+        <a href="portal.html">Approved retail store portal</a>
       </div>
       <div class="footer-col">
         <a href="lab-disclosure.html">Laboratory disclosure</a>
-        <a href="mailto:med@leaflock.com.au">med@leaflock.com.au</a>
+        <a href="mailto:info@leaflock.com.au">info@leaflock.com.au</a>
         <a href="tel:+61431295201">0431 295 201</a>
       </div>
       <p class="footer-disclaimer">
-        General product information only. Not medical advice. Wholesale pricing and ordering available to approved Australian retail accounts.
+        General product information only. Not medical advice. Wholesale pricing and ordering available to approved Australian retail store accounts.
         See <a href="lab-disclosure.html">lab disclosure</a> for testing data and limitations.
       </p>`;
   };

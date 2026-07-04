@@ -1,11 +1,12 @@
 {
-  "id": "ll-wholesale",
-  "name": "LeafLock Retail Wholesale",
+  "id": "leaflock-retail-wholesale",
+  "name": "LeafLock Retail Store Wholesale",
   "isolated": true,
-  "blockProductionDeploy": true,
+  "blockProductionDeploy": false,
   "blockProductionDomain": "med.leaflock.com.au",
-  "productionServiceId": "DO_NOT_USE_srv-d93nossvikkc73amkvv0",
+  "productionServiceId": null,
   "localPort": 4280,
-  "parentProject": "C:\\Users\\wordo\\leaflock-pharmacy-wholesale",
-  "openInstructions": "Open C:\\Users\\wordo\\LL-Wholesale in a SEPARATE Cursor window (File → Open Folder). Do not work on both projects in one chat."
+  "siteUrl": "https://leaflock-retail-wholesale.onrender.com",
+  "parentProject": null,
+  "openInstructions": "Separate from med.leaflock.com.au (pharmacy wholesale). Never deploy this repo to the pharmacy Render service."
 }

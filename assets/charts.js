@@ -16,19 +16,19 @@
   };
 
   const COLORS = {
-    moisture: { bg: "rgba(45, 122, 68, 0.55)", border: "#2d7a44" },
-    d9: { bg: "rgba(76, 175, 80, 0.65)", border: "#388e3c" },
-    thca: { bg: "rgba(30, 136, 229, 0.55)", border: "#1e88e5" },
-    totalThc: { bg: "rgba(25, 92, 142, 0.55)", border: "#195c8e" },
-    terpenes: { bg: "rgba(251, 192, 45, 0.7)", border: "#f9a825" },
+    moisture: { bg: "rgba(155, 93, 229, 0.55)", border: "#9b5de5" },
+    d9: { bg: "rgba(255, 77, 141, 0.55)", border: "#ff4d8d" },
+    thca: { bg: "rgba(76, 201, 255, 0.55)", border: "#4cc9ff" },
+    totalThc: { bg: "rgba(76, 201, 255, 0.65)", border: "#4cc9ff" },
+    terpenes: { bg: "rgba(255, 229, 102, 0.75)", border: "#ffe566" },
     refNo: { bg: "rgba(198, 40, 40, 0.45)", border: "#c62828" },
-    refWith: { bg: "rgba(45, 122, 68, 0.65)", border: "#1d5730" },
+    refWith: { bg: "rgba(255, 77, 141, 0.65)", border: "#ff4d8d" },
   };
 
   function chartDefaults() {
     if (!window.Chart) return;
     Chart.defaults.font.family = "Inter, system-ui, sans-serif";
-    Chart.defaults.color = "#5c6963";
+    Chart.defaults.color = "#3f4939";
   }
 
   function baseOptions(title, extra = {}) {
@@ -42,7 +42,7 @@
           display: Boolean(title),
           text: title,
           font: { size: 15, weight: "600" },
-          color: "#17211d",
+          color: "#0f1110",
           padding: { bottom: 14 },
         },
         tooltip: { mode: "index", intersect: false },
@@ -108,7 +108,7 @@
             title: { display: true, text: "Moisture (%)" },
             suggestedMin: 10,
             suggestedMax: 16,
-            grid: { color: "#e8efe9" },
+            grid: { color: "#ffd0ea" },
           },
           y1: {
             type: "linear",
@@ -151,7 +151,7 @@
             title: { display: true, text: "Total terpenes (mg/g)" },
             suggestedMin: 0,
             suggestedMax: 0.5,
-            grid: { color: "#e8efe9" },
+            grid: { color: "#ffd0ea" },
           },
         },
       }),
@@ -193,7 +193,7 @@
             title: { display: true, text: "% change vs no pack" },
             suggestedMin: 0,
             suggestedMax: 18,
-            grid: { color: "#e8efe9" },
+            grid: { color: "#ffd0ea" },
             ticks: { callback: (v) => `${v}%` },
           },
         },
@@ -232,7 +232,7 @@
             title: { display: true, text: "Moisture (%)" },
             suggestedMin: 11,
             suggestedMax: 15,
-            grid: { color: "#e8efe9" },
+            grid: { color: "#ffd0ea" },
           },
           x: { grid: { display: false } },
         },

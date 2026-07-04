@@ -1,23 +1,11 @@
 # Checks whether med.leaflock.com.au points to Render (ready for cutover) or still Wix.
 $domain = "med.leaflock.com.au"
-$renderTarget = "leaflock-pharmacy-wholesale-9kbz.onrender.com"
-$renderA = "216.24.57.1"
+$renderTarget = "leaflock-pharmacy-wholesale.onrender.com"
 
 Write-Host "DNS check for $domain"
 Write-Host ""
 
 try {
-  $a = Resolve-DnsName $domain -Type A -ErrorAction SilentlyContinue
-  if ($a) {
-    $ips = ($a | ForEach-Object { $_.IPAddress }) -join ", "
-    Write-Host "A records: $ips"
-    if ($ips -match [regex]::Escape($renderA)) {
-      Write-Host ""
-      Write-Host "STATUS: Points to Render (A $renderA) — cutover complete."
-      exit 0
-    }
-  }
-
   $cname = Resolve-DnsName $domain -Type CNAME -ErrorAction Stop
   $chain = ($cname | ForEach-Object { $_.NameHost }) -join " -> "
   Write-Host "CNAME chain: $chain"

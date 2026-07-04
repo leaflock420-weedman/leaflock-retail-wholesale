@@ -11,7 +11,7 @@
     <div id="loginScreen" class="login-screen">
       <form id="loginForm" class="login-card">
         <h1>LeafLock Admin</h1>
-        <p>Traffic analytics, retail accounts, and wholesale orders.</p>
+        <p>Traffic analytics, retail store accounts, and wholesale orders.</p>
         <p id="hostWarning" class="login-hint login-hint--warn" hidden></p>
         <label>
           <span>Admin password</span>
@@ -107,7 +107,7 @@
             <strong id="pendingApps">0</strong>
           </article>
           <article class="stat-card stat-card--live">
-            <span class="stat-label">Active retailers</span>
+            <span class="stat-label">Active retail stores</span>
             <strong id="activePharmacies">0</strong>
           </article>
           <article class="stat-card">
@@ -130,7 +130,7 @@
               <thead>
                 <tr>
                   <th>Submitted</th>
-                  <th>Retailer</th>
+                  <th>Retail store</th>
                   <th>Contact</th>
                   <th>Email</th>
                   <th>Status</th>
@@ -144,14 +144,14 @@
 
         <section class="panel">
           <div class="panel-head">
-            <h2>Retail accounts</h2>
-            <button type="button" id="addPharmacyBtn" class="btn-secondary btn-small">Add retailer</button>
+            <h2>Retail store accounts</h2>
+            <button type="button" id="addPharmacyBtn" class="btn-secondary btn-small">Add retail store</button>
           </div>
           <div class="table-scroll">
             <table class="data-table data-table--wide">
               <thead>
                 <tr>
-                  <th>Retailer</th>
+                  <th>Retail store</th>
                   <th>Email</th>
                   <th>Status</th>
                   <th>Logins</th>
@@ -171,7 +171,7 @@
               <thead>
                 <tr>
                   <th>Date</th>
-                  <th>Retailer</th>
+                  <th>Retail store</th>
                   <th>Total</th>
                   <th>Payment</th>
                   <th>Status</th>
@@ -190,7 +190,7 @@
               <thead>
                 <tr>
                   <th>Time</th>
-                  <th>Retailer</th>
+                  <th>Retail store</th>
                   <th>Result</th>
                 </tr>
               </thead>
@@ -204,7 +204,7 @@
     <div id="codeModal" class="modal-overlay" hidden>
       <div class="modal-card-admin">
         <h2>Access code generated</h2>
-        <p>Copy this code and email it to the retailer. It is only shown once.</p>
+        <p>Copy this code and email it to the retail store. It is only shown once.</p>
         <code id="generatedCode" class="code-display"></code>
         <div class="modal-actions">
           <button type="button" id="copyCodeBtn" class="btn-secondary">Copy code</button>

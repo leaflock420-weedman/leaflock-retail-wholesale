@@ -1,0 +1,11 @@
+---
+description: LeafLock retail wholesale is isolated from pharmacy site
+globs: **/*
+alwaysApply: true
+---
+
+This project is **LeafLock Retail Store Wholesale** — completely separate from `med.leaflock.com.au`.
+
+- Never change, deploy to, or reference the pharmacy Render service (`leaflock-pharmacy-wholesale`, `srv-d93nossvikkc73amkvv0`)
+- Default site URL: `https://leaflock-retail-wholesale.onrender.com`
+- GitHub: `leaflock420-weedman/leaflock-retail-wholesale`
