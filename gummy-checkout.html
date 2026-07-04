@@ -105,6 +105,13 @@
           <input type="hidden" id="flavours" value="Blue Raspberry, Grape, Strawberry, Create Your Own">
           <p class="gummy-checkout-hint" id="pricingHint">Login to load wholesale totals.</p>
 
+          <fieldset class="form-block checkout-terms">
+            <label class="check-row check-row--required">
+              <input type="checkbox" id="gummyTermsAccepted" required>
+              <span>I have read and agree to the <a href="wholesale-terms.html" target="_blank" rel="noopener">Wholesale Terms &amp; Conditions</a>.</span>
+            </label>
+          </fieldset>
+
           <div class="totals gummy-checkout-totals" aria-live="polite">
             <div><span>Subtotal ex GST</span><strong id="subtotal">$0.00</strong></div>
             <div><span>GST</span><strong id="gst">$0.00</strong></div>

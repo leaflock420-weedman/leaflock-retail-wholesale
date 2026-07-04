@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Credit Account Application — LeafLock™ Wholesale</title>
+    <meta name="description" content="Apply for LeafLock wholesale credit terms — Net 30, Net 60, or Net 90 by approval.">
+    <link rel="stylesheet" href="assets/styles.css">
+  </head>
+  <body data-nav="">
+    <header class="site-header" id="site-header"></header>
+
+    <main>
+      <section class="page-hero">
+        <p class="eyebrow">Credit accounts</p>
+        <h1>Credit account application</h1>
+        <p class="page-lead">For established wholesale customers seeking 30-, 60-, or 90-day account terms. First orders remain prepaid unless otherwise approved in writing.</p>
+      </section>
+
+      <section class="section" id="creditAccessGate">
+        <form id="creditAccessForm" class="order-form portal-card">
+          <h3>Retail store login required</h3>
+          <p>Log in with your wholesale access code to submit a credit application.</p>
+          <label><span>Access code</span><input type="text" id="creditAccessCode" required autocomplete="one-time-code"></label>
+          <p id="creditAccessError" class="form-error" hidden></p>
+          <button class="button primary full-width" type="submit">Continue</button>
+          <p>New account? <a href="request-access.html">Request wholesale access</a> first.</p>
+        </form>
+      </section>
+
+      <section class="section" id="creditApplicationSection" hidden>
+        <form class="order-form" id="creditApplicationForm" novalidate>
+          <fieldset class="form-block">
+            <legend>Company details</legend>
+            <div class="form-grid">
+              <label><span>Company / trading name *</span><input type="text" id="creditBusinessName" required></label>
+              <label><span>ABN *</span><input type="text" id="creditAbn" required></label>
+              <label><span>Director / authorised officer *</span><input type="text" id="creditDirectorName" required></label>
+              <label><span>Director email *</span><input type="email" id="creditDirectorEmail" required></label>
+              <label><span>Requested terms *</span>
+                <select id="creditRequestedTerms" required>
+                  <option value="">Select…</option>
+                  <option value="Net 30">Net 30 (third order+, subject to history)</option>
+                  <option value="Net 60">Net 60 (established customers)</option>
+                  <option value="Net 90">Net 90 (major groups — approval only)</option>
+                </select>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="form-block">
+            <legend>Trade references (required for Net 60 / Net 90)</legend>
+            <div class="form-grid">
+              <label class="wide"><span>Trade reference 1</span><textarea id="creditTradeRef1" rows="2" placeholder="Supplier name, contact, account length"></textarea></label>
+              <label class="wide"><span>Trade reference 2</span><textarea id="creditTradeRef2" rows="2" placeholder="Supplier name, contact, account length"></textarea></label>
+              <label class="wide"><span>Additional notes</span><textarea id="creditNotes" rows="3" placeholder="Expected monthly spend, stores in group, etc."></textarea></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="form-block">
+            <legend>Electronic signature</legend>
+            <label class="check-row">
+              <input type="checkbox" id="creditTermsAgree" required>
+              <span>I have read and agree to the <a href="wholesale-terms.html" target="_blank" rel="noopener">Wholesale Terms &amp; Conditions</a> and authorise LeafLock™ to conduct credit enquiries.</span>
+            </label>
+            <label class="wide"><span>Type your full legal name to sign *</span><input type="text" id="creditSignatureName" required placeholder="As shown on company records"></label>
+          </fieldset>
+
+          <button class="button primary full-width" type="submit">Submit credit application</button>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer" id="site-footer"></footer>
+
+    <div id="creditSuccess" class="modal" hidden role="alertdialog">
+      <div class="modal-card">
+        <h2>Application received</h2>
+        <p>Thank you. We will review your credit application and contact you within 5 business days.</p>
+        <button class="button primary" type="button" id="closeCreditSuccess">Got it</button>
+      </div>
+    </div>
+
+    <script src="assets/config.js"></script>
+    <script src="assets/access.js"></script>
+    <script src="assets/layout.js"></script>
+    <script src="assets/credit-application.js"></script>
+  </body>
+</html>

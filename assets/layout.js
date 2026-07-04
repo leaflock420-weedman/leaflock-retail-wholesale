@@ -73,8 +73,14 @@
         <a href="mailto:info@leaflock.com.au">info@leaflock.com.au</a>
         <a href="tel:+61431295201">0431 295 201</a>
       </div>
+      <div class="footer-col footer-col--legal">
+        <a href="wholesale-terms.html">Wholesale terms</a>
+        <a href="credit-application.html">Credit application</a>
+        <a href="privacy-policy.html">Privacy</a>
+        <a href="refunds-returns.html">Refunds &amp; returns</a>
+      </div>
       <p class="footer-disclaimer">
-        General product information only. Not medical advice. Wholesale pricing and ordering available to approved Australian retail store accounts.
+        General product information only. Not medical advice. Wholesale pricing and ordering available to approved Australian retail store accounts. Goods remain property of LeafLock™ until paid in full.
       </p>`;
   };
 

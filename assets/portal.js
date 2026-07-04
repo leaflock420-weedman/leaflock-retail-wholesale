@@ -17,6 +17,7 @@
     phone: document.querySelector("#phone"),
     address: document.querySelector("#address"),
     notes: document.querySelector("#notes"),
+    termsAccepted: document.querySelector("#termsAccepted"),
   };
 
   const totals = {
@@ -318,6 +319,7 @@
       catalog: calc?.catalog ?? {},
       flavours: "",
       notes: fields.notes?.value || "",
+      termsAccepted: Boolean(fields.termsAccepted?.checked),
       contact: {
         businessName: fields.businessName?.value || "",
         fullName: fields.fullName?.value || "",
@@ -349,6 +351,10 @@
     event.preventDefault();
     if (!window.LeafLockAccess?.isApproved()) return;
     if (!orderForm.reportValidity()) return;
+    if (!fields.termsAccepted?.checked) {
+      totals.note.textContent = "You must agree to the Wholesale Terms & Conditions before submitting.";
+      return;
+    }
 
     const calc = calculateOrder();
     if (!calc || calc.total <= 0) {
@@ -424,6 +430,7 @@
           style: { layout: "vertical", color: "gold", shape: "rect", label: "paypal" },
           createOrder: async () => {
             if (!orderForm.reportValidity()) throw new Error("Complete retail store details first");
+            if (!fields.termsAccepted?.checked) throw new Error("Agree to the Wholesale Terms & Conditions first");
             const calc = calculateOrder();
             if (!calc || calc.total <= 0) throw new Error("Add products to your order first");
 

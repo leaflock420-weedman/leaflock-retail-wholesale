@@ -35,8 +35,12 @@ const {
   notifyAdminNewApplication,
   notifyPharmacyApproved,
   sendCompliancePack,
+  notifyOrderConfirmation,
+  notifyAdminCreditApplication,
   emailConfigured,
 } = require("./lib/mailer");
+const { TERMS_VERSION, paymentTermsLabel } = require("./lib/wholesale-terms");
+const { submitCreditApplication } = require("./lib/credit-applications-store");
 const {
   credentialsForPortal,
   documentsReady,
@@ -322,6 +326,9 @@ app.post("/api/applications", (req, res) => {
 app.post("/api/orders", portalAuth, (req, res) => {
   const body = req.body || {};
   const contact = body.contact || {};
+  if (!body.termsAccepted) {
+    return res.status(400).json({ error: "You must agree to the Wholesale Terms & Conditions." });
+  }
   const required = ["businessName", "fullName", "abn", "pharmacyReg", "email"];
   for (const field of required) {
     if (!String(contact[field] || "").trim()) {
@@ -343,6 +350,9 @@ app.post("/api/orders", portalAuth, (req, res) => {
     return res.status(400).json({ error: "Order must include at least one product" });
   }
 
+  const paymentMethod = body.paymentMethod || "invoice";
+  const paymentTerms = paymentTermsLabel(req.portalPharmacy, { paymentMethod });
+
   const order = createOrder({
     pharmacyId: req.portalPharmacy.id,
     pharmacyName: req.portalPharmacy.businessName,
@@ -350,10 +360,62 @@ app.post("/api/orders", portalAuth, (req, res) => {
     lineItems,
     totals,
     notes: body.notes || "",
-    paymentMethod: body.paymentMethod || "invoice",
+    paymentMethod,
+    termsAccepted: true,
+    termsVersion: TERMS_VERSION,
+    paymentTerms,
   });
 
-  res.status(201).json({ order: { id: order.id, status: order.status, totals: order.totals } });
+  if (paymentMethod === "invoice") {
+    notifyOrderConfirmation({ order, contactEmail: contact.email }).catch((err) => {
+      console.warn("[mail] order confirmation:", err.message);
+    });
+  }
+
+  res.status(201).json({
+    order: {
+      id: order.id,
+      status: order.status,
+      totals: order.totals,
+      paymentTerms: order.paymentTerms,
+    },
+  });
+});
+
+app.post("/api/credit-applications", portalAuth, (req, res) => {
+  const body = req.body || {};
+  if (!body.termsAccepted) {
+    return res.status(400).json({ error: "You must agree to the Wholesale Terms & Conditions." });
+  }
+  const required = ["businessName", "abn", "directorName", "directorEmail", "requestedTerms", "signatureName"];
+  for (const field of required) {
+    if (!String(body[field] || "").trim()) {
+      return res.status(400).json({ error: `Missing field: ${field}` });
+    }
+  }
+  if (body.signatureName.trim().toLowerCase() !== body.directorName.trim().toLowerCase()) {
+    return res.status(400).json({ error: "Signature name must match director name." });
+  }
+
+  const app = submitCreditApplication({
+    pharmacyId: req.portalPharmacy.id,
+    businessName: body.businessName,
+    abn: body.abn,
+    directorName: body.directorName,
+    directorEmail: body.directorEmail,
+    requestedTerms: body.requestedTerms,
+    tradeReference1: body.tradeReference1,
+    tradeReference2: body.tradeReference2,
+    notes: body.notes,
+    signatureName: body.signatureName,
+    termsVersion: TERMS_VERSION,
+  });
+
+  notifyAdminCreditApplication(app).catch((err) => {
+    console.warn("[mail] credit application notify:", err.message);
+  });
+
+  res.status(201).json({ application: { id: app.id, status: app.status } });
 });
 
 // ——— PayPal sandbox ———
@@ -474,6 +536,10 @@ app.post("/api/gummy-checkout/orders", portalAuth, (req, res) => {
     }
   }
 
+  if (!body.termsAccepted) {
+    return res.status(400).json({ error: "You must agree to the Wholesale Terms & Conditions." });
+  }
+
   const lineItems = {
     singlePacks: 0,
     threePacks: 0,
@@ -500,6 +566,9 @@ app.post("/api/gummy-checkout/orders", portalAuth, (req, res) => {
     notes: body.notes || "Portal gummy checkout",
     paymentMethod: "paypal",
     source: "gummy-checkout",
+    termsAccepted: true,
+    termsVersion: TERMS_VERSION,
+    paymentTerms: paymentTermsLabel(req.portalPharmacy, { paymentMethod: "paypal" }),
   });
 
   res.status(201).json({

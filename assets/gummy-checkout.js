@@ -194,6 +194,7 @@
       gummyIndividual: calc?.gummyIndividual || 0,
       mixedCartons: calc?.mixedCartons || 0,
       flavours: fields.flavours?.value || "",
+      termsAccepted: Boolean(document.querySelector("#gummyTermsAccepted")?.checked),
       contact: {
         businessName: fields.businessName?.value || "",
         fullName: fields.fullName?.value || "",
@@ -250,6 +251,9 @@
           style: { layout: "vertical", color: "gold", shape: "rect", label: "paypal" },
           createOrder: async () => {
             if (!form.reportValidity()) throw new Error("Complete your store details first");
+            if (!document.querySelector("#gummyTermsAccepted")?.checked) {
+              throw new Error("Agree to the Wholesale Terms & Conditions first");
+            }
             const flavours = syncFlavoursFromPicks();
             if (!flavours.length) throw new Error("Select at least one flavour");
             const calc = calculateLocal();
