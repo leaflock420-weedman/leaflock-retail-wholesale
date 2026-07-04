@@ -295,10 +295,6 @@
     if (params.get("embed") !== "1") return;
     document.body.dataset.embed = "1";
     document.body.classList.add("gummy-checkout-page--embed");
-    const intro = document.querySelector(".gummy-checkout-intro");
-    if (intro) intro.hidden = true;
-    const foot = document.querySelector(".gummy-checkout-foot");
-    if (foot) foot.hidden = true;
   }
 
   async function boot() {
@@ -307,7 +303,7 @@
       pricing = await api("/api/public/gummy-checkout/pricing");
       updatePackPriceLabels();
       if (pricingHint) {
-        pricingHint.textContent = `$${pricing.individual.wholesale.toFixed(2)} ex GST per pouch · $${pricing.mixedCarton.cartonSubtotal.toFixed(2)} ex GST per mixed carton (24) · $${pricing.shipping} shipping · GST on subtotal`;
+        pricingHint.textContent = `$${pricing.shipping} flat-rate shipping · 10% GST on subtotal`;
       }
     } catch (err) {
       if (pricingHint) pricingHint.textContent = "Could not load pricing.";

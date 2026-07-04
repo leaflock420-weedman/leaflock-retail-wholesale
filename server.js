@@ -36,6 +36,7 @@ const {
   notifyPharmacyApproved,
   sendCompliancePack,
   notifyOrderConfirmation,
+  notifyAdminNewOrder,
   notifyAdminCreditApplication,
   emailConfigured,
 } = require("./lib/mailer");
@@ -104,6 +105,18 @@ const LOGIN_RATE_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_RATE_MAX = 20;
 const APPLICATION_RATE_MAX = 8;
 const GUMMY_CHECKOUT_RATE_MAX = 12;
+
+function dispatchOrderEmails(order, { adminLabel, confirmCustomer = false } = {}) {
+  if (!order) return;
+  notifyAdminNewOrder({ order, statusLabel: adminLabel || "New wholesale order" }).catch((err) => {
+    console.warn("[mail] admin order:", err.message);
+  });
+  if (confirmCustomer && order.contact?.email) {
+    notifyOrderConfirmation({ order, contactEmail: order.contact.email }).catch((err) => {
+      console.warn("[mail] order confirmation:", err.message);
+    });
+  }
+}
 
 function isGummyOnlyLineItems(lineItems) {
   return (
@@ -386,9 +399,7 @@ app.post("/api/orders", portalAuth, (req, res) => {
   });
 
   if (paymentMethod === "invoice") {
-    notifyOrderConfirmation({ order, contactEmail: contact.email }).catch((err) => {
-      console.warn("[mail] order confirmation:", err.message);
-    });
+    dispatchOrderEmails(order, { adminLabel: "New invoice order", confirmCustomer: true });
   }
 
   res.status(201).json({
@@ -509,6 +520,10 @@ app.post("/api/paypal/capture-order", portalAuth, async (req, res) => {
       paypalCaptureId: captureId,
       paidAt: Date.now(),
     });
+    dispatchOrderEmails(findOrder(order.id), {
+      adminLabel: "Paid wholesale order (PayPal)",
+      confirmCustomer: true,
+    });
     res.json({ status: "paid", captureId });
   } catch (err) {
     console.error("[paypal] capture:", err.message);
@@ -522,11 +537,11 @@ function isPublicGummyOrder(order) {
   return order?.source === "gummy-checkout" && (order.pharmacyId == null || order.pharmacyId === "");
 }
 
-app.get("/api/public/gummy-checkout/pricing", (req, res) => {
+app.get("/api/public/gummy-checkout/pricing", noStoreJson, (req, res) => {
   res.json(gummyPricingPublic());
 });
 
-app.get("/api/public/gummy-checkout/paypal-config", (req, res) => {
+app.get("/api/public/gummy-checkout/paypal-config", noStoreJson, (req, res) => {
   res.json({
     enabled: paypal.isConfigured(),
     clientId: paypal.clientId(),
@@ -658,11 +673,30 @@ app.post("/api/public/gummy-checkout/paypal/capture", async (req, res) => {
       paypalCaptureId: captureId,
       paidAt: Date.now(),
     });
+    dispatchOrderEmails(findOrder(order.id), {
+      adminLabel: "Paid gummy mix order (PayPal)",
+      confirmCustomer: true,
+    });
     res.json({ status: "paid", captureId });
   } catch (err) {
     console.error("[paypal] public gummy capture:", err.message);
     res.status(502).json({ error: "Payment capture failed" });
   }
+});
+
+app.get("/robots.txt", (_req, res) => {
+  res.type("text/plain");
+  res.send(
+    [
+      "User-agent: *",
+      "Disallow: /api/",
+      "Disallow: /admin/",
+      "Disallow: /portal.html",
+      "Disallow: /data/",
+      "Allow: /gummy-checkout.html",
+      "",
+    ].join("\n"),
+  );
 });
 
 // ——— Admin wholesale ———

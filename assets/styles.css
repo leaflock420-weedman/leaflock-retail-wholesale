@@ -2565,99 +2565,13 @@ textarea {
   }
 }
 
-/* Public gummy checkout (email links, no portal) */
-.gummy-checkout-page {
-  --ink: #0f1110;
-  --muted: #3f4939;
-  --line: #ffd0ea;
-  --leaf: var(--candy-strawberry);
-  --leaf-dark: var(--candy-strawberry);
-  --mint: var(--tint-strawberry);
-  --paper: #fff0f8;
-  --white: #ffffff;
-  --shadow: 0 18px 44px rgba(15, 17, 16, 0.08);
-  --focus-ring: rgba(255, 77, 141, 0.22);
-  background: var(--paper);
-  min-height: 100vh;
+/* Gummy checkout — same LeafLock wholesale theme as the rest of the site */
+.page-hero--checkout {
+  padding-bottom: 12px;
 }
 
-.gummy-checkout-page--embed {
-  min-height: 0;
-  background: #ffffff;
-}
-
-.gummy-checkout-page--embed .gummy-checkout-header {
-  padding-top: 10px;
-  padding-bottom: 10px;
-}
-
-.gummy-checkout-page--embed .gummy-checkout-main {
-  padding-top: 16px;
-  padding-bottom: 24px;
-}
-
-.gummy-checkout-header {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 18px clamp(18px, 4vw, 40px) 18px 22px;
-  background: var(--white);
-  border-bottom: 1px solid var(--line);
-}
-
-.gummy-checkout-header__stripe {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 6px;
-  background: linear-gradient(
-    180deg,
-    var(--candy-strawberry) 0% 25%,
-    var(--candy-blue) 25% 50%,
-    var(--candy-grape) 50% 75%,
-    var(--candy-lemon) 75% 100%
-  );
-}
-
-.gummy-checkout-header__brand {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.gummy-checkout-header__brand img {
-  display: block;
-  width: clamp(120px, 28vw, 160px);
-  height: auto;
-}
-
-.gummy-checkout-main {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 32px clamp(18px, 4vw, 24px) 48px;
-}
-
-.gummy-checkout-intro {
-  margin-bottom: 24px;
-}
-
-.gummy-checkout-intro h1 {
-  font-size: clamp(2rem, 5vw, 2.6rem);
-  max-width: none;
-}
-
-.gummy-checkout-card {
-  padding: 24px;
-  background: var(--white);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-}
-
-.gummy-checkout-card .form-block legend {
-  color: var(--leaf-dark);
+.gummy-checkout-form {
+  max-width: 720px;
 }
 
 .gummy-checkout-hint {
@@ -2671,12 +2585,11 @@ textarea {
 }
 
 .gummy-checkout-page .terms-fine-print a {
-  color: var(--leaf-dark);
+  color: var(--ll-green);
 }
 
 .gummy-checkout-pay .terms-fine-print {
   margin: 0 0 14px;
-  text-align: center;
 }
 
 .gummy-checkout-pay {
@@ -2685,16 +2598,15 @@ textarea {
   border-top: 1px solid var(--line);
 }
 
-.gummy-checkout-foot {
-  margin-top: 20px;
-  text-align: center;
-  color: var(--muted);
-  font-size: 0.92rem;
+.gummy-checkout-page--embed .site-header,
+.gummy-checkout-page--embed .site-marquee,
+.gummy-checkout-page--embed .site-footer,
+.gummy-checkout-page--embed .page-hero--checkout {
+  display: none !important;
 }
 
-.gummy-checkout-foot a {
-  color: var(--leaf-dark);
-  font-weight: 700;
+.gummy-checkout-page--embed .section--tight-top {
+  padding-top: 16px;
 }
 
 .gummy-pack-grid {
@@ -2718,7 +2630,7 @@ textarea {
   gap: 4px;
   height: 100%;
   padding: 14px;
-  background: var(--white);
+  background: var(--surface-elevated);
   border: 2px solid var(--line);
   border-radius: 12px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -2736,16 +2648,16 @@ textarea {
 
 .gummy-pack-option__inner em {
   margin-top: 4px;
-  color: var(--leaf-dark);
+  color: var(--ll-green);
   font-style: normal;
   font-size: 0.8rem;
   font-weight: 800;
 }
 
 .gummy-pack-option input:checked + .gummy-pack-option__inner {
-  border-color: var(--candy-strawberry);
-  box-shadow: 0 0 0 3px rgba(255, 77, 141, 0.15);
-  background: var(--tint-strawberry);
+  border-color: var(--ll-green);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+  background: rgba(149, 208, 93, 0.1);
 }
 
 .gummy-flavour-picks {
