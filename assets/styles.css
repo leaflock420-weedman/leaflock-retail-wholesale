@@ -1752,3 +1752,89 @@ dd small {
     align-items: flex-start;
   }
 }
+
+/* Public gummy checkout (email links, no portal) */
+.gummy-checkout-page {
+  background: var(--paper);
+  min-height: 100vh;
+}
+
+.gummy-checkout-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px clamp(18px, 4vw, 40px);
+  background: var(--white);
+  border-bottom: 4px solid transparent;
+  border-image: linear-gradient(
+    90deg,
+    var(--candy-strawberry) 0% 25%,
+    var(--candy-blue) 25% 50%,
+    var(--candy-grape) 50% 75%,
+    var(--candy-lemon) 75% 100%
+  ) 1;
+}
+
+.gummy-checkout-header span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.gummy-checkout-main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px clamp(18px, 4vw, 24px) 48px;
+}
+
+.gummy-checkout-intro {
+  margin-bottom: 24px;
+}
+
+.gummy-checkout-intro h1 {
+  font-size: clamp(2rem, 5vw, 2.6rem);
+  max-width: none;
+}
+
+.gummy-checkout-card {
+  padding: 24px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.gummy-checkout-card .form-block legend {
+  color: var(--leaf-dark);
+}
+
+.gummy-checkout-hint {
+  margin: 8px 0 0;
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
+.gummy-checkout-totals {
+  margin-top: 8px;
+}
+
+.gummy-checkout-pay {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.gummy-checkout-foot {
+  margin-top: 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.gummy-checkout-foot a {
+  color: var(--leaf-dark);
+  font-weight: 700;
+}

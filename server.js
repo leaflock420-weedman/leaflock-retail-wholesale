@@ -25,7 +25,7 @@ const {
   createAdminToken,
   adminAuthMiddleware,
 } = require("./lib/admin-auth");
-const { pricingForPortal, calculateOrder } = require("./lib/pricing");
+const { pricingForPortal, calculateOrder, calculateGummyOrder, gummyPricingPublic } = require("./lib/pricing");
 const {
   findByCode,
   findById,
@@ -75,6 +75,31 @@ const loginAttempts = new Map();
 const LOGIN_RATE_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_RATE_MAX = 20;
 const APPLICATION_RATE_MAX = 8;
+const GUMMY_CHECKOUT_RATE_MAX = 12;
+
+function isGummyOnlyLineItems(lineItems) {
+  return (
+    !lineItems?.starterBundle &&
+    Number(lineItems?.singlePacks || 0) === 0 &&
+    Number(lineItems?.threePacks || 0) === 0 &&
+    (Number(lineItems?.gummyIndividual || 0) > 0 || Number(lineItems?.mixedCartons || 0) > 0)
+  );
+}
+
+function isPublicGummyOrder(order) {
+  return order?.source === "gummy-checkout" && (order.pharmacyId == null || order.pharmacyId === "");
+}
+
+function gummyPayPalDescription(order) {
+  const parts = [];
+  if (order.lineItems?.mixedCartons) {
+    parts.push(`${order.lineItems.mixedCartons}× mixed carton (24)`);
+  }
+  if (order.lineItems?.gummyIndividual) {
+    parts.push(`${order.lineItems.gummyIndividual}× 90g gummy mix`);
+  }
+  return `LeafLock DIY Gummy Mix — ${parts.join(", ") || order.id}`;
+}
 
 app.set("trust proxy", 1);
 app.disable("x-powered-by");
@@ -366,6 +391,144 @@ app.post("/api/paypal/capture-order", portalAuth, async (req, res) => {
     res.json({ status: "paid", captureId });
   } catch (err) {
     console.error("[paypal] capture:", err.message);
+    res.status(502).json({ error: "Payment capture failed" });
+  }
+});
+
+// ——— Public gummy checkout (email links, no portal login) ———
+
+app.get("/api/public/gummy-checkout/pricing", (req, res) => {
+  res.json(gummyPricingPublic());
+});
+
+app.get("/api/public/gummy-checkout/paypal-config", (req, res) => {
+  res.json({
+    enabled: paypal.isConfigured(),
+    clientId: paypal.clientId(),
+    mode: paypal.mode(),
+    sdkBaseUrl: paypal.sdkBaseUrl(),
+  });
+});
+
+app.post("/api/public/gummy-checkout/orders", (req, res) => {
+  const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
+  if (!rateLimitKey(`gummy-checkout:${ip}`, GUMMY_CHECKOUT_RATE_MAX)) {
+    return res.status(429).json({ error: "Too many checkout attempts. Try again shortly." });
+  }
+
+  const body = req.body || {};
+  const contact = body.contact || {};
+  for (const field of ["businessName", "fullName", "email"]) {
+    if (!String(contact[field] || "").trim()) {
+      return res.status(400).json({ error: `Missing ${field}` });
+    }
+  }
+
+  const lineItems = {
+    singlePacks: 0,
+    threePacks: 0,
+    gummyIndividual: Math.max(0, Number(body.gummyIndividual) || 0),
+    mixedCartons: Math.max(0, Number(body.mixedCartons) || 0),
+    starterBundle: false,
+  };
+
+  if (!isGummyOnlyLineItems(lineItems)) {
+    return res.status(400).json({ error: "Add at least one gummy mix product" });
+  }
+
+  const totals = calculateGummyOrder(lineItems);
+  if (totals.total <= 0) {
+    return res.status(400).json({ error: "Invalid order total" });
+  }
+
+  const order = createOrder({
+    pharmacyId: null,
+    pharmacyName: contact.businessName,
+    contact: { ...contact, flavours: body.flavours || "" },
+    lineItems,
+    totals,
+    notes: body.notes || "Public gummy checkout",
+    paymentMethod: "paypal",
+    source: "gummy-checkout",
+  });
+
+  res.status(201).json({
+    order: {
+      id: order.id,
+      status: order.status,
+      totals: order.totals,
+    },
+  });
+});
+
+app.post("/api/public/gummy-checkout/paypal/create", async (req, res) => {
+  if (!paypal.isConfigured()) {
+    return res.status(503).json({ error: "PayPal not configured" });
+  }
+
+  const { orderId } = req.body || {};
+  const order = findOrder(orderId);
+  if (!order || !isPublicGummyOrder(order)) {
+    return res.status(404).json({ error: "Order not found" });
+  }
+  if (!isGummyOnlyLineItems(order.lineItems)) {
+    return res.status(400).json({ error: "Gummy mix orders only" });
+  }
+  if (order.paymentStatus === "paid") {
+    return res.status(400).json({ error: "Order already paid" });
+  }
+
+  try {
+    const ppOrder = await paypal.createPayPalOrder({
+      orderId: order.id,
+      total: order.totals.total,
+      description: gummyPayPalDescription(order),
+    });
+    updateOrder(order.id, {
+      paypalOrderId: ppOrder.id,
+      status: "awaiting_payment",
+      paymentMethod: "paypal",
+      paymentStatus: "pending",
+    });
+    res.json({ paypalOrderId: ppOrder.id });
+  } catch (err) {
+    console.error("[paypal] public gummy create:", err.message);
+    res.status(502).json({ error: "Could not create PayPal order" });
+  }
+});
+
+app.post("/api/public/gummy-checkout/paypal/capture", async (req, res) => {
+  if (!paypal.isConfigured()) {
+    return res.status(503).json({ error: "PayPal not configured" });
+  }
+
+  const { orderId, paypalOrderId } = req.body || {};
+  const order = findOrder(orderId);
+  if (!order || !isPublicGummyOrder(order)) {
+    return res.status(404).json({ error: "Order not found" });
+  }
+  if (!paypalOrderId || order.paypalOrderId !== paypalOrderId) {
+    return res.status(400).json({ error: "PayPal order mismatch" });
+  }
+
+  try {
+    const capture = await paypal.capturePayPalOrder(paypalOrderId);
+    const paid = paypal.captureAmount(capture);
+    const expected = Number(order.totals?.total || 0).toFixed(2);
+    if (paid == null || Number(paid).toFixed(2) !== expected) {
+      console.error("[paypal] public gummy amount mismatch", { paid, expected, orderId: order.id });
+      return res.status(400).json({ error: "Payment amount mismatch" });
+    }
+    const captureId = capture?.purchase_units?.[0]?.payments?.captures?.[0]?.id || null;
+    updateOrder(order.id, {
+      status: "paid",
+      paymentStatus: "paid",
+      paypalCaptureId: captureId,
+      paidAt: Date.now(),
+    });
+    res.json({ status: "paid", captureId });
+  } catch (err) {
+    console.error("[paypal] public gummy capture:", err.message);
     res.status(502).json({ error: "Payment capture failed" });
   }
 });
