@@ -6,6 +6,33 @@
     return `<a href="${href}"${current}>${label}</a>`;
   }
 
+  function ensureMarquee(header) {
+    let marquee = document.getElementById("site-marquee");
+    if (!marquee) {
+      marquee = document.createElement("div");
+      marquee.id = "site-marquee";
+      marquee.className = "site-marquee";
+      header.parentNode.insertBefore(marquee, header);
+    }
+    marquee.setAttribute("aria-hidden", "true");
+    marquee.innerHTML = `
+      <div class="site-marquee__track">
+        <span class="site-marquee__item">Approved retail store accounts only</span>
+        <span class="site-marquee__item">Request access for wholesale pricing</span>
+        <span class="site-marquee__item">Portal ordering after verification</span>
+        <span class="site-marquee__item">Bulk supply available on request</span>
+        <span class="site-marquee__item">Approved retail store accounts only</span>
+        <span class="site-marquee__item">Request access for wholesale pricing</span>
+        <span class="site-marquee__item">Portal ordering after verification</span>
+        <span class="site-marquee__item">Bulk supply available on request</span>
+      </div>`;
+  }
+
+  function removeCategories() {
+    const categories = document.getElementById("site-categories");
+    if (categories) categories.remove();
+  }
+
   window.renderLeafLockLayout = function renderLeafLockLayout() {
     const header = document.getElementById("site-header");
     const footer = document.getElementById("site-footer");
@@ -19,20 +46,17 @@
       document.head.appendChild(icon);
     }
 
+    ensureMarquee(header);
+    removeCategories();
+
     header.innerHTML = `
-      <div class="header-brand-wrap">
-        <a class="brand" href="index.html" aria-label="Retail Store Wholesale home">
-          <img class="brand-logo" src="assets/brand/leaflock-logo.png" alt="" width="120" height="32">
-          <span class="brand-text">Retail Store Wholesale</span>
-        </a>
-      </div>
+      <a class="brand" href="index.html" aria-label="LeafLock Retail Store Wholesale">
+        <img class="brand-logo" src="assets/demo/leaflock-logo-main.png" alt="LeafLock" width="240" height="64">
+      </a>
       <nav class="main-nav" aria-label="Primary navigation">
         ${link("index.html", "Home", "home")}
-        ${link("humidity-packs.html", "<span class=\"nav-long\">Humidity Packs</span><span class=\"nav-short\">Humidity</span>", "humidity")}
-        ${link("gummies.html", "Gummies", "gummies")}
         ${link("request-access.html", "<span class=\"nav-long\">Request Access</span><span class=\"nav-short\">Access</span>", "access")}
         ${link("portal.html", "<span class=\"nav-long\">Wholesale Portal</span><span class=\"nav-short\">Portal</span>", "portal")}
-        ${link("lab-disclosure.html", "<span class=\"nav-long\">Lab Disclosure</span><span class=\"nav-short\">Lab</span>", "lab")}
       </nav>
       <a class="header-action" href="portal.html">Retail store login</a>`;
 
@@ -42,20 +66,15 @@
         <p>Surfers Paradise, QLD 4217</p>
       </div>
       <div class="footer-col">
-        <a href="humidity-packs.html">Humidity Packs</a>
-        <a href="gummies.html">DIY Gummy Mix</a>
         <a href="request-access.html">Request wholesale access</a>
         <a href="portal.html">Approved retail store portal</a>
       </div>
       <div class="footer-col">
-        <a href="lab-disclosure.html">Laboratory disclosure</a>
         <a href="mailto:info@leaflock.com.au">info@leaflock.com.au</a>
         <a href="tel:+61431295201">0431 295 201</a>
       </div>
-      <p class="footer-tm">LeafLock<sup class="tm-mark">TM</sup> No. 2594215 (Classes 5 &amp; 16) · LeafLock &amp; Co Pty Ltd ACN 676 132 531</p>
       <p class="footer-disclaimer">
         General product information only. Not medical advice. Wholesale pricing and ordering available to approved Australian retail store accounts.
-        See <a href="lab-disclosure.html">lab disclosure</a> for testing data and limitations.
       </p>`;
   };
 
