@@ -1031,20 +1031,43 @@ input:focus {
   border-top: 1px solid var(--line);
 }
 
-.checkout-terms__summary {
-  margin: 0 0 12px;
-  color: var(--muted);
-  font-size: 0.92rem;
-  line-height: 1.5;
-}
-
-.checkout-terms__summary a {
-  color: var(--leaf);
-  font-weight: 700;
-}
-
 .check-row--required {
   border: 1px solid rgba(149, 208, 93, 0.35);
+}
+
+/* Fine-print terms agreement — full terms live on wholesale-terms.html */
+.terms-fine-print {
+  margin: 14px 0 0;
+  padding: 0;
+  font-size: 0.62rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.terms-fine-print label {
+  display: flex;
+  gap: 5px;
+  align-items: flex-start;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+}
+
+.terms-fine-print input[type="checkbox"] {
+  width: 11px;
+  height: 11px;
+  min-width: 11px;
+  margin: 2px 0 0;
+  flex-shrink: 0;
+}
+
+.terms-fine-print a {
+  color: inherit;
+  text-decoration: underline;
+  font-weight: 600;
 }
 
 .footer-col {
@@ -2574,28 +2597,40 @@ textarea {
 }
 
 .gummy-checkout-header {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px clamp(18px, 4vw, 40px);
+  justify-content: center;
+  padding: 18px clamp(18px, 4vw, 40px) 18px 22px;
   background: var(--white);
-  border-bottom: 4px solid transparent;
-  border-image: linear-gradient(
-    90deg,
+  border-bottom: 1px solid var(--line);
+}
+
+.gummy-checkout-header__stripe {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: linear-gradient(
+    180deg,
     var(--candy-strawberry) 0% 25%,
     var(--candy-blue) 25% 50%,
     var(--candy-grape) 50% 75%,
     var(--candy-lemon) 75% 100%
-  ) 1;
+  );
 }
 
-.gummy-checkout-header span {
-  color: var(--muted);
-  font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.gummy-checkout-header__brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gummy-checkout-header__brand img {
+  display: block;
+  width: clamp(120px, 28vw, 160px);
+  height: auto;
 }
 
 .gummy-checkout-main {
@@ -2635,30 +2670,13 @@ textarea {
   margin-top: 8px;
 }
 
-.gummy-checkout-terms {
-  margin: 10px 0 0;
-  font-size: 0.7rem;
-  line-height: 1.35;
-  color: var(--muted);
-}
-
-.gummy-checkout-terms label {
-  display: flex;
-  gap: 6px;
-  align-items: flex-start;
-  cursor: pointer;
-}
-
-.gummy-checkout-terms input {
-  margin: 1px 0 0;
-  width: 13px;
-  height: 13px;
-  flex-shrink: 0;
-}
-
-.gummy-checkout-terms a {
+.gummy-checkout-page .terms-fine-print a {
   color: var(--leaf-dark);
-  font-weight: 700;
+}
+
+.gummy-checkout-pay .terms-fine-print {
+  margin: 0 0 14px;
+  text-align: center;
 }
 
 .gummy-checkout-pay {

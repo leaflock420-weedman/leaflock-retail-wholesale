@@ -9,8 +9,10 @@
   </head>
   <body class="gummy-checkout-page" data-nav="" data-embed="">
     <header class="gummy-checkout-header">
-      <a href="gummies.html"><img src="assets/brand/leaflock-logo.png" alt="LeafLock" width="120" height="32"></a>
-      <span>DIY Gummy Mix · Pay now</span>
+      <div class="gummy-checkout-header__stripe" aria-hidden="true"></div>
+      <a class="gummy-checkout-header__brand" href="gummies.html">
+        <img src="assets/demo/leaflock-logo-main.png" alt="LeafLock" width="160" height="42">
+      </a>
     </header>
 
     <main class="gummy-checkout-main">
@@ -92,13 +94,6 @@
         <input type="hidden" id="flavours" value="Blue Raspberry, Grape, Strawberry, Create Your Own">
         <p class="gummy-checkout-hint" id="pricingHint">Wholesale ex GST · $25 shipping · 10% GST added at total</p>
 
-        <p class="gummy-checkout-terms">
-          <label>
-            <input type="checkbox" id="gummyTermsAccepted" required>
-            <span>I agree to the <a href="wholesale-terms.html" target="_blank" rel="noopener">wholesale terms</a>.</span>
-          </label>
-        </p>
-
         <div class="totals gummy-checkout-totals" aria-live="polite">
           <div><span>Subtotal ex GST</span><strong id="subtotal">$0.00</strong></div>
           <div><span>GST</span><strong id="gst">$0.00</strong></div>
@@ -108,6 +103,12 @@
         </div>
 
         <div class="gummy-checkout-pay">
+          <p class="terms-fine-print">
+            <label>
+              <input type="checkbox" id="gummyTermsAccepted" required>
+              <span>I have read and agree to the <a href="wholesale-terms.html" target="_blank" rel="noopener">Wholesale Terms &amp; Conditions</a>.</span>
+            </label>
+          </p>
           <p id="paypalNote" class="pricing-placeholder">Loading PayPal…</p>
           <div id="paypalButtons"></div>
         </div>
