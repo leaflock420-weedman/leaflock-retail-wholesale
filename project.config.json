@@ -6,7 +6,7 @@
   "blockProductionDomain": "med.leaflock.com.au",
   "productionServiceId": "srv-d94f97t7vvec73dhj9rg",
   "localPort": 4280,
-  "siteUrl": "https://leaflock-retail-wholesale.onrender.com",
+  "siteUrl": "https://www.wholesale.leaflock.com.au",
   "parentProject": null,
   "openInstructions": "Separate from med.leaflock.com.au (pharmacy wholesale). Never deploy this repo to the pharmacy Render service."
 }

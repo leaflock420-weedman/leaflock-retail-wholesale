@@ -12,6 +12,9 @@ const RENDER_KEY = (
 const OWNER_ID = "tea-d8rpaukvikkc738s9o5g";
 const REPO = "https://github.com/leaflock420-weedman/leaflock-retail-wholesale";
 const SERVICE_NAME = "leaflock-retail-wholesale";
+const SERVICE_ID = "srv-d94f97t7vvec73dhj9rg";
+const SITE_URL = "https://www.wholesale.leaflock.com.au";
+const CUSTOM_DOMAINS = ["www.wholesale.leaflock.com.au", "wholesale.leaflock.com.au"];
 
 const envJson = JSON.parse(
   (await readFile(path.join(root, "data", ".leaflock-render-env.json"), "utf8")).replace(/^\uFEFF/, ""),
@@ -37,7 +40,7 @@ const RETAIL_ENV = {
   ANALYTICS_EMAIL_TO: "info@leaflock.com.au",
   ANALYTICS_EMAIL_FROM: "info@leaflock.com.au",
   WHOLESALE_EMAIL_TO: "info@leaflock.com.au",
-  SITE_URL: "https://leaflock-retail-wholesale.onrender.com",
+  SITE_URL,
 };
 
 const headers = {
@@ -137,6 +140,36 @@ async function setEnvVars(serviceId) {
   console.log(`Set ${envVars.length} environment variables (PayPal live included)`);
 }
 
+async function ensureCustomDomains(serviceId) {
+  let existing = [];
+  try {
+    const rows = await api(`/services/${serviceId}/custom-domains`);
+    existing = (Array.isArray(rows) ? rows : []).map((row) => row.customDomain?.name || row.name).filter(Boolean);
+  } catch (err) {
+    console.warn("Could not list custom domains:", err.message);
+  }
+
+  for (const name of CUSTOM_DOMAINS) {
+    if (existing.includes(name)) {
+      console.log(`Custom domain already registered: ${name}`);
+      continue;
+    }
+    try {
+      await api(`/services/${serviceId}/custom-domains`, {
+        method: "POST",
+        body: JSON.stringify({ name }),
+      });
+      console.log(`Registered custom domain: ${name}`);
+    } catch (err) {
+      if (/409|already|exists/i.test(err.message)) {
+        console.log(`Custom domain already present: ${name}`);
+      } else {
+        console.warn(`Custom domain ${name}:`, err.message);
+      }
+    }
+  }
+}
+
 async function triggerDeploy(serviceId) {
   await api(`/services/${serviceId}/deploys`, {
     method: "POST",
@@ -145,18 +178,21 @@ async function triggerDeploy(serviceId) {
   console.log("Deploy triggered");
 }
 
-async function waitForLive(url) {
+async function waitForLive(urls) {
+  const targets = Array.isArray(urls) ? urls : [urls];
   for (let i = 0; i < 40; i++) {
-    try {
-      const res = await fetch(`${url}/api/public/gummy-checkout/paypal-config`);
-      if (res.ok) {
-        const data = await res.json();
-        console.log(`LIVE: ${url} — PayPal enabled=${data.enabled} mode=${data.mode}`);
-        return data;
+    for (const url of targets) {
+      try {
+        const res = await fetch(`${url}/api/public/gummy-checkout/paypal-config`);
+        if (res.ok) {
+          const data = await res.json();
+          console.log(`LIVE: ${url} — PayPal enabled=${data.enabled} mode=${data.mode}`);
+          return { url, data };
+        }
+        console.log(`Waiting for ${url} (${i + 1}/40) status=${res.status}`);
+      } catch {
+        console.log(`Waiting for ${url} (${i + 1}/40)...`);
       }
-      console.log(`Waiting for deploy (${i + 1}/40) status=${res.status}`);
-    } catch {
-      console.log(`Waiting for deploy (${i + 1}/40)...`);
     }
     await new Promise((r) => setTimeout(r, 15000));
   }
@@ -177,14 +213,17 @@ async function main() {
     console.log(`Found existing service: ${service.id}`);
   }
 
+  await ensureCustomDomains(service.id);
   await setEnvVars(service.id);
   await triggerDeploy(service.id);
 
-  const url =
+  const renderUrl =
     service.serviceDetails?.url ||
     `https://${service.slug || SERVICE_NAME}.onrender.com`;
-  await waitForLive(url);
-  console.log(`Checkout: ${url}/gummy-checkout.html`);
+  const live = await waitForLive([SITE_URL, renderUrl]);
+  const liveUrl = live?.url || SITE_URL;
+  console.log(`Site: ${SITE_URL}`);
+  console.log(`Checkout: ${liveUrl}/gummy-checkout.html`);
 }
 
 main().catch((err) => {

@@ -91,9 +91,9 @@ const ROOT = __dirname;
 const REPORT_HOUR = Number(process.env.ANALYTICS_REPORT_HOUR || 7);
 const SITE_HOST = (() => {
   try {
-    return new URL(process.env.SITE_URL || "https://leaflock-retail-wholesale.onrender.com").hostname.toLowerCase();
+    return new URL(process.env.SITE_URL || "https://www.wholesale.leaflock.com.au").hostname.toLowerCase();
   } catch {
-    return "leaflock-retail-wholesale.onrender.com";
+    return "www.wholesale.leaflock.com.au";
   }
 })();
 
@@ -128,9 +128,14 @@ function gummyPayPalDescription(order) {
 app.set("trust proxy", 1);
 app.disable("x-powered-by");
 app.use(express.json({ limit: "64kb" }));
+const HOST_ALIASES = {
+  "wholesale.leaflock.com.au": true,
+  "leaflock-retail-wholesale.onrender.com": true,
+};
+
 app.use((req, res, next) => {
   const host = (req.headers.host || "").split(":")[0].toLowerCase();
-  if (host === `www.${SITE_HOST}`) {
+  if (host !== SITE_HOST && HOST_ALIASES[host]) {
     return res.redirect(301, `https://${SITE_HOST}${req.originalUrl}`);
   }
   next();
@@ -670,7 +675,7 @@ app.get("/api/admin/setup-status", adminAuth, (req, res) => {
     email: emailConfigured(),
     smtpConfigured: Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS),
     portalSalt: Boolean(process.env.PORTAL_CODE_SALT),
-    siteUrl: process.env.SITE_URL || "https://leaflock-retail-wholesale.onrender.com",
+    siteUrl: process.env.SITE_URL || "https://www.wholesale.leaflock.com.au",
     adminPasswordFromEnv: Boolean(process.env.ANALYTICS_ADMIN_PASSWORD),
     portalSessionSecret: Boolean(process.env.PORTAL_SESSION_SECRET),
     adminSessionSecret: Boolean(process.env.ADMIN_SESSION_SECRET || process.env.PORTAL_SESSION_SECRET),

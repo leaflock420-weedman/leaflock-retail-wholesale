@@ -51,6 +51,6 @@ services:
       - key: PAYPAL_MODE
         value: live
       - key: SITE_URL
-        value: https://leaflock-retail-wholesale.onrender.com
+        value: https://www.wholesale.leaflock.com.au
       - key: WHOLESALE_EMAIL_TO
         value: info@leaflock.com.au

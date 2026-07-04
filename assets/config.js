@@ -1,5 +1,5 @@
 window.LEAFLOCK_WHOLESALE = {
-  SITE_URL: "https://leaflock-retail-wholesale.onrender.com",
+  SITE_URL: "https://www.wholesale.leaflock.com.au",
   EMAIL: "info@leaflock.com.au",
   PHONE: "0431 295 201",
   GA_MEASUREMENT_ID: "",
