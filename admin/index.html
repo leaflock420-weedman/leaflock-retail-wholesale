@@ -5,12 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <title>LeafLock Admin Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="../assets/brand/favicon.svg">
+    <link rel="stylesheet" href="../assets/styles.css">
     <link rel="stylesheet" href="admin.css">
   </head>
   <body data-admin="true">
     <div id="loginScreen" class="login-screen">
       <form id="loginForm" class="login-card">
-        <h1>LeafLock Admin</h1>
+        <img src="../assets/brand/leaflock-logo.png" alt="LeafLock" class="admin-brand-logo" width="200" height="54">
+        <h1>Admin</h1>
         <p>Traffic analytics, retail store accounts, and wholesale orders.</p>
         <p id="hostWarning" class="login-hint login-hint--warn" hidden></p>
         <label>
@@ -22,10 +25,17 @@
       </form>
     </div>
 
-    <div id="dashboard" class="dashboard" hidden>
+    <div id="dashboard" hidden>
+      <div class="admin-topbar">
+        <a class="admin-topbar__brand" href="/" aria-label="LeafLock wholesale">
+          <img src="../assets/brand/leaflock-logo.png" alt="" class="admin-topbar__logo" width="168" height="45">
+          <span class="admin-topbar__label">Admin</span>
+        </a>
+      </div>
+      <div class="dashboard">
       <header class="dash-header">
         <div>
-          <h1>LeafLock admin</h1>
+          <h1>Dashboard</h1>
           <p id="lastUpdated">—</p>
         </div>
         <div class="dash-actions">
@@ -198,6 +208,7 @@
             </table>
           </div>
         </section>
+      </div>
       </div>
     </div>
 
