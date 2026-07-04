@@ -17,11 +17,11 @@
     marquee.setAttribute("aria-hidden", "true");
     marquee.innerHTML = `
       <div class="site-marquee__track">
-        <span class="site-marquee__item">Approved retail store accounts only</span>
+        <span class="site-marquee__item">Approved retail stockist accounts only</span>
         <span class="site-marquee__item">Request access for wholesale pricing</span>
         <span class="site-marquee__item">Portal ordering after verification</span>
         <span class="site-marquee__item">Bulk supply available on request</span>
-        <span class="site-marquee__item">Approved retail store accounts only</span>
+        <span class="site-marquee__item">Approved retail stockist accounts only</span>
         <span class="site-marquee__item">Request access for wholesale pricing</span>
         <span class="site-marquee__item">Portal ordering after verification</span>
         <span class="site-marquee__item">Bulk supply available on request</span>
@@ -50,7 +50,7 @@
     removeCategories();
 
     header.innerHTML = `
-      <a class="brand" href="index.html" aria-label="LeafLock Retail Store Wholesale">
+      <a class="brand" href="index.html" aria-label="LeafLock Retail Stockist Wholesale">
         <img class="brand-logo" src="assets/demo/leaflock-logo-main.png" alt="LeafLock" width="240" height="64">
       </a>
       <nav class="main-nav" aria-label="Primary navigation">
@@ -58,16 +58,16 @@
         ${link("request-access.html", "<span class=\"nav-long\">Request Access</span><span class=\"nav-short\">Access</span>", "access")}
         ${link("portal.html", "<span class=\"nav-long\">Wholesale Portal</span><span class=\"nav-short\">Portal</span>", "portal")}
       </nav>
-      <a class="header-action" href="portal.html">Retail store login</a>`;
+      <a class="header-action" href="portal.html">Retail stockist login</a>`;
 
     footer.innerHTML = `
       <div class="footer-col">
-        <strong>LeafLock Retail Store Wholesale</strong>
+        <strong>LeafLock Retail Stockist Wholesale</strong>
         <p>Surfers Paradise, QLD 4217</p>
       </div>
       <div class="footer-col">
         <a href="request-access.html">Request wholesale access</a>
-        <a href="portal.html">Approved retail store portal</a>
+        <a href="portal.html">Approved retail stockist portal</a>
       </div>
       <div class="footer-col">
         <a href="mailto:info@leaflock.com.au">info@leaflock.com.au</a>
@@ -81,7 +81,7 @@
         <a href="help.html">Owner guide</a>
       </div>
       <p class="footer-disclaimer">
-        General product information only. Not medical advice. Wholesale pricing and ordering available to approved Australian retail store accounts. Goods remain property of LeafLock™ until paid in full.
+        General product information only. Not medical advice. Wholesale pricing and ordering available to approved Australian retail stockist accounts. Goods remain property of LeafLock™ until paid in full.
       </p>`;
   };
 

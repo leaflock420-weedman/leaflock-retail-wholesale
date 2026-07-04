@@ -1,7 +1,7 @@
 (function () {
   const TOKEN_KEY = "leaflock_portal_token";
-  const PENDING_KEY = "leaflock_pharmacy_pending";
-  let sessionPharmacy = null;
+  const PENDING_KEY = "leaflock_retail_stockist_pending";
+  let sessionRetailStockist = null;
 
   function token() {
     return sessionStorage.getItem(TOKEN_KEY);
@@ -16,8 +16,8 @@
     return Boolean(token());
   }
 
-  function pharmacy() {
-    return sessionPharmacy;
+  function retailStockist() {
+    return sessionRetailStockist;
   }
 
   function isPending() {
@@ -32,6 +32,10 @@
     localStorage.removeItem(PENDING_KEY);
   }
 
+  function stockistFromBody(body) {
+    return body?.retailStockist || body?.pharmacy || null;
+  }
+
   async function portalFetch(path, options = {}) {
     const headers = {
       "Content-Type": "application/json",
@@ -43,7 +47,7 @@
     const res = await fetch(path, { ...options, headers });
     if (res.status === 401) {
       setToken(null);
-      sessionPharmacy = null;
+      sessionRetailStockist = null;
       throw new Error("unauthorized");
     }
     if (!res.ok) {
@@ -65,9 +69,9 @@
       throw new Error(body.error || "Invalid email or password");
     }
     setToken(body.token);
-    sessionPharmacy = body.pharmacy;
+    sessionRetailStockist = stockistFromBody(body);
     clearPending();
-    return body.pharmacy;
+    return sessionRetailStockist;
   }
 
   async function checkPortalApi() {
@@ -97,8 +101,8 @@
     if (!token()) return null;
     try {
       const data = await portalFetch("/api/portal/session");
-      sessionPharmacy = data.pharmacy;
-      return data.pharmacy;
+      sessionRetailStockist = stockistFromBody(data);
+      return sessionRetailStockist;
     } catch {
       return null;
     }
@@ -111,7 +115,7 @@
       /* session already invalid */
     }
     setToken(null);
-    sessionPharmacy = null;
+    sessionRetailStockist = null;
   }
 
   function protectGatedContent() {
@@ -122,11 +126,11 @@
     const accountPanel = document.getElementById("portalAccountPanel");
     if (!gate || !content) return;
 
-    if (isApproved() && sessionPharmacy) {
+    if (isApproved() && sessionRetailStockist) {
       gate.hidden = true;
       content.hidden = false;
       if (sessionLabel) {
-        sessionLabel.textContent = `Logged in as ${sessionPharmacy.businessName} (${sessionPharmacy.email})`;
+        sessionLabel.textContent = `Logged in as ${sessionRetailStockist.businessName} (${sessionRetailStockist.email})`;
       }
       if (accountPanel) accountPanel.hidden = false;
       return;
@@ -267,7 +271,9 @@
     isApproved,
     isPending,
     setPending,
-    pharmacy,
+    retailStockist,
+    /** @deprecated use retailStockist */
+    pharmacy: retailStockist,
     portalFetch,
     loginWithCredentials,
     restoreSession,

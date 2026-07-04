@@ -235,7 +235,7 @@ def build_pdf(pdf_path: Path) -> None:
     admin_tasks = [
         ("Upload / download spreadsheet", "Update the order form (Part 1 above)"),
         ("Access applications", "When a shop applies — click Approve or Reject"),
-        ("Retail store accounts", "See who can log in; Reset password if they forgot"),
+        ("Retail stockist accounts", "See who can log in; Reset password if they forgot"),
         ("Orders", "See orders; change status (processing, shipped, etc.)"),
         ("System status", "Green ticks = email, PayPal, catalogue working"),
     ]

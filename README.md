@@ -1,6 +1,6 @@
-# LeafLock Retail Store Wholesale
+# LeafLock Retail Stockist Wholesale
 
-Retail store wholesale portal for LeafLock humidity packs and DIY gummy mix — **separate from** [med.leaflock.com.au](https://med.leaflock.com.au) (pharmacy wholesale).
+Retail stockist wholesale portal for LeafLock humidity packs and DIY gummy mix — **separate from** [med.leaflock.com.au](https://med.leaflock.com.au) (pharmacy wholesale).
 
 **GitHub:** https://github.com/leaflock420-weedman/leaflock-retail-wholesale
 

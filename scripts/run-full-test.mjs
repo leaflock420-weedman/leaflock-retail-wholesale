@@ -247,7 +247,9 @@ try {
     headers: { Authorization: `Bearer ${adminToken}` },
   });
   assert("Admin pharmacies list", r.res.status === 200);
-  const stockist = (r.body.pharmacies || []).find((p) => p.email === "apply-test@example.com");
+  const stockist = (r.body.retailStockists || r.body.pharmacies || []).find(
+    (p) => p.email === "apply-test@example.com",
+  );
   assert("Approved stockist has checkout link", Boolean(stockist?.checkoutLink));
   if (!stockist?.checkoutLink) throw new Error("Missing stockist checkout link for follow-up tests");
 

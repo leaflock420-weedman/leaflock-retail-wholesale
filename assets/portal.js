@@ -294,10 +294,10 @@
   }
 
   function prefillFromSession() {
-    const pharmacy = window.LeafLockAccess?.pharmacy?.();
-    if (!pharmacy) return;
-    if (fields.businessName && !fields.businessName.value) fields.businessName.value = pharmacy.businessName || "";
-    if (fields.email && !fields.email.value) fields.email.value = pharmacy.email || "";
+    const stockist = window.LeafLockAccess?.retailStockist?.();
+    if (!stockist) return;
+    if (fields.businessName && !fields.businessName.value) fields.businessName.value = stockist.businessName || "";
+    if (fields.email && !fields.email.value) fields.email.value = stockist.email || "";
   }
 
   async function loadPricing() {
@@ -445,7 +445,7 @@
         .Buttons({
           style: { layout: "vertical", color: "gold", shape: "rect", label: "paypal" },
           createOrder: async () => {
-            if (!orderForm.reportValidity()) throw new Error("Complete retail store details first");
+            if (!orderForm.reportValidity()) throw new Error("Complete retail stockist details first");
             if (!fields.termsAccepted?.checked) throw new Error("Agree to the Wholesale Terms & Conditions first");
             const calc = calculateOrder();
             if (!calc || calc.total <= 0) throw new Error("Add products to your order first");

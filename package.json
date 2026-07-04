@@ -2,7 +2,7 @@
   "name": "leaflock-retail-wholesale",
   "version": "1.0.0",
   "private": true,
-  "description": "LeafLock retail store wholesale site (separate from med.leaflock.com.au)",
+  "description": "LeafLock retail stockist wholesale site (separate from med.leaflock.com.au)",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

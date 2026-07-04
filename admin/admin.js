@@ -58,7 +58,7 @@ function setupPasswordUrl(token) {
   return `${base}/set-password.html?token=${encodeURIComponent(token)}`;
 }
 
-function showLinkModal(url, label = "Link", description = "Copy this link and email it to the retail store if SMTP did not send automatically.") {
+function showLinkModal(url, label = "Link", description = "Copy this link and email it to the retail stockist if SMTP did not send automatically.") {
   const modal = document.getElementById("codeModal");
   const codeEl = document.getElementById("generatedCode");
   const title = modal?.querySelector("h2");
@@ -75,11 +75,11 @@ function showSetupLinkModal(token, label = "Password setup link") {
   showLinkModal(
     setupPasswordUrl(token),
     label,
-    "Copy this one-time password setup link and email it to the retail store if SMTP did not send automatically.",
+    "Copy this one-time password setup link and email it to the retail stockist if SMTP did not send automatically.",
   );
 }
 
-function showCheckoutLinkModal(checkoutLink, businessName = "Retail store") {
+function showCheckoutLinkModal(checkoutLink, businessName = "Retail stockist") {
   showLinkModal(
     checkoutLink,
     `Gummy checkout link — ${businessName}`,
@@ -168,12 +168,15 @@ async function approveApplication(id) {
   const result = await api(`/api/admin/applications/${id}/approve`, { method: "POST" });
   if (result.setupToken) showSetupLinkModal(result.setupToken, "Account approved — setup link");
   if (result.checkoutLink) {
-    showCheckoutLinkModal(result.checkoutLink, result.application?.businessName || result.pharmacy?.businessName);
+    showCheckoutLinkModal(
+      result.checkoutLink,
+      result.application?.businessName || result.retailStockist?.businessName,
+    );
   }
   if (result.emailSent) {
     alert(`Approved — setup and checkout links emailed to ${result.application.email}`);
   } else {
-    alert("Approved — copy the setup and checkout links and email them to the retail store (SMTP not configured).");
+    alert("Approved — copy the setup and checkout links and email them to the retail stockist (SMTP not configured).");
   }
   await refreshWholesale();
 }
@@ -185,18 +188,18 @@ async function rejectApplication(id) {
 }
 
 async function sendPasswordReset(id) {
-  if (!confirm("Send a password reset link to this retail store?")) return;
+  if (!confirm("Send a password reset link to this retail stockist?")) return;
   const result = await api(`/api/admin/pharmacies/${id}/send-password-reset`, { method: "POST" });
   if (result.setupToken) showSetupLinkModal(result.setupToken, "Password reset link");
   if (result.emailSent) {
-    alert(`Reset link emailed to ${result.pharmacy.email}`);
+    alert(`Reset link emailed to ${result.retailStockist?.email || result.pharmacy?.email}`);
   } else {
     alert("Copy the reset link and email it manually (SMTP not configured).");
   }
   await refreshWholesale();
 }
 
-async function togglePharmacyStatus(id, currentStatus) {
+async function toggleRetailStockistStatus(id, currentStatus) {
   const next = currentStatus === "active" ? "inactive" : "active";
   await api(`/api/admin/pharmacies/${id}`, {
     method: "PATCH",
@@ -213,8 +216,8 @@ async function updateOrderStatus(id, status) {
   await refreshWholesale();
 }
 
-async function addPharmacy() {
-  const businessName = prompt("Retail store / business name:");
+async function addRetailStockist() {
+  const businessName = prompt("Retail stockist / business name:");
   if (!businessName) return;
   const email = prompt("Contact email:");
   if (!email) return;
@@ -247,8 +250,8 @@ async function regenerateCheckoutKey(id, businessName) {
   await refreshWholesale();
 }
 
-async function sendComplianceToPharmacy(id) {
-  if (!confirm("Email the compliance pack (NDA + gummy pack + TM certificate) to this retail store?")) return;
+async function sendComplianceToRetailStockist(id) {
+  if (!confirm("Email the compliance pack (NDA + gummy pack + TM certificate) to this retail stockist?")) return;
   const result = await api(`/api/admin/pharmacies/${id}/send-compliance`, { method: "POST" });
   if (result.sent) alert(`Compliance documents sent to ${result.email}`);
   else alert("Send failed — check SMTP and that PDFs are on the server.");
@@ -280,7 +283,7 @@ async function refreshWholesale() {
   } catch {
     /* keep setup-status summary */
   }
-  const pharmacies = await api("/api/admin/pharmacies");
+  const stockistList = await api("/api/admin/pharmacies");
   const orders = await api("/api/admin/orders");
   const loginLog = await api("/api/admin/login-log?limit=50");
 
@@ -315,7 +318,7 @@ async function refreshWholesale() {
   const pharmBody = document.getElementById("pharmaciesTable");
   renderTable(
     pharmBody,
-    pharmacies.pharmacies,
+    stockistList.retailStockists || stockistList.pharmacies || [],
     (p) => {
       const checkoutBtn = p.checkoutLink
         ? `<button class="btn-inline" data-action="copy-checkout-link" data-link="${encodeURIComponent(p.checkoutLink)}">Copy checkout</button>
@@ -382,9 +385,9 @@ document.getElementById("tabWholesale")?.addEventListener("click", async (event)
     if (action === "approve-app") await approveApplication(id);
     else if (action === "reject-app") await rejectApplication(id);
     else if (action === "reset-password") await sendPasswordReset(id);
-    else if (action === "send-compliance-pharm") await sendComplianceToPharmacy(id);
+    else if (action === "send-compliance-pharm") await sendComplianceToRetailStockist(id);
     else if (action === "send-compliance-app") await sendComplianceToApplication(id);
-    else if (action === "toggle-status") await togglePharmacyStatus(id, btn.dataset.status);
+    else if (action === "toggle-status") await toggleRetailStockistStatus(id, btn.dataset.status);
     else if (action === "copy-checkout-link") await copyCheckoutLink(decodeURIComponent(btn.dataset.link || ""));
     else if (action === "regenerate-checkout-key") await regenerateCheckoutKey(id, btn.dataset.name || "this store");
   } catch (err) {
@@ -622,7 +625,7 @@ document.getElementById("postageQuoteBtn")?.addEventListener("click", async () =
 });
 
 document.getElementById("refreshWholesaleBtn")?.addEventListener("click", refreshWholesale);
-document.getElementById("addPharmacyBtn")?.addEventListener("click", addPharmacy);
+document.getElementById("addRetailStockistBtn")?.addEventListener("click", addRetailStockist);
 
 async function boot() {
   if (!token()) {

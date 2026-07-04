@@ -3,10 +3,10 @@
   const WHOLESALE_EMAIL = "info@leaflock.com.au";
 
   function openAccountRequest() {
-    const subject = encodeURIComponent("LeafLock retail store wholesale account request");
+    const subject = encodeURIComponent("LeafLock retail stockist wholesale account request");
     const body = encodeURIComponent(
       [
-        "LeafLock retail store wholesale account request",
+        "LeafLock retail stockist wholesale account request",
         "",
         "Business name:",
         "ABN:",

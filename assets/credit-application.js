@@ -12,12 +12,12 @@
   function showApplication() {
     if (accessGate) accessGate.hidden = true;
     if (appSection) appSection.hidden = false;
-    const pharmacy = window.LeafLockAccess?.pharmacy?.();
-    if (pharmacy) {
+    const stockist = window.LeafLockAccess?.retailStockist?.();
+    if (stockist) {
       const name = document.querySelector("#creditBusinessName");
       const email = document.querySelector("#creditDirectorEmail");
-      if (name && !name.value) name.value = pharmacy.businessName || "";
-      if (email && !email.value) email.value = pharmacy.email || "";
+      if (name && !name.value) name.value = stockist.businessName || "";
+      if (email && !email.value) email.value = stockist.email || "";
     }
   }
 

@@ -1,6 +1,6 @@
 {
   "id": "leaflock-retail-wholesale",
-  "name": "LeafLock Retail Store Wholesale",
+  "name": "LeafLock Retail Stockist Wholesale",
   "isolated": true,
   "blockProductionDeploy": false,
   "blockProductionDomain": "med.leaflock.com.au",
