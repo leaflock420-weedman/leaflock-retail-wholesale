@@ -105,6 +105,19 @@
       </div>
 
       <div id="tabWholesale" class="tab-panel" hidden role="tabpanel">
+        <section class="panel">
+          <h2>Order form spreadsheet</h2>
+          <p class="foot-note">Download the current catalogue CSV, edit prices or products in Excel or Google Sheets, then upload. Keep the header row the same — the portal order form updates straight away.</p>
+          <div class="catalog-actions">
+            <button type="button" id="downloadCatalogBtn" class="btn-secondary">Download spreadsheet</button>
+            <label class="catalog-upload btn-secondary">
+              Upload updated CSV
+              <input type="file" id="catalogFileInput" accept=".csv,text/csv" hidden>
+            </label>
+          </div>
+          <p id="catalogStatus" class="foot-note">—</p>
+        </section>
+
         <section class="panel setup-panel">
           <h2>System status</h2>
           <ul id="setupStatus" class="setup-list"></ul>

@@ -193,6 +193,25 @@ try {
     headers: { Authorization: `Bearer ${adminToken}` },
   });
   assert("Admin setup status", r.res.status === 200);
+  assert("Catalog items listed", (r.body.catalogItems || 0) > 0);
+
+  r = await fetch(`${base}/api/admin/catalog/download`, {
+    headers: { Authorization: `Bearer ${adminToken}` },
+  });
+  const catalogCsv = await r.text();
+  assert("Catalog download 200", r.status === 200);
+  assert("Catalog CSV has header", catalogCsv.includes("SKU") && catalogCsv.includes("Wholesale ex GST"));
+
+  r = await json(`${base}/api/admin/catalog/upload`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${adminToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ csv: catalogCsv }),
+  });
+  assert("Catalog re-upload 200", r.res.status === 200, JSON.stringify(r.body));
+  assert("Catalog upload item count", (r.body.itemCount || 0) > 0);
 
   r = await json(`${base}/api/applications`, {
     method: "POST",

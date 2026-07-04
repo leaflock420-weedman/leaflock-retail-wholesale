@@ -9,7 +9,8 @@
     "dev": "node server.js",
     "deploy:render": "node scripts/render-deploy.mjs",
     "test": "node scripts/run-full-test.mjs",
-    "test:full": "node scripts/run-full-test.mjs"
+    "test:full": "node scripts/run-full-test.mjs",
+    "catalog:export": "node scripts/export-catalog-csv.mjs"
   },
   "engines": {
     "node": ">=18"

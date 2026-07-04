@@ -100,6 +100,7 @@ function renderSetupStatus(status) {
     { ok: status.adminSessionSecret, label: status.adminSessionSecret ? "Admin sessions signed (survive restarts)" : "Set ADMIN_SESSION_SECRET on Render" },
     { ok: status.httpsOnly, label: status.httpsOnly ? "HTTPS security headers active" : "Dev mode" },
     { ok: status.complianceDocuments, label: status.complianceDocuments ? "Compliance PDFs ready (NDA + pack + TM cert)" : "Compliance PDFs missing on server" },
+    { ok: (status.catalogItems || 0) > 0, label: `Order form catalogue: ${status.catalogItems || 0} products (${status.catalogSource || "unknown"})` },
   ];
   list.innerHTML = items
     .map((i) => `<li><span class="${i.ok ? "setup-ok" : "setup-warn"}">${i.ok ? "✓" : "!"}</span> ${i.label}</li>`)
@@ -213,6 +214,18 @@ async function refreshWholesale() {
     api("/api/admin/applications"),
   ]);
   renderSetupStatus(setup);
+  renderCatalogStatus({
+    items: setup.catalogItems,
+    categories: setup.catalogCategories,
+    source: setup.catalogSource,
+    updatedAt: null,
+  });
+  try {
+    const catalogInfo = await api("/api/admin/catalog/info");
+    renderCatalogStatus(catalogInfo);
+  } catch {
+    /* keep setup-status summary */
+  }
   const pharmacies = await api("/api/admin/pharmacies");
   const orders = await api("/api/admin/orders");
   const loginLog = await api("/api/admin/login-log?limit=50");
@@ -424,6 +437,83 @@ document.getElementById("sendReportBtn").addEventListener("click", async () => {
     btn.disabled = false;
     btn.textContent = "Email report now";
   }, 3000);
+});
+
+function renderCatalogStatus(info) {
+  const el = document.getElementById("catalogStatus");
+  if (!el || !info) return;
+  const sourceLabel =
+    info.source === "uploaded"
+      ? "saved spreadsheet on server"
+      : info.source === "bundled"
+        ? "default template"
+        : "built-in fallback";
+  const updated = info.updatedAt ? ` · last upload ${fmtDate(new Date(info.updatedAt).getTime())}` : "";
+  el.textContent = `${info.items} products in ${info.categories} categories · ${sourceLabel}${updated}`;
+  el.className = "foot-note catalog-status--ok";
+}
+
+document.getElementById("downloadCatalogBtn")?.addEventListener("click", async () => {
+  const btn = document.getElementById("downloadCatalogBtn");
+  btn.disabled = true;
+  btn.textContent = "Downloading…";
+  try {
+    const res = await fetch("/api/admin/catalog/download", {
+      headers: { Authorization: `Bearer ${token()}` },
+    });
+    if (!res.ok) throw new Error("download failed");
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "wholesale-catalog-template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch {
+    alert("Could not download spreadsheet. Log in again and retry.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Download spreadsheet";
+  }
+});
+
+document.getElementById("catalogFileInput")?.addEventListener("change", async (event) => {
+  const input = event.target;
+  const file = input.files?.[0];
+  if (!file) return;
+  const statusEl = document.getElementById("catalogStatus");
+  if (statusEl) {
+    statusEl.textContent = `Uploading ${file.name}…`;
+    statusEl.className = "foot-note";
+  }
+  try {
+    const csv = await file.text();
+    const res = await fetch("/api/admin/catalog/upload", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token()}`,
+      },
+      body: JSON.stringify({ csv }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const detail = Array.isArray(body.details) ? body.details.join(" ") : body.error || "Upload failed";
+      throw new Error(detail);
+    }
+    if (statusEl) {
+      statusEl.textContent = `Updated — ${body.itemCount} products live on the order form.`;
+      statusEl.className = "foot-note catalog-status--ok";
+    }
+    await refreshWholesale();
+  } catch (err) {
+    if (statusEl) {
+      statusEl.textContent = err.message || "Upload failed";
+      statusEl.className = "foot-note catalog-status--err";
+    }
+  } finally {
+    input.value = "";
+  }
 });
 
 document.getElementById("refreshWholesaleBtn")?.addEventListener("click", refreshWholesale);

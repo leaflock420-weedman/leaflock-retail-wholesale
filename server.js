@@ -92,6 +92,14 @@ const {
 } = require("./lib/portal-auth");
 const paypal = require("./lib/paypal");
 const { blockSensitiveStatic, noStoreJson } = require("./lib/secure-static");
+const {
+  readCatalogCsvText,
+  categoriesToCsv,
+  saveCatalogCsv,
+  catalogSourceLabel,
+  catalogWritePath,
+} = require("./lib/catalog-csv");
+const { catalogForPortal, reloadCatalog } = require("./lib/wholesale-catalog");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4173;
@@ -846,6 +854,48 @@ app.get("/api/admin/setup-status", adminAuth, (req, res) => {
     dataDir: process.env.DATA_DIR || "data/",
     complianceDocuments: documentsReady(),
     httpsOnly: Boolean(process.env.NODE_ENV === "production" || process.env.RENDER),
+    catalogItems: catalogForPortal().reduce((n, cat) => n + cat.items.length, 0),
+    catalogCategories: catalogForPortal().length,
+    catalogSource: catalogSourceLabel(),
+  });
+});
+
+app.get("/api/admin/catalog/download", adminAuth, (req, res) => {
+  const csv = readCatalogCsvText() || categoriesToCsv(catalogForPortal());
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", 'attachment; filename="wholesale-catalog-template.csv"');
+  res.send(csv);
+});
+
+app.get("/api/admin/catalog/info", adminAuth, (req, res) => {
+  const categories = catalogForPortal();
+  res.json({
+    source: catalogSourceLabel(),
+    categories: categories.length,
+    items: categories.reduce((n, cat) => n + cat.items.length, 0),
+    updatedAt: (() => {
+      const writePath = catalogWritePath();
+      return fs.existsSync(writePath) ? fs.statSync(writePath).mtime.toISOString() : null;
+    })(),
+  });
+});
+
+app.post("/api/admin/catalog/upload", adminAuth, (req, res) => {
+  const csv = req.body?.csv;
+  if (!csv || typeof csv !== "string") {
+    return res.status(400).json({ error: "Upload a CSV file (same columns as the download template)." });
+  }
+  const saved = saveCatalogCsv(csv);
+  if (!saved.ok) {
+    return res.status(400).json({ error: "Could not read spreadsheet", details: saved.errors });
+  }
+  const reloaded = reloadCatalog();
+  res.json({
+    ok: true,
+    itemCount: saved.itemCount,
+    categoryCount: saved.categoryCount,
+    catalogItems: reloaded.items,
+    source: catalogSourceLabel(),
   });
 });
 

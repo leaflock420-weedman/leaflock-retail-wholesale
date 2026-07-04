@@ -1,0 +1,246 @@
+================================================================================
+  LEAFLOCK WHOLESALE WEBSITE — HOW TO EDIT (BEGINNER GUIDE)
+  For: someone learning web design (no AI needed)
+  Site: https://www.wholesale.leaflock.com.au
+  Project folder on this PC: C:\Users\wordo\LL-Wholesale
+================================================================================
+
+
+WHAT IS THIS WEBSITE MADE OF?
+-----------------------------
+Think of it like a school project with 3 main parts:
+
+  1. HTML files  = the words and layout on each page
+  2. CSS files   = the colours, fonts, spacing (the "look")
+  3. JS files    = buttons, login, orders (the "actions")
+
+You can safely learn by editing HTML and CSS first.
+Ask an adult before changing prices, passwords, or server files.
+
+
+TOOLS YOU NEED (FREE)
+---------------------
+  • A code editor — VS Code is best (https://code.visualstudio.com)
+  • Chrome or Edge web browser
+  • The project folder open in VS Code:
+      File → Open Folder → C:\Users\wordo\LL-Wholesale
+
+
+THE 5 GOLDEN RULES
+------------------
+  1. Save the file (Ctrl + S) before you check the browser.
+  2. Refresh the browser (F5 or Ctrl + R) to see changes.
+  3. Change ONE small thing at a time — then check it worked.
+  4. If something breaks, press Ctrl + Z to undo.
+  5. Do NOT share passwords or post them in GitHub.
+
+
+================================================================================
+PART 1 — SEE YOUR CHANGES ON YOUR COMPUTER (PRACTICE FIRST)
+================================================================================
+
+Step 1 — Open the project
+  • Open VS Code
+  • File → Open Folder → C:\Users\wordo\LL-Wholesale
+
+Step 2 — Start the local site (ask an adult the first time)
+  • Open Terminal in VS Code: menu Terminal → New Terminal
+  • Type:  npm start
+  • Press Enter
+  • Wait until it says the server is running (port 4280)
+
+Step 3 — Open in browser
+  • Go to: http://localhost:4280
+  • This is YOUR copy on your computer — not the live internet site yet.
+
+Step 4 — Edit and refresh
+  • Change a word in a file → Save → refresh the browser page.
+
+
+================================================================================
+PART 2 — CHANGE WORDS ON A PAGE (EASIEST)
+================================================================================
+
+Each page is its own .html file in the main folder.
+
+  Page                          File to open
+  ----                          ------------
+  Home page                     index.html
+  Login for shops               portal.html
+  Apply for access              request-access.html
+  Gummy checkout (emails)       gummy-checkout.html
+  Humidity packs info           humidity-packs.html
+  Gummies info                  gummies.html
+  Terms                         wholesale-terms.html
+  Privacy                       privacy-policy.html
+  Admin dashboard               admin\index.html
+
+HOW TO CHANGE TEXT — EXAMPLE
+  1. Open index.html in VS Code
+  2. Press Ctrl + F and search for the sentence you see on the website
+  3. Edit the words between the HTML tags
+     Example:  <h1>Old title</h1>  →  <h1>New title</h1>
+  4. Save (Ctrl + S)
+  5. Refresh http://localhost:4280 in your browser
+
+TIP: Only change text you can READ on the website.
+     Do not delete lines with <script>, <link>, or weird symbols unless you know what they do.
+
+
+================================================================================
+PART 3 — CHANGE COLOURS AND STYLE (THE THEME)
+================================================================================
+
+The main look of the site lives in ONE file:
+
+  assets\styles.css
+
+At the very top you will see colour codes like:
+
+  --ll-green: #95d05d;     ← main green buttons and highlights
+  --ll-ink: #0f1110;        ← dark background
+  --ll-cream: #f6f4ef;      ← light text colour
+
+HOW TO TRY A NEW GREEN
+  1. Open assets\styles.css
+  2. Find  --ll-green: #95d05d;
+  3. Change to another hex colour, e.g.  --ll-green: #7bc950;
+  4. Save and refresh the browser — buttons and accents update.
+
+COLOUR PICKER TRICK
+  • Google "html color picker"
+  • Pick a colour, copy the # code (like #95d05d)
+  • Paste it into the CSS file
+
+ADMIN PAGE HAS ITS OWN STYLE FILE
+  • admin\admin.css  (admin look — uses same green theme)
+  • admin\index.html (admin words and layout)
+
+
+================================================================================
+PART 4 — CHANGE THE LOGO OR PICTURES
+================================================================================
+
+Logo files live here:
+
+  assets\brand\leaflock-logo.png
+  assets\brand\favicon.svg   (tiny icon in the browser tab)
+
+To swap the logo:
+  1. Make a new image with the SAME filename, OR
+  2. Put your new image in assets\brand\ and update the path in the HTML
+
+  Example in HTML:
+    <img src="assets/brand/leaflock-logo.png" alt="LeafLock">
+
+Product photos are set in:
+  lib\product-images.js   ← ask an adult before editing
+
+
+================================================================================
+PART 5 — MENU AND HEADER (APPEARS ON MANY PAGES)
+================================================================================
+
+The top menu is built by JavaScript, not copied on every page.
+
+  assets\layout.js   ← links in the header/navigation
+
+Pages include it like this at the bottom of the HTML:
+  <script src="assets/layout.js"></script>
+
+If the menu looks wrong on one page only, check that page still has layout.js.
+
+
+================================================================================
+PART 6 — PUT CHANGES ON THE REAL WEBSITE (LIVE)
+================================================================================
+
+Editing on your computer does NOT change the internet site automatically.
+To go live, an adult usually:
+
+  1. Saves all files
+  2. Uses Git to upload to GitHub
+  3. Render.com auto-deploys the site (takes a few minutes)
+
+Simple Git steps (in Terminal, inside the project folder):
+
+  git status
+  git add index.html
+  git add assets/styles.css
+  git commit -m "Updated homepage text"
+  git push
+
+After push, wait 2–5 minutes, then hard-refresh the live site:
+  Ctrl + Shift + R  on  https://www.wholesale.leaflock.com.au
+
+IMPORTANT: Never commit files named .env.local or anything with real passwords.
+
+
+================================================================================
+PART 7 — THINGS TO LEAVE ALONE (UNTIL YOU ARE MORE CONFIDENT)
+================================================================================
+
+  server.js              — the brain of the website
+  lib\                   — pricing, orders, email, login logic
+  data\                  — real customer/order data
+  .env.local             — secret passwords
+  package.json           — project settings
+
+PRICES AND SHIPPING
+  • lib\pricing.js  — gummy prices, free shipping at $710
+  • If you change a price here, tell an adult and run:  npm test
+
+
+================================================================================
+PART 8 — ADMIN DASHBOARD (SEPARATE AREA)
+================================================================================
+
+  URL:     https://www.wholesale.leaflock.com.au/admin/
+  Files:   admin\index.html, admin\admin.css, admin\admin.js
+
+You can edit how it LOOKS in admin\admin.css (colours, spacing).
+You need the admin password to USE the dashboard (ask an adult — not in this file).
+
+
+================================================================================
+PART 9 — IF SOMETHING GOES WRONG
+================================================================================
+
+  • Undo: Ctrl + Z
+  • Close browser tab and reopen localhost:4280
+  • Stop the server: in Terminal press Ctrl + C, then npm start again
+  • Ask an adult to run: npm test  (checks nothing important broke)
+  • Git can restore old versions if you saved a bad change
+
+
+================================================================================
+QUICK CHEAT SHEET — "I WANT TO..."
+================================================================================
+
+  Change homepage headline     →  index.html
+  Change portal login text     →  portal.html
+  Change green colour sitewide →  assets\styles.css  (top :root section)
+  Change admin colours         →  admin\admin.css
+  Change logo                  →  assets\brand\leaflock-logo.png
+  Change menu links            →  assets\layout.js
+  Update order form / prices   →  Admin → Wholesale → Download spreadsheet → edit → Upload
+  Practice safely              →  npm start  then  http://localhost:4280
+  Go live on internet          →  git add / commit / push (adult helps)
+
+
+================================================================================
+PRACTICE PROJECT FOR YOUR FIRST DAY
+================================================================================
+
+  1. Open index.html
+  2. Find the main heading (h1) and add the word "TEST" somewhere
+  3. Save and refresh localhost — you should see TEST
+  4. Change --ll-green in assets\styles.css to a slightly different green
+  5. Save and refresh — buttons should look different
+  6. Undo both changes (Ctrl + Z) when done practising
+
+You did it — that is real web design.
+
+
+Questions? Ask your brother or info@leaflock.com.au
+Last updated: July 2026

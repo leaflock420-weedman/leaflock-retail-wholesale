@@ -590,6 +590,34 @@
   font-weight: 700;
 }
 
+.catalog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.catalog-upload {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin: 0;
+}
+
+.catalog-upload input {
+  display: none;
+}
+
+.catalog-status--ok {
+  color: var(--leaf);
+}
+
+.catalog-status--err {
+  color: #ff8a8a;
+}
+
 button.btn-secondary,
 #sendReportBtn,
 #logoutBtn,
