@@ -1,14 +1,12 @@
 (function () {
   const MONEY = new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" });
+  const PCT = new Intl.NumberFormat("en-AU", { maximumFractionDigits: 1 });
   let pricing = null;
   let currentOrderId = null;
   let paypalLoaded = false;
+  let sheetSkuIndex = Object.create(null);
 
   const fields = {
-    singlePacks: document.querySelector("#singlePacks"),
-    threePacks: document.querySelector("#threePacks"),
-    gummyIndividual: document.querySelector("#gummyIndividual"),
-    mixedCartons: document.querySelector("#mixedCartons"),
     starterBundle: document.querySelector("#starterBundle"),
     businessName: document.querySelector("#businessName"),
     fullName: document.querySelector("#fullName"),
@@ -18,7 +16,6 @@
     email: document.querySelector("#email"),
     phone: document.querySelector("#phone"),
     address: document.querySelector("#address"),
-    flavours: document.querySelector("#flavours"),
     notes: document.querySelector("#notes"),
   };
 
@@ -35,13 +32,16 @@
   const closeSuccess = document.querySelector("#closeSuccess");
   const paypalContainer = document.querySelector("#paypalButtons");
   const paypalNote = document.querySelector("#paypalNote");
+  const orderSheetBody = document.querySelector("#orderSheetBody");
+  const orderSheetSearch = document.querySelector("#orderSheetSearch");
+  const orderSheetSummary = document.querySelector("#orderSheetSummary");
 
   function money(value) {
     return MONEY.format(value);
   }
 
-  function quantity(el) {
-    return Math.max(0, Number.parseInt(el?.value || "0", 10));
+  function marginLabel(item) {
+    return `${money(item.marginProfit)} <small>(${PCT.format(item.marginPct)}%)</small>`;
   }
 
   function readCatalogQty() {
@@ -62,9 +62,11 @@
         bySku[item.sku] = item;
       }
     }
+
     let subtotal = 0;
     const lines = [];
     for (const [sku, qty] of Object.entries(catalog)) {
+      if (sku === "HP-SINGLE" || sku === "HP-3PACK") continue;
       const item = bySku[sku];
       if (!item || qty <= 0) continue;
       const lineTotal = Math.round(item.wholesale * qty * 100) / 100;
@@ -72,6 +74,57 @@
       lines.push({ sku, name: item.name, qty, lineTotal });
     }
     return { subtotal: Math.round(subtotal * 100) / 100, lines };
+  }
+
+  function humiditySubtotal(singlePacks, threePacks) {
+    if (!pricing) return 0;
+    const totalHumidityPacks = singlePacks + threePacks * 3;
+    const rate =
+      totalHumidityPacks >= pricing.humidity.single.volumeThreshold
+        ? pricing.humidity.single.volume
+        : pricing.humidity.single.wholesale;
+    const threeRate =
+      rate === pricing.humidity.single.volume
+        ? pricing.humidity.threePack.volume
+        : pricing.humidity.threePack.wholesale;
+    return Math.round((singlePacks * rate + threePacks * threeRate) * 100) / 100;
+  }
+
+  function updateLineTotals() {
+    const catalog = readCatalogQty();
+    document.querySelectorAll("[data-line-total]").forEach((cell) => {
+      const sku = cell.dataset.lineTotal;
+      const qty = catalog[sku] || 0;
+      const item = sheetSkuIndex[sku];
+      if (!item || qty <= 0) {
+        cell.textContent = "—";
+        return;
+      }
+      let line = 0;
+      if (sku === "HP-SINGLE" || sku === "HP-3PACK") {
+        const singles = catalog["HP-SINGLE"] || 0;
+        const threes = catalog["HP-3PACK"] || 0;
+        const totalPacks = singles + threes * 3;
+        const rate =
+          totalPacks >= pricing.humidity.single.volumeThreshold
+            ? pricing.humidity.single.volume
+            : pricing.humidity.single.wholesale;
+        const threeRate =
+          rate === pricing.humidity.single.volume
+            ? pricing.humidity.threePack.volume
+            : pricing.humidity.threePack.wholesale;
+        line = sku === "HP-SINGLE" ? singles * rate : threes * threeRate;
+      } else {
+        line = item.wholesale * qty;
+      }
+      cell.textContent = money(Math.round(line * 100) / 100);
+    });
+
+    const lines = Object.values(catalog).filter((n) => n > 0).length;
+    const calc = calculateOrder();
+    if (orderSheetSummary && calc) {
+      orderSheetSummary.textContent = `${lines} line${lines === 1 ? "" : "s"} · ${money(calc.subtotal)} ex GST`;
+    }
   }
 
   function calculateOrder() {
@@ -84,6 +137,7 @@
       totals.shipping.textContent = money(b.shipping);
       totals.total.textContent = money(b.totalIncGstShipping);
       totals.note.textContent = `${b.label} — fixed price inc. GST and shipping.`;
+      updateLineTotals();
       return {
         starterBundle: true,
         singlePacks: 50,
@@ -100,42 +154,23 @@
       };
     }
 
-    const singlePacks = quantity(fields.singlePacks);
-    const threePacks = quantity(fields.threePacks);
-    const gummyIndividual = quantity(fields.gummyIndividual);
-    const mixedCartons = quantity(fields.mixedCartons);
-
-    const totalHumidityPacks = singlePacks + threePacks * 3;
-    const rate =
-      totalHumidityPacks >= pricing.humidity.single.volumeThreshold
-        ? pricing.humidity.single.volume
-        : pricing.humidity.single.wholesale;
-    const threeRate =
-      rate === pricing.humidity.single.volume
-        ? pricing.humidity.threePack.volume
-        : pricing.humidity.threePack.wholesale;
-
-    const singlesSubtotal = singlePacks * rate;
-    const threePackSubtotal = threePacks * threeRate;
-    const gummySubtotal =
-      gummyIndividual * pricing.gummy.individual.wholesale +
-      mixedCartons * pricing.gummy.mixedCarton.units * pricing.gummy.mixedCarton.wholesalePerUnit;
-
     const catalog = readCatalogQty();
+    const singlePacks = catalog["HP-SINGLE"] || 0;
+    const threePacks = catalog["HP-3PACK"] || 0;
+    const humidityTotal = humiditySubtotal(singlePacks, threePacks);
     const catalogTotals = catalogSubtotal(catalog);
-    const subtotal =
-      Math.round((singlesSubtotal + threePackSubtotal + gummySubtotal + catalogTotals.subtotal) * 100) / 100;
+    const subtotal = Math.round((humidityTotal + catalogTotals.subtotal) * 100) / 100;
     const gst = Math.round(subtotal * pricing.gstRate * 100) / 100;
     const shipping = subtotal > 0 ? pricing.shipping : 0;
     const total = Math.round((subtotal + gst + shipping) * 100) / 100;
 
+    const totalHumidityPacks = singlePacks + threePacks * 3;
     const notes = [];
     if (totalHumidityPacks >= pricing.humidity.single.volumeThreshold) {
       notes.push("500+ humidity pack rate applied.");
     }
-    if (mixedCartons > 0) notes.push("Mixed carton gummy rate applied.");
     if (catalogTotals.lines.length > 0) {
-      notes.push(`${catalogTotals.lines.length} catalogue line(s) included.`);
+      notes.push(`${catalogTotals.lines.length} catalogue line(s) in order.`);
     }
     if (!notes.length) {
       notes.push(subtotal > 0 ? "Standard wholesale pricing applied." : "Add products to calculate pricing.");
@@ -146,13 +181,14 @@
     totals.shipping.textContent = money(shipping);
     totals.total.textContent = money(total);
     totals.note.textContent = notes.join(" ");
+    updateLineTotals();
 
     return {
       starterBundle: false,
-      singlePacks,
-      threePacks,
-      gummyIndividual,
-      mixedCartons,
+      singlePacks: 0,
+      threePacks: 0,
+      gummyIndividual: 0,
+      mixedCartons: 0,
       catalog,
       catalogLines: catalogTotals.lines,
       subtotal,
@@ -163,116 +199,77 @@
     };
   }
 
-  function renderCatalogTable() {
-    const tableBody = document.querySelector("#catalogTableBody");
-    if (!tableBody || !pricing?.catalog) return;
+  function renderOrderSheet() {
+    if (!orderSheetBody || !pricing?.orderSheet) return;
 
+    sheetSkuIndex = Object.create(null);
     const rows = [];
-    for (const category of pricing.catalog) {
+
+    for (const section of pricing.orderSheet) {
       rows.push(
-        `<tr class="pricing-table__category"><td colspan="5"><strong>${category.label}</strong></td></tr>`,
+        `<tr class="order-sheet__category"><td colspan="8"><strong>${section.label}</strong></td></tr>`,
       );
-      for (const item of category.items) {
-        const bulk = item.bulkNote || item.note || (item.isBundle ? "Bundle price" : "—");
-        rows.push(
-          `<tr>
-            <td>${item.sku}</td>
-            <td>${item.name}</td>
+      for (const item of section.items) {
+        sheetSkuIndex[item.sku] = item;
+        const bulk = item.bulkNote ? `<div class="order-sheet__note">${item.bulkNote}</div>` : "";
+        rows.push(`
+          <tr class="order-sheet__row" data-sheet-row data-search="${`${item.sku} ${item.name} ${section.label}`.toLowerCase()}">
+            <td class="order-sheet__product">
+              <img src="${item.image}" alt="" width="56" height="56" loading="lazy">
+              <div>
+                <strong>${item.name}</strong>
+                ${bulk}
+              </div>
+            </td>
+            <td><code>${item.sku}</code></td>
             <td>${money(item.wholesale)}</td>
-            <td>${bulk}</td>
             <td>${money(item.rrp)}</td>
-          </tr>`,
-        );
+            <td class="order-sheet__margin">${marginLabel(item)}</td>
+            <td>${item.moqLabel}</td>
+            <td class="order-sheet__qty">
+              <input type="number" min="0" step="1" value="0" data-catalog-sku="${item.sku}" aria-label="Quantity for ${item.name}">
+            </td>
+            <td class="order-sheet__line" data-line-total="${item.sku}">—</td>
+          </tr>`);
       }
     }
-    tableBody.innerHTML = rows.join("");
+
+    orderSheetBody.innerHTML = rows.join("");
+    orderSheetBody.querySelectorAll("[data-catalog-sku]").forEach((input) => {
+      input.addEventListener("input", () => {
+        if (fields.starterBundle?.checked) fields.starterBundle.checked = false;
+        calculateOrder();
+      });
+      input.addEventListener("change", calculateOrder);
+    });
+    calculateOrder();
   }
 
-  function renderCatalogOrderBlocks() {
-    const mount = document.querySelector("#catalogOrderBlocks");
-    if (!mount || !pricing?.catalog) return;
-
-    const blocks = pricing.catalog.map((category) => {
-      const fields = category.items
-        .map(
-          (item) => `
-          <label>
-            <span>${item.name} <small>(${item.sku})</small></span>
-            <input type="number" min="0" step="1" value="0" data-catalog-sku="${item.sku}">
-          </label>`,
-        )
-        .join("");
-      return `
-        <fieldset class="form-block product-order-block">
-          <legend>${category.label}</legend>
-          <div class="form-grid catalog-order-grid">${fields}</div>
-        </fieldset>`;
+  function filterOrderSheet(query) {
+    const q = String(query || "")
+      .trim()
+      .toLowerCase();
+    document.querySelectorAll("[data-sheet-row]").forEach((row) => {
+      const hay = row.getAttribute("data-search") || "";
+      row.hidden = q.length > 0 && !hay.includes(q);
     });
-
-    mount.innerHTML = blocks.join("");
-    mount.querySelectorAll("input[data-catalog-sku]").forEach((input) => {
-      input.addEventListener("input", calculateOrder);
-      input.addEventListener("change", calculateOrder);
+    document.querySelectorAll(".order-sheet__category").forEach((row) => {
+      let next = row.nextElementSibling;
+      let anyVisible = false;
+      while (next && !next.classList.contains("order-sheet__category")) {
+        if (!next.hidden) anyVisible = true;
+        next = next.nextElementSibling;
+      }
+      row.hidden = q.length > 0 && !anyVisible;
     });
   }
 
   function renderPricing() {
     if (!pricing) return;
-    const p = pricing;
-
-    const humidityCard = document.querySelector("#humidityPricingCard");
-    if (humidityCard) {
-      humidityCard.innerHTML = `
-        <img class="product-card__image" src="assets/products/humidity/white-pharmacy-pack.jpg" alt="LeafLock humidity packs" loading="lazy">
-        <span class="product-tag">62% RH</span>
-        <h3>LeafLock 62% Humidity Packs</h3>
-        <dl>
-          <div><dt>Singles</dt><dd>${money(p.humidity.single.wholesale)} + GST <small>(SRP ${money(p.humidity.single.srp)})</small></dd></div>
-          <div><dt>3-packs</dt><dd>${money(p.humidity.threePack.wholesale)} + GST <small>(SRP ${money(p.humidity.threePack.srp)})</small></dd></div>
-          <div><dt>500+ packs (volume)</dt><dd>${money(p.humidity.single.volume)} + GST / pack</dd></div>
-        </dl>`;
-    }
-
-    const bundlePanel = document.querySelector("#starterBundlePanel");
-    if (bundlePanel) {
-      bundlePanel.innerHTML = `
-        <div class="bundle-badge">Starter bundle</div>
-        <h3>${p.starterBundle.label}</h3>
-        <ul>${p.starterBundle.includes.map((i) => `<li>${i}</li>`).join("")}</ul>
-        <strong>${money(p.starterBundle.totalIncGstShipping)} total</strong>
-        <span>Including GST and shipping</span>`;
-    }
-
-    const gummyCard = document.querySelector("#gummyPricingCard");
-    if (gummyCard) {
-      gummyCard.innerHTML = `
-        <span class="product-tag product-tag--new">90g mixes</span>
-        <h3>LeafLock DIY Gummy Mix</h3>
-        <p>Blue Raspberry, Grape, Strawberry, Create Your Own</p>
-        <dl>
-          <div><dt>Standard wholesale</dt><dd>${money(p.gummy.individual.wholesale)} + GST each</dd></div>
-          <div><dt>Mixed carton (24)</dt><dd>${money(p.gummy.mixedCarton.wholesalePerUnit)} + GST each <small>(6 of each flavour)</small></dd></div>
-          <div><dt>Suggested retail</dt><dd>${money(p.gummy.individual.srp)} each</dd></div>
-        </dl>`;
-    }
-
-    const tableBody = document.querySelector("#pricingTableBody");
-    if (tableBody) {
-      tableBody.innerHTML = `
-        <tr class="pricing-table__category"><td colspan="5"><strong>Humidity packs</strong></td></tr>
-        <tr><td>HP-SINGLE</td><td>Humidity Pack Single</td><td>${money(p.humidity.single.wholesale)}</td><td>${money(p.humidity.single.volume)} on 500+ packs</td><td>${money(p.humidity.single.srp)}</td></tr>
-        <tr><td>HP-3PACK</td><td>Humidity Pack 3-pack</td><td>${money(p.humidity.threePack.wholesale)}</td><td>Volume on 500+ total packs</td><td>${money(p.humidity.threePack.srp)}</td></tr>
-        <tr class="pricing-table__category"><td colspan="5"><strong>Gummy mix 90g</strong></td></tr>
-        <tr><td>GUM-90</td><td>DIY Gummy Mix 90g (per unit)</td><td>${money(p.gummy.individual.wholesale)}</td><td>—</td><td>${money(p.gummy.individual.srp)}</td></tr>
-        <tr><td>GUM-90-BUN</td><td>Mixed carton of 24</td><td>${money(p.gummy.mixedCarton.units * p.gummy.mixedCarton.wholesalePerUnit)}</td><td>${money(p.gummy.mixedCarton.wholesalePerUnit)}/unit</td><td>${money(p.gummy.individual.srp)}</td></tr>`;
-    }
-
-    renderCatalogTable();
-    renderCatalogOrderBlocks();
-
+    renderOrderSheet();
     const bundleLabel = document.querySelector("#starterBundleLabel");
     if (bundleLabel) {
-      bundleLabel.textContent = `${p.starterBundle.label} (${money(p.starterBundle.totalIncGstShipping)} inc. GST & shipping)`;
+      bundleLabel.textContent = `${pricing.starterBundle.label} (${money(pricing.starterBundle.totalIncGstShipping)} inc. GST & shipping)`;
     }
   }
 
@@ -299,13 +296,13 @@
     const calc = calculateOrder();
     return {
       paymentMethod: paymentMethod || "invoice",
-      singlePacks: calc?.singlePacks ?? 0,
-      threePacks: calc?.threePacks ?? 0,
-      gummyIndividual: calc?.gummyIndividual ?? 0,
-      mixedCartons: calc?.mixedCartons ?? 0,
+      singlePacks: 0,
+      threePacks: 0,
+      gummyIndividual: 0,
+      mixedCartons: 0,
       starterBundle: calc?.starterBundle ?? false,
       catalog: calc?.catalog ?? {},
-      flavours: fields.flavours?.value || "",
+      flavours: "",
       notes: fields.notes?.value || "",
       contact: {
         businessName: fields.businessName?.value || "",
@@ -357,9 +354,7 @@
         body: JSON.stringify(orderPayload("invoice")),
       });
       currentOrderId = data.order.id;
-      showSuccess(
-        "We've received your order and will email a confirmation + invoice within 24 hours.",
-      );
+      showSuccess("We've received your order and will email a confirmation + invoice within 24 hours.");
     } catch (err) {
       totals.note.textContent = err.message || "Could not submit order. Try again.";
     } finally {
@@ -448,9 +443,19 @@
 
   function bindInputs() {
     document.querySelectorAll("#gatedContent input, #gatedContent textarea").forEach((input) => {
+      if (input.dataset.catalogSku) return;
       input.addEventListener("input", calculateOrder);
       input.addEventListener("change", calculateOrder);
     });
+    fields.starterBundle?.addEventListener("change", () => {
+      if (fields.starterBundle.checked) {
+        document.querySelectorAll("[data-catalog-sku]").forEach((el) => {
+          el.value = "0";
+        });
+      }
+      calculateOrder();
+    });
+    orderSheetSearch?.addEventListener("input", (e) => filterOrderSheet(e.target.value));
   }
 
   async function loadCredentials() {
@@ -516,6 +521,9 @@
     currentOrderId = null;
     paypalLoaded = false;
     if (paypalContainer) paypalContainer.innerHTML = "";
+    if (orderSheetBody) {
+      orderSheetBody.innerHTML = '<tr><td colspan="8">Login to load the price list…</td></tr>';
+    }
   });
 
   if (formSuccess) formSuccess.hidden = true;
