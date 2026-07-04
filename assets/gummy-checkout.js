@@ -66,7 +66,9 @@
         100,
     ) / 100;
     const gst = Math.round(subtotal * pricing.gstRate * 100) / 100;
-    const shipping = subtotal > 0 ? pricing.shipping : 0;
+    const threshold = pricing.freeShippingThreshold ?? 710;
+    const shipping =
+      subtotal <= 0 ? 0 : subtotal >= threshold ? 0 : pricing.shipping;
     const total = Math.round((subtotal + gst + shipping) * 100) / 100;
     return { subtotal, gst, shipping, total };
   }
@@ -332,7 +334,10 @@
       updatePackPriceLabels();
       updatePricingCallout();
       if (pricingHint) {
-        pricingHint.textContent = `Ex GST · $${pricing.shipping} shipping · 10% GST on subtotal`;
+        const shipNote = pricing.freeShippingThreshold
+          ? `$${pricing.shipping} shipping (free on $${pricing.freeShippingThreshold}+ ex GST)`
+          : `$${pricing.shipping} shipping`;
+        pricingHint.textContent = `Ex GST · ${shipNote} · 10% GST on subtotal`;
       }
     } catch (err) {
       if (pricingHint) pricingHint.textContent = "Could not load pricing.";

@@ -160,10 +160,15 @@
     const catalogTotals = catalogSubtotal(catalog);
     const subtotal = Math.round((humidityTotal + catalogTotals.subtotal) * 100) / 100;
     const gst = Math.round(subtotal * pricing.gstRate * 100) / 100;
-    const shipping = subtotal > 0 ? pricing.shipping : 0;
+    const threshold = pricing.freeShippingThreshold ?? 710;
+    const shipping =
+      subtotal <= 0 ? 0 : subtotal >= threshold ? 0 : pricing.shipping;
     const total = Math.round((subtotal + gst + shipping) * 100) / 100;
 
     const notes = [];
+    if (subtotal >= threshold) {
+      notes.push(`Free shipping applied ($${threshold}+ ex GST).`);
+    }
     if (singlePacks >= pricing.humidity.single.volumeThreshold) {
       notes.push("500+ humidity pack rate applied.");
     }

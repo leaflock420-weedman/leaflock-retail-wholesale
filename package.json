@@ -7,7 +7,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "deploy:render": "node scripts/render-deploy.mjs"
+    "deploy:render": "node scripts/render-deploy.mjs",
+    "test": "node scripts/run-full-test.mjs",
+    "test:full": "node scripts/run-full-test.mjs"
   },
   "engines": {
     "node": ">=18"
