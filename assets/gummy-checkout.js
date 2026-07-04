@@ -1,5 +1,6 @@
 (function () {
-  const API_BASE = (window.LEAFLOCK_WHOLESALE && window.LEAFLOCK_WHOLESALE.SITE_URL) || "";
+  // Always use same-origin — avoids broken checkout when the page host differs from SITE_URL.
+  const API_BASE = "";
   const MONEY = new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" });
   let pricing = null;
   let currentOrderId = null;
@@ -144,6 +145,12 @@
     return { gummyIndividual, mixedCartons, subtotal, gst, shipping, total };
   }
 
+  function selectPackPreset(packKey) {
+    const radio = document.querySelector(`input[name="packPreset"][value="${packKey}"]`);
+    if (radio) radio.checked = true;
+    applyPackPreset(packKey);
+  }
+
   function applyUrlPreset() {
     const params = new URLSearchParams(window.location.search);
     const store = params.get("store");
@@ -153,22 +160,22 @@
     const units = params.get("units");
     const cartons = params.get("cartons");
     if (cartons != null) {
-      document.querySelector('input[name="packPreset"][value="cartons-1"]')?.click();
+      selectPackPreset("cartons-1");
       return;
     }
     if (units === "12") {
-      document.querySelector('input[name="packPreset"][value="units-12"]')?.click();
+      selectPackPreset("units-12");
       return;
     }
     if (units === "6") {
-      document.querySelector('input[name="packPreset"][value="units-6"]')?.click();
+      selectPackPreset("units-6");
       return;
     }
     if (units != null) {
-      const custom = document.querySelector('input[name="packPreset"][value="custom"]');
-      if (custom) custom.checked = true;
-      if (fields.gummyIndividual) fields.gummyIndividual.value = Math.max(0, Number.parseInt(units, 10) || 0);
-      applyPackPreset("custom");
+      if (fields.gummyIndividual) {
+        fields.gummyIndividual.value = Math.max(0, Number.parseInt(units, 10) || 0);
+      }
+      selectPackPreset("custom");
     }
   }
 
@@ -331,9 +338,10 @@
       if (successModal) successModal.hidden = true;
     });
 
-    applyUrlPreset();
-    if (!window.location.search) {
-      applyPackPreset("units-6");
+    if (window.location.search) {
+      applyUrlPreset();
+    } else {
+      selectPackPreset("units-6");
     }
     syncFlavoursFromPicks();
 

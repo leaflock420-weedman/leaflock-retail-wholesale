@@ -172,6 +172,12 @@ app.get("/gummy-checkout.html", (req, res) => {
   res.sendFile(path.join(ROOT, "gummy-checkout.html"));
 });
 
+app.get("/assets/gummy-checkout.js", (req, res) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  res.setHeader("Pragma", "no-cache");
+  res.sendFile(path.join(ROOT, "assets", "gummy-checkout.js"));
+});
+
 app.use(express.static(ROOT));
 
 function rateLimitKey(key, max) {
