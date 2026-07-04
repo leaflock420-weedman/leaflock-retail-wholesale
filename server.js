@@ -34,12 +34,15 @@ const {
   sendDailyReport,
   notifyAdminNewApplication,
   notifyPharmacyApproved,
+  notifyPasswordReset,
   sendCompliancePack,
   notifyOrderConfirmation,
   notifyAdminNewOrder,
   notifyAdminCreditApplication,
   emailConfigured,
 } = require("./lib/mailer");
+const { bankDetails } = require("./lib/bank-details");
+const { verifyPassword } = require("./lib/portal-password");
 const { TERMS_VERSION, paymentTermsLabel } = require("./lib/wholesale-terms");
 const { submitCreditApplication } = require("./lib/credit-applications-store");
 const {
@@ -54,15 +57,19 @@ const {
 } = require("./lib/admin-auth");
 const { pricingForPortal, calculateOrder, calculateGummyOrder, gummyPricingPublic } = require("./lib/pricing");
 const {
-  findByCode,
   findById,
+  findByEmail,
+  findByPasswordToken,
   recordLogin,
-  recordFailedLogin,
+  recordFailedEmailLogin,
   submitApplication,
   approveApplication,
   rejectApplication,
   createPharmacy,
-  regenerateCode,
+  sendPasswordReset,
+  setPasswordWithToken,
+  changePharmacyPassword,
+  deletePharmacyAccount,
   setPharmacyStatus,
   publicPharmacy,
   wholesaleSummary,
@@ -278,27 +285,29 @@ app.get("/api/demo/portal", (req, res) => {
   const info = demoPortalInfo();
   res.json({
     businessName: info.businessName,
+    email: info.email,
     portalUrl: info.portalUrl,
     demoUrl: info.demoUrl,
-    message: "Use the access code emailed after approval, or the code shown on the demo launcher page.",
+    message: "Sign in with demo@leaflock.com.au and the demo password shown on the demo launcher page.",
   });
 });
 
 app.post("/api/portal/login", (req, res) => {
   try {
     const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
-    if (!rateLimitLogin(`portal:${ip}`)) {
+    const { email, password } = req.body || {};
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    if (!normalizedEmail || !password) {
+      return res.status(400).json({ error: "Email and password required" });
+    }
+    if (!rateLimitLogin(`portal:${ip}:${normalizedEmail}`)) {
       return res.status(429).json({ error: "Too many attempts. Try again later." });
     }
-    const { code } = req.body || {};
-    if (!code || !String(code).trim()) {
-      return res.status(400).json({ error: "Access code required" });
-    }
 
-    const pharmacy = findByCode(code);
-    if (!pharmacy) {
-      recordFailedLogin(code, clientMeta(req));
-      return res.status(401).json({ error: "Invalid access code" });
+    const pharmacy = findByEmail(normalizedEmail);
+    if (!pharmacy || !pharmacy.passwordHash || !verifyPassword(password, pharmacy.passwordHash)) {
+      recordFailedEmailLogin(normalizedEmail, clientMeta(req));
+      return res.status(401).json({ error: "Invalid email or password" });
     }
 
     const publicInfo = recordLogin(pharmacy.id, clientMeta(req));
@@ -308,6 +317,99 @@ app.post("/api/portal/login", (req, res) => {
     console.error("[portal] login failed:", err);
     res.status(500).json({ error: "Portal login unavailable. Try again shortly." });
   }
+});
+
+app.post("/api/portal/forgot-password", async (req, res) => {
+  const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
+  if (!rateLimitLogin(`forgot:${ip}`)) {
+    return res.status(429).json({ error: "Too many attempts. Try again later." });
+  }
+  const email = String(req.body?.email || "").trim().toLowerCase();
+  if (!email) return res.status(400).json({ error: "Email required" });
+  const pharmacy = findByEmail(email);
+  if (pharmacy) {
+    const result = sendPasswordReset(pharmacy.id);
+    if (result?.setupToken) {
+      const notify = pharmacy.passwordHash ? notifyPasswordReset : notifyPharmacyApproved;
+      const payload = pharmacy.passwordHash
+        ? { pharmacy: result.pharmacy, resetToken: result.setupToken }
+        : {
+            app: {
+              fullName: pharmacy.contactName || pharmacy.businessName,
+              businessName: pharmacy.businessName,
+              email: pharmacy.email,
+            },
+            setupToken: result.setupToken,
+          };
+      notify(payload).catch((err) => {
+        console.warn("[mail] password reset:", err.message);
+      });
+    }
+  }
+  res.json({ ok: true, message: "If that email has an account, a reset link has been sent." });
+});
+
+app.post("/api/portal/set-password", (req, res) => {
+  const { token, password } = req.body || {};
+  if (!token || !password) {
+    return res.status(400).json({ error: "Token and password required" });
+  }
+  const result = setPasswordWithToken(token, password);
+  if (!result) return res.status(500).json({ error: "Could not save password" });
+  if (result.error === "invalid_or_expired_token") {
+    return res.status(400).json({ error: "This link is invalid or has expired. Request a new reset link." });
+  }
+  if (result.error) return res.status(400).json({ error: result.error });
+  res.json({ ok: true, pharmacy: result.pharmacy });
+});
+
+app.get("/api/portal/password-token-status", (req, res) => {
+  const token = String(req.query.token || "");
+  const pharmacy = findByPasswordToken(token);
+  if (!pharmacy) {
+    return res.status(400).json({ valid: false });
+  }
+  res.json({
+    valid: true,
+    email: pharmacy.email,
+    businessName: pharmacy.businessName,
+    purpose: pharmacy.passwordTokenPurpose || "setup",
+  });
+});
+
+app.post("/api/portal/change-password", portalAuth, (req, res) => {
+  const { currentPassword, newPassword } = req.body || {};
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: "Current and new password required" });
+  }
+  const result = changePharmacyPassword(req.portalPharmacy.id, currentPassword, newPassword);
+  if (!result) return res.status(404).json({ error: "Account not found" });
+  if (result.error === "incorrect_password") {
+    return res.status(401).json({ error: "Current password is incorrect" });
+  }
+  if (result.error) return res.status(400).json({ error: result.error });
+  revokePortalToken(req.portalToken);
+  const token = createPortalToken(req.portalPharmacy.id);
+  res.json({ ok: true, token, pharmacy: result });
+});
+
+app.post("/api/portal/delete-account", portalAuth, (req, res) => {
+  const password = String(req.body?.password || "");
+  if (!password) return res.status(400).json({ error: "Password required to delete your account" });
+  const result = deletePharmacyAccount(req.portalPharmacy.id, password);
+  if (!result) return res.status(404).json({ error: "Account not found" });
+  if (result.error === "incorrect_password") {
+    return res.status(401).json({ error: "Password is incorrect" });
+  }
+  if (result.error === "demo_account") {
+    return res.status(400).json({ error: "Demo account cannot be deleted" });
+  }
+  revokePortalToken(req.portalToken);
+  res.status(204).end();
+});
+
+app.get("/api/portal/bank-details", portalAuth, (req, res) => {
+  res.json(bankDetails());
 });
 
 app.get("/api/portal/session", portalAuth, (req, res) => {
@@ -405,8 +507,10 @@ app.post("/api/orders", portalAuth, (req, res) => {
     paymentTerms,
   });
 
-  if (paymentMethod === "invoice") {
-    dispatchOrderEmails(order, { adminLabel: "New invoice order", confirmCustomer: true });
+  if (paymentMethod === "invoice" || paymentMethod === "bank_transfer") {
+    const label =
+      paymentMethod === "bank_transfer" ? "New bank transfer order" : "New invoice order";
+    dispatchOrderEmails(order, { adminLabel: label, confirmCustomer: true });
   }
 
   res.status(201).json({
@@ -758,7 +862,7 @@ app.post("/api/admin/applications/:id/approve", adminAuth, async (req, res) => {
   try {
     result.emailSent = await notifyPharmacyApproved({
       app: result.application,
-      accessCode: result.accessCode,
+      setupToken: result.setupToken,
     });
   } catch (err) {
     console.warn("[mail] approval notify:", err.message);
@@ -787,9 +891,18 @@ app.post("/api/admin/pharmacies", adminAuth, (req, res) => {
   res.status(201).json(result);
 });
 
-app.post("/api/admin/pharmacies/:id/regenerate-code", adminAuth, (req, res) => {
-  const result = regenerateCode(req.params.id);
+app.post("/api/admin/pharmacies/:id/send-password-reset", adminAuth, async (req, res) => {
+  const result = sendPasswordReset(req.params.id);
   if (!result) return res.status(404).json({ error: "Pharmacy not found" });
+  try {
+    result.emailSent = await notifyPasswordReset({
+      pharmacy: result.pharmacy,
+      resetToken: result.setupToken,
+    });
+  } catch (err) {
+    console.warn("[mail] admin password reset:", err.message);
+    result.emailSent = false;
+  }
   res.json(result);
 });
 
@@ -903,7 +1016,7 @@ app.listen(PORT, "0.0.0.0", () => {
   const demo = demoPortalInfo();
   console.log(`LeafLock Retail Store Wholesale + Analytics at http://0.0.0.0:${PORT}`);
   console.log(`Admin dashboard: http://0.0.0.0:${PORT}/admin/`);
-  console.log(`Demo stockist portal: http://0.0.0.0:${PORT}/demo.html (code ${demo.accessCode})`);
+  console.log(`Demo stockist portal: http://0.0.0.0:${PORT}/demo.html (${demo.email})`);
   if (paypal.isConfigured()) {
     console.log(`[paypal] ${paypal.mode()} checkout enabled`);
   } else {

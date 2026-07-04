@@ -3,5 +3,5 @@ window.LEAFLOCK_WHOLESALE = {
   EMAIL: "info@leaflock.com.au",
   PHONE: "0431 295 201",
   GA_MEASUREMENT_ID: "",
-  // Retail store access codes are managed server-side — approve accounts in /admin/
+  // Retail store passwords are managed server-side — approve accounts in /admin/
 };

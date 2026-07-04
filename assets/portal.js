@@ -347,8 +347,8 @@
     document.body.style.overflow = "";
   }
 
-  async function submitInvoiceOrder(event) {
-    event.preventDefault();
+  async function submitWholesaleOrder(event, paymentMethod = "invoice") {
+    event?.preventDefault();
     if (!window.LeafLockAccess?.isApproved()) return;
     if (!orderForm.reportValidity()) return;
     if (!fields.termsAccepted?.checked) {
@@ -367,25 +367,35 @@
       return;
     }
 
-    const btn = orderForm.querySelector('button[type="submit"]');
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = "Submitting…";
-    }
+    const invoiceBtn = document.getElementById("submitInvoiceBtn");
+    const bankBtn = document.getElementById("submitBankTransferBtn");
+    const activeBtn = paymentMethod === "bank_transfer" ? bankBtn : invoiceBtn;
+    [invoiceBtn, bankBtn].forEach((btn) => {
+      if (btn) btn.disabled = true;
+    });
+    if (activeBtn) activeBtn.textContent = "Submitting…";
 
     try {
       const data = await window.LeafLockAccess.portalFetch("/api/orders", {
         method: "POST",
-        body: JSON.stringify(orderPayload("invoice")),
+        body: JSON.stringify(orderPayload(paymentMethod)),
       });
       currentOrderId = data.order.id;
-      showSuccess("We've received your order and will email a confirmation + invoice within 24 hours.");
+      const message =
+        paymentMethod === "bank_transfer"
+          ? "Order received. Check your email for bank transfer details and payment reference."
+          : "We've received your order and will email a confirmation + invoice for your records.";
+      showSuccess(message);
     } catch (err) {
       totals.note.textContent = err.message || "Could not submit order. Try again.";
     } finally {
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = "Submit wholesale order (invoice)";
+      if (invoiceBtn) {
+        invoiceBtn.disabled = false;
+        invoiceBtn.textContent = "Request invoice by email";
+      }
+      if (bankBtn) {
+        bankBtn.disabled = false;
+        bankBtn.textContent = "Submit order — pay by bank transfer";
       }
     }
   }
@@ -527,12 +537,29 @@
     }
   }
 
+  async function loadBankHint() {
+    const hint = document.getElementById("bankTransferHint");
+    if (!hint) return;
+    try {
+      const bank = await window.LeafLockAccess.portalFetch("/api/portal/bank-details");
+      if (bank.configured) {
+        hint.hidden = false;
+        hint.textContent = `Bank transfer: ${bank.accountName} · BSB ${bank.bsb} · Acc ${bank.accountNumber} (reference sent in confirmation email).`;
+      }
+    } catch {
+      /* optional */
+    }
+  }
+
   async function onPortalReady() {
-    await Promise.all([loadPricing(), loadCredentials()]);
+    await Promise.all([loadPricing(), loadCredentials(), loadBankHint()]);
     if (!paypalLoaded) await setupPayPal();
   }
 
-  orderForm?.addEventListener("submit", submitInvoiceOrder);
+  orderForm?.addEventListener("submit", (event) => submitWholesaleOrder(event, "invoice"));
+  document.getElementById("submitBankTransferBtn")?.addEventListener("click", (event) => {
+    submitWholesaleOrder(event, "bank_transfer");
+  });
   closeSuccess?.addEventListener("click", closeSuccessModal);
   formSuccess?.addEventListener("click", (e) => {
     if (e.target === formSuccess) closeSuccessModal();

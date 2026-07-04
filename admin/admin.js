@@ -53,10 +53,21 @@ function renderDailyChart(container, daily) {
     .join("");
 }
 
-function showCodeModal(code) {
+function setupPasswordUrl(token) {
+  const base = window.location.origin;
+  return `${base}/set-password.html?token=${encodeURIComponent(token)}`;
+}
+
+function showSetupLinkModal(token, label = "Password setup link") {
   const modal = document.getElementById("codeModal");
-  document.getElementById("generatedCode").textContent = code;
-  modal.hidden = false;
+  const codeEl = document.getElementById("generatedCode");
+  const title = modal?.querySelector("h2");
+  const desc = modal?.querySelector("p");
+  const url = setupPasswordUrl(token);
+  if (title) title.textContent = label;
+  if (desc) desc.textContent = "Copy this one-time link and email it to the retail store if SMTP did not send automatically.";
+  if (codeEl) codeEl.textContent = url;
+  if (modal) modal.hidden = false;
 }
 
 document.getElementById("closeCodeModal")?.addEventListener("click", () => {
@@ -122,13 +133,13 @@ async function refreshTraffic() {
 }
 
 async function approveApplication(id) {
-  if (!confirm("Approve this application and generate an access code?")) return;
+  if (!confirm("Approve this application? The store will receive a private password setup link.")) return;
   const result = await api(`/api/admin/applications/${id}/approve`, { method: "POST" });
-  showCodeModal(result.accessCode);
+  if (result.setupToken) showSetupLinkModal(result.setupToken, "Account approved — setup link");
   if (result.emailSent) {
-    alert(`Approved — access code emailed to ${result.application.email}`);
+    alert(`Approved — password setup link emailed to ${result.application.email}`);
   } else {
-    alert("Approved — copy the access code and email it to the retail store (SMTP not configured).");
+    alert("Approved — copy the setup link and email it to the retail store (SMTP not configured).");
   }
   await refreshWholesale();
 }
@@ -139,10 +150,15 @@ async function rejectApplication(id) {
   await refreshWholesale();
 }
 
-async function regenerateCode(id) {
-  if (!confirm("Generate a new access code? The old code will stop working.")) return;
-  const result = await api(`/api/admin/pharmacies/${id}/regenerate-code`, { method: "POST" });
-  showCodeModal(result.accessCode);
+async function sendPasswordReset(id) {
+  if (!confirm("Send a password reset link to this retail store?")) return;
+  const result = await api(`/api/admin/pharmacies/${id}/send-password-reset`, { method: "POST" });
+  if (result.setupToken) showSetupLinkModal(result.setupToken, "Password reset link");
+  if (result.emailSent) {
+    alert(`Reset link emailed to ${result.pharmacy.email}`);
+  } else {
+    alert("Copy the reset link and email it manually (SMTP not configured).");
+  }
   await refreshWholesale();
 }
 
@@ -172,7 +188,7 @@ async function addPharmacy() {
     method: "POST",
     body: JSON.stringify({ businessName, email }),
   });
-  showCodeModal(result.accessCode);
+  if (result.setupToken) showSetupLinkModal(result.setupToken, "New account — setup link");
   await refreshWholesale();
 }
 
@@ -240,7 +256,7 @@ async function refreshWholesale() {
       <td>${p.loginCount || 0}</td>
       <td>${fmtDate(p.lastLoginAt)}</td>
       <td>
-        <button class="btn-inline" data-action="regen-code" data-id="${p.id}">New code</button>
+        <button class="btn-inline" data-action="reset-password" data-id="${p.id}">Reset password</button>
         <button class="btn-inline btn-muted" data-action="send-compliance-pharm" data-id="${p.id}">Send docs</button>
         <button class="btn-inline btn-muted" data-action="toggle-status" data-id="${p.id}" data-status="${p.status}">${p.status === "active" ? "Deactivate" : "Activate"}</button>
       </td>
@@ -291,7 +307,7 @@ document.getElementById("tabWholesale")?.addEventListener("click", async (event)
   try {
     if (action === "approve-app") await approveApplication(id);
     else if (action === "reject-app") await rejectApplication(id);
-    else if (action === "regen-code") await regenerateCode(id);
+    else if (action === "reset-password") await sendPasswordReset(id);
     else if (action === "send-compliance-pharm") await sendComplianceToPharmacy(id);
     else if (action === "send-compliance-app") await sendComplianceToApplication(id);
     else if (action === "toggle-status") await togglePharmacyStatus(id, btn.dataset.status);

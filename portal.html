@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Approved Retail Store Portal — LeafLock Retail Store Wholesale</title>
-    <meta name="description" content="LeafLock approved retail store wholesale portal. Login with your access code to view pricing and submit orders.">
+    <meta name="description" content="LeafLock approved retail store wholesale portal. Sign in with your email and password to view pricing and submit orders.">
     <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="assets/styles.css">
   </head>
@@ -15,7 +15,7 @@
       <section class="page-hero">
         <p class="eyebrow">Approved accounts</p>
         <h1>Retail store wholesale portal</h1>
-        <p class="page-lead">Enter your access code, browse the price list, add quantities, and submit — same layout as your replenishment order form.</p>
+        <p class="page-lead">Sign in with your store email and private password, browse the price list, add quantities, and submit — same layout as your replenishment order form.</p>
       </section>
 
       <section class="section" id="accessGate">
@@ -24,11 +24,12 @@
           <form id="accessLoginForm" class="portal-card">
             <h3>Retail store login</h3>
             <p id="portalHostHint" class="pending-note" hidden></p>
-            <p id="demoPortalHint" class="pending-note" hidden>Preview demo: use access code <strong>DEMO-STOCKIST-2026</strong> or open the <a href="demo.html">demo launcher</a>.</p>
-            <label><span>Access code</span><input type="text" id="accessCode" required placeholder="Code from your approval email" autocomplete="one-time-code"></label>
+            <p id="demoPortalHint" class="pending-note" hidden>Preview demo: <strong>demo@leaflock.com.au</strong> — see <a href="demo.html">demo launcher</a> for password.</p>
+            <label><span>Email address</span><input type="email" id="portalEmail" required placeholder="Your approved wholesale email" autocomplete="username"></label>
+            <label><span>Password</span><input type="password" id="portalPassword" required placeholder="Your private portal password" autocomplete="current-password"></label>
             <p id="accessError" class="form-error" hidden></p>
-            <button class="button primary full-width" type="submit">Enter portal</button>
-            <p>Need access? <a href="request-access.html">Submit an application</a></p>
+            <button class="button primary full-width" type="submit">Sign in</button>
+            <p><a href="forgot-password.html">Forgot password?</a> · Need access? <a href="request-access.html">Apply</a></p>
           </form>
         </div>
       </section>
@@ -37,6 +38,29 @@
         <section class="section portal-toolbar">
           <p id="portalSessionLabel">Logged in</p>
           <button class="button secondary" type="button" id="accessLogout">Log out</button>
+        </section>
+
+        <section class="section portal-account-panel" id="portalAccountPanel" hidden>
+          <details class="compliance-disclosure">
+            <summary>Account &amp; security</summary>
+            <div class="portal-account-grid">
+              <form id="changePasswordForm" class="order-form">
+                <h3>Change password</h3>
+                <label><span>Current password</span><input type="password" id="currentPassword" required autocomplete="current-password"></label>
+                <label><span>New password</span><input type="password" id="accountNewPassword" required minlength="10" autocomplete="new-password"></label>
+                <label><span>Confirm new password</span><input type="password" id="accountConfirmPassword" required minlength="10" autocomplete="new-password"></label>
+                <p id="changePasswordError" class="form-error" hidden></p>
+                <button class="button secondary" type="submit">Update password</button>
+              </form>
+              <form id="deleteAccountForm" class="order-form portal-account-delete">
+                <h3>Delete account</h3>
+                <p class="pending-note">Removes portal access for this store. Orders already placed are retained for records.</p>
+                <label><span>Confirm with your password</span><input type="password" id="deleteAccountPassword" required autocomplete="current-password"></label>
+                <p id="deleteAccountError" class="form-error" hidden></p>
+                <button class="button secondary" type="submit">Delete my account</button>
+              </form>
+            </div>
+          </details>
         </section>
 
         <form class="portal-order-flow" id="orderForm" novalidate>
@@ -148,10 +172,14 @@
                 </label>
               </p>
 
-              <button class="button primary full-width" type="submit">Submit wholesale order (invoice)</button>
+              <div class="portal-payment-options">
+                <button class="button primary full-width" type="submit" id="submitInvoiceBtn">Request invoice by email</button>
+                <button class="button secondary full-width" type="button" id="submitBankTransferBtn">Submit order — pay by bank transfer</button>
+              </div>
+              <p id="bankTransferHint" class="pending-note" hidden></p>
 
               <div class="paypal-checkout">
-                <p id="paypalNote" class="pricing-placeholder">Instant PayPal checkout available after login.</p>
+                <p id="paypalNote" class="pricing-placeholder">Or pay instantly with PayPal below.</p>
                 <div id="paypalButtons"></div>
               </div>
 
@@ -159,8 +187,8 @@
                 <h3>How ordering works</h3>
                 <ol>
                   <li>Enter quantities in the order sheet above.</li>
-                  <li>Watch the cart bar update as you go.</li>
-                  <li>Submit for invoice or pay instantly with PayPal.</li>
+                  <li>Request an invoice for Xero, pay by bank transfer, or use PayPal.</li>
+                  <li>We email you confirmation — reply directly if you need changes.</li>
                 </ol>
               </div>
             </div>

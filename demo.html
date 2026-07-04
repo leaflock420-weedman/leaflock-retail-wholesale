@@ -69,12 +69,12 @@
 
       <section class="demo-card">
         <p><strong>Demo account:</strong> <span id="demoBusiness">Demo Stockist (Preview)</span></p>
-        <p>Access code:</p>
-        <p class="demo-code" id="demoCode">DEMO-STOCKIST-2026</p>
+        <p>Email: <strong id="demoEmail">demo@leaflock.com.au</strong></p>
+        <p>Password: <span class="demo-code" id="demoPassword">Demo-Stockist-2026!</span></p>
 
         <ol class="demo-steps">
           <li>Open the wholesale portal.</li>
-          <li>Paste the access code, or use the one-click button below.</li>
+          <li>Sign in with the demo email and password, or use one-click below.</li>
           <li>Review pricing tables and submit a test order if needed.</li>
         </ol>
 
@@ -95,9 +95,11 @@
     <script>
       const TOKEN_KEY = "leaflock_portal_token";
       const statusEl = document.getElementById("demoStatus");
-      const codeEl = document.getElementById("demoCode");
+      const emailEl = document.getElementById("demoEmail");
+      const passwordEl = document.getElementById("demoPassword");
       const businessEl = document.getElementById("demoBusiness");
-      let demoCode = "DEMO-STOCKIST-2026";
+      let demoEmail = "demo@leaflock.com.au";
+      let demoPassword = "Demo-Stockist-2026!";
 
       function setStatus(message, isError) {
         statusEl.textContent = message || "";
@@ -109,9 +111,9 @@
           const res = await fetch("/api/demo/portal");
           if (!res.ok) return;
           const info = await res.json();
-          if (info.accessCode) {
-            demoCode = info.accessCode;
-            codeEl.textContent = demoCode;
+          if (info.email) {
+            demoEmail = info.email;
+            emailEl.textContent = demoEmail;
           }
           if (info.businessName) businessEl.textContent = info.businessName;
         } catch {
@@ -129,7 +131,7 @@
           const res = await fetch("/api/portal/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ code: demoCode }),
+            body: JSON.stringify({ email: demoEmail, password: demoPassword }),
           });
           const body = await res.json().catch(() => ({}));
           if (!res.ok) {
@@ -138,7 +140,7 @@
           sessionStorage.setItem(TOKEN_KEY, body.token);
           window.location.href = "portal.html";
         } catch (err) {
-          setStatus(err.message || "Could not sign in. Open portal login and enter the code manually.", true);
+          setStatus(err.message || "Could not sign in. Open portal login and enter the demo credentials manually.", true);
           button.disabled = false;
           button.textContent = "Enter portal now";
         }

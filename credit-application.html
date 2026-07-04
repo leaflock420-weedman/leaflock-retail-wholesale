@@ -20,8 +20,9 @@
       <section class="section" id="creditAccessGate">
         <form id="creditAccessForm" class="order-form portal-card">
           <h3>Retail store login required</h3>
-          <p>Log in with your wholesale access code to submit a credit application.</p>
-          <label><span>Access code</span><input type="text" id="creditAccessCode" required autocomplete="one-time-code"></label>
+          <p>Log in with your wholesale email and password to submit a credit application.</p>
+          <label><span>Email address</span><input type="email" id="creditAccessEmail" required autocomplete="username"></label>
+          <label><span>Password</span><input type="password" id="creditAccessPassword" required autocomplete="current-password"></label>
           <p id="creditAccessError" class="form-error" hidden></p>
           <button class="button primary full-width" type="submit">Continue</button>
           <p>New account? <a href="request-access.html">Request wholesale access</a> first.</p>

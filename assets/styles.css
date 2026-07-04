@@ -1067,6 +1067,35 @@ input:focus {
   text-decoration: underline;
 }
 
+.portal-account-grid {
+  display: grid;
+  gap: 20px;
+  margin-top: 12px;
+}
+
+@media (min-width: 720px) {
+  .portal-account-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.portal-account-delete {
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+
+.portal-payment-options {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.form-error.form-success {
+  color: var(--leaf);
+  background: rgba(149, 208, 93, 0.12);
+  border-color: rgba(149, 208, 93, 0.35);
+}
+
 .check-row--required {
   border: 1px solid rgba(149, 208, 93, 0.35);
 }

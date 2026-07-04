@@ -1,6 +1,7 @@
 (function () {
   const accessForm = document.querySelector("#creditAccessForm");
-  const accessCode = document.querySelector("#creditAccessCode");
+  const accessEmail = document.querySelector("#creditAccessEmail");
+  const accessPassword = document.querySelector("#creditAccessPassword");
   const accessError = document.querySelector("#creditAccessError");
   const accessGate = document.querySelector("#creditAccessGate");
   const appSection = document.querySelector("#creditApplicationSection");
@@ -24,11 +25,14 @@
     event.preventDefault();
     if (accessError) accessError.hidden = true;
     try {
-      await window.LeafLockAccess.loginWithCode(accessCode?.value || "");
+      await window.LeafLockAccess.loginWithCredentials(
+        accessEmail?.value || "",
+        accessPassword?.value || "",
+      );
       showApplication();
     } catch (err) {
       if (accessError) {
-        accessError.textContent = err.message || "Invalid access code";
+        accessError.textContent = err.message || "Invalid email or password";
         accessError.hidden = false;
       }
     }
