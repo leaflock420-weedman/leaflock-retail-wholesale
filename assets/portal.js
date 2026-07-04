@@ -381,10 +381,11 @@
         body: JSON.stringify(orderPayload(paymentMethod)),
       });
       currentOrderId = data.order.id;
+      const inv = data.order.invoiceNumber ? ` Invoice No ${data.order.invoiceNumber}.` : "";
       const message =
         paymentMethod === "bank_transfer"
-          ? "Order received. Check your email for bank transfer details and payment reference."
-          : "We've received your order and will email a confirmation + invoice for your records.";
+          ? `Order received.${inv} Check your email for bank transfer details (LL PYT LTD · PayID 0431892625).`
+          : `We've received your order.${inv} Confirmation + invoice details are on the way.`;
       showSuccess(message);
     } catch (err) {
       totals.note.textContent = err.message || "Could not submit order. Try again.";
@@ -544,7 +545,7 @@
       const bank = await window.LeafLockAccess.portalFetch("/api/portal/bank-details");
       if (bank.configured) {
         hint.hidden = false;
-        hint.textContent = `Bank transfer: ${bank.accountName} · BSB ${bank.bsb} · Acc ${bank.accountNumber} (reference sent in confirmation email).`;
+        hint.textContent = `Pay to ${bank.accountName} · BSB ${bank.bsb} · Acc ${bank.accountNumber} · PayID ${bank.payId} — your unique Invoice No is in the confirmation email.`;
       }
     } catch {
       /* optional */

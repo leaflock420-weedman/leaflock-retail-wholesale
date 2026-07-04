@@ -516,6 +516,7 @@ app.post("/api/orders", portalAuth, (req, res) => {
   res.status(201).json({
     order: {
       id: order.id,
+      invoiceNumber: order.invoiceNumber,
       status: order.status,
       totals: order.totals,
       paymentTerms: order.paymentTerms,
