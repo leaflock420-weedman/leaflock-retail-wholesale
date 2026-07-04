@@ -64,6 +64,7 @@ const {
   loadPharmacies,
   loadApplications,
   loadLoginLog,
+  demoPortalInfo,
 } = require("./lib/pharmacy-store");
 const {
   createOrder,
@@ -243,25 +244,34 @@ app.post("/api/analytics/send-report", adminAuth, async (req, res) => {
 
 // ——— Portal auth & pricing (server-gated) ———
 
+app.get("/api/demo/portal", (req, res) => {
+  res.json(demoPortalInfo());
+});
+
 app.post("/api/portal/login", (req, res) => {
-  const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
-  if (!rateLimitLogin(`portal:${ip}`)) {
-    return res.status(429).json({ error: "Too many attempts. Try again later." });
-  }
-  const { code } = req.body || {};
-  if (!code || !String(code).trim()) {
-    return res.status(400).json({ error: "Access code required" });
-  }
+  try {
+    const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
+    if (!rateLimitLogin(`portal:${ip}`)) {
+      return res.status(429).json({ error: "Too many attempts. Try again later." });
+    }
+    const { code } = req.body || {};
+    if (!code || !String(code).trim()) {
+      return res.status(400).json({ error: "Access code required" });
+    }
 
-  const pharmacy = findByCode(code);
-  if (!pharmacy) {
-    recordFailedLogin(code, clientMeta(req));
-    return res.status(401).json({ error: "Invalid access code" });
-  }
+    const pharmacy = findByCode(code);
+    if (!pharmacy) {
+      recordFailedLogin(code, clientMeta(req));
+      return res.status(401).json({ error: "Invalid access code" });
+    }
 
-  const publicInfo = recordLogin(pharmacy.id, clientMeta(req));
-  const token = createPortalToken(pharmacy.id);
-  res.json({ token, pharmacy: publicInfo });
+    const publicInfo = recordLogin(pharmacy.id, clientMeta(req));
+    const token = createPortalToken(pharmacy.id);
+    res.json({ token, pharmacy: publicInfo });
+  } catch (err) {
+    console.error("[portal] login failed:", err);
+    res.status(500).json({ error: "Portal login unavailable. Try again shortly." });
+  }
 });
 
 app.get("/api/portal/session", portalAuth, (req, res) => {
@@ -741,9 +751,13 @@ async function maybeSendDailyReport() {
 setInterval(maybeSendDailyReport, 60 * 1000);
 setTimeout(maybeSendDailyReport, 5000);
 
+loadPharmacies();
+
 app.listen(PORT, "0.0.0.0", () => {
+  const demo = demoPortalInfo();
   console.log(`LeafLock Retail Store Wholesale + Analytics at http://0.0.0.0:${PORT}`);
   console.log(`Admin dashboard: http://0.0.0.0:${PORT}/admin/`);
+  console.log(`Demo stockist portal: http://0.0.0.0:${PORT}/demo.html (code ${demo.accessCode})`);
   if (paypal.isConfigured()) {
     console.log(`[paypal] ${paypal.mode()} checkout enabled`);
   } else {

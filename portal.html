@@ -24,6 +24,7 @@
           <form id="accessLoginForm" class="portal-card">
             <h3>Retail store login</h3>
             <p id="portalHostHint" class="pending-note" hidden></p>
+            <p id="demoPortalHint" class="pending-note" hidden>Preview demo: use access code <strong>DEMO-STOCKIST-2026</strong> or open the <a href="demo.html">demo launcher</a>.</p>
             <label><span>Access code</span><input type="text" id="accessCode" required placeholder="Code from your approval email" autocomplete="one-time-code"></label>
             <p id="accessError" class="form-error" hidden></p>
             <button class="button primary full-width" type="submit">Enter portal</button>
@@ -197,6 +198,10 @@
     <script>
       window.LeafLockAccess.boot().then(() => {
         window.LeafLockAccess.bindAccessForm();
+        if (new URLSearchParams(window.location.search).has("demo")) {
+          const hint = document.getElementById("demoPortalHint");
+          if (hint) hint.hidden = false;
+        }
         if (window.LeafLockAccess.isApproved()) {
           document.dispatchEvent(new CustomEvent("leaflock:portal-login"));
         }
