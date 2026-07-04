@@ -8,10 +8,11 @@
     "start": "node server.js",
     "dev": "node server.js",
     "deploy:render": "node scripts/render-deploy.mjs",
-    "test": "node scripts/run-full-test.mjs",
-    "test:full": "node scripts/run-full-test.mjs",
+    "test": "node scripts/check-secrets.mjs && node scripts/run-full-test.mjs",
+    "test:full": "node scripts/check-secrets.mjs && node scripts/run-full-test.mjs",
     "catalog:export": "node scripts/export-catalog-csv.mjs",
-    "guide:pack": "python scripts/make-novice-guide-pack.py"
+    "guide:pack": "python scripts/make-novice-guide-pack.py",
+    "secrets:check": "node scripts/check-secrets.mjs"
   },
   "engines": {
     "node": ">=18"

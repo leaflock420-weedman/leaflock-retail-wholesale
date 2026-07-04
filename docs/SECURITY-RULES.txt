@@ -1,0 +1,44 @@
+LEAFLOCK WHOLESALE — SECURITY RULES (ALWAYS)
+============================================
+
+NEVER put real secrets in:
+  • Chat messages (AI, email, SMS, Discord, etc.)
+  • GitHub / git commits
+  • Screenshots shared publicly
+  • The spreadsheet or help PDF
+
+WHERE SECRETS GO (ONLY):
+  • Render → leaflock-retail-wholesale → Environment
+  • Your PC: data\.leaflock-render-env.json  (gitignored — local backup)
+  • Your PC: .env.local  (gitignored — local dev)
+
+SECRETS INCLUDE:
+  • Admin password (ANALYTICS_ADMIN_PASSWORD)
+  • SMTP / email app passwords
+  • PayPal Client ID & Secret
+  • Australia Post API key (AUSPOST_PAC_API_KEY)
+  • Session secrets (PORTAL_SESSION_SECRET, ADMIN_SESSION_SECRET)
+  • Portal pepper / salt
+
+IF A KEY WAS SHARED IN CHAT OR EMAIL:
+  1. Revoke / regenerate it in the provider portal (Google, PayPal, AusPost)
+  2. Add the NEW key only in Render Environment
+  3. Never paste the new key in chat — say "updated on Render"
+
+SAFE TO SHARE:
+  • Public URLs (wholesale.leaflock.com.au)
+  • Demo login (demo@leaflock.com.au — demo password is public by design)
+  • info@leaflock.com.au contact email
+  • Bank BSB/account on invoices (already public to stockists)
+
+ADDING A NEW API KEY:
+  1. Get key from the provider website
+  2. Render → Environment → Add variable → Save
+  3. Wait for redeploy (~2 min)
+  4. Check Admin → System status for green tick
+  5. Do NOT add to HTML, CSV, or GitHub
+
+RUN CHECK BEFORE PUSH:
+  npm run secrets:check
+
+Questions: info@leaflock.com.au

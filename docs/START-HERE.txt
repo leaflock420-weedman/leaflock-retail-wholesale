@@ -23,3 +23,5 @@ DEMO LOGIN:
   Password: Demo-Stockist-2026!
 
 EMAIL: info@leaflock.com.au
+
+SECURITY: Read SECURITY-RULES.txt — never paste API keys or passwords in chat.

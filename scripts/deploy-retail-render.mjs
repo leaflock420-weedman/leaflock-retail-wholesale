@@ -20,6 +20,7 @@ const envJson = JSON.parse(
   (await readFile(path.join(root, "data", ".leaflock-render-env.json"), "utf8")).replace(/^\uFEFF/, ""),
 );
 
+// Secrets: read from gitignored data/.leaflock-render-env.json — never commit real keys to GitHub.
 const RETAIL_ENV = {
   NODE_VERSION: "20",
   TZ: "Australia/Brisbane",

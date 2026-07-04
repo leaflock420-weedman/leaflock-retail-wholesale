@@ -26,6 +26,7 @@ OUT_DIRS = [
     Path.home() / "Desktop" / "LeafLock-Wholesale-Guide",
     ROOT / "docs",
 ]
+SECURITY_RULES_SRC = ROOT / "docs" / "SECURITY-RULES.txt"
 CSV_NAME = "wholesale-catalog-template.csv"
 PDF_NAME = "LeafLock-Wholesale-Complete-Guide.pdf"
 README_NAME = "START-HERE.txt"
@@ -368,6 +369,24 @@ def build_pdf(pdf_path: Path) -> None:
     fix_rows = [["Problem", "Try this"]] + list(fixes)
     story.append(simple_table(fix_rows, [52 * mm, 118 * mm]))
 
+    story.append(p("PART 5 — Security (always follow)", s["title"]))
+    story.append(
+        p(
+            "<b>Never paste passwords or API keys in chat, text messages, or GitHub.</b> "
+            "That includes admin passwords, email app passwords, PayPal secrets, and Australia Post API keys.",
+            s["body"],
+        )
+    )
+    security = [
+        "Secrets live only on Render → leaflock-retail-wholesale → Environment",
+        "On your PC: .env.local and data\\.leaflock-render-env.json (never commit these)",
+        "If a key was shared by mistake: revoke it at the provider, create a new one, add only in Render",
+        "Tell your developer “updated on Render” — do not send the new key in chat",
+        "Before git push: run npm run secrets:check",
+    ]
+    for rule in security:
+        story.append(p(f"• {rule}", s["bullet"]))
+
     story.append(p("Quick cheat sheet", s["h2"]))
     cheat = [
         ["I want to…", "Do this"],
@@ -419,6 +438,8 @@ DEMO LOGIN:
   Password: Demo-Stockist-2026!
 
 EMAIL: info@leaflock.com.au
+
+SECURITY: Read SECURITY-RULES.txt — never paste API keys or passwords in chat.
 """,
         encoding="utf-8",
     )
@@ -430,6 +451,12 @@ def main() -> None:
         shutil.copy2(SRC_CSV, out_dir / CSV_NAME)
         build_pdf(out_dir / PDF_NAME)
         write_readme(out_dir / README_NAME)
+        if SECURITY_RULES_SRC.exists():
+            dest = out_dir / "SECURITY-RULES.txt"
+            try:
+                shutil.copy2(SECURITY_RULES_SRC, dest)
+            except OSError:
+                dest.write_text(SECURITY_RULES_SRC.read_text(encoding="utf-8"), encoding="utf-8")
         print(f"Pack ready: {out_dir}")
         for name in (README_NAME, CSV_NAME, PDF_NAME):
             print(f"  - {name}")
