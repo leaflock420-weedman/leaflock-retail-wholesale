@@ -14,7 +14,7 @@ const REPO = "https://github.com/leaflock420-weedman/leaflock-retail-wholesale";
 const SERVICE_NAME = "leaflock-retail-wholesale";
 
 const envJson = JSON.parse(
-  await readFile(path.join(root, "data", ".leaflock-render-env.json"), "utf8"),
+  (await readFile(path.join(root, "data", ".leaflock-render-env.json"), "utf8")).replace(/^\uFEFF/, ""),
 );
 
 const RETAIL_ENV = {

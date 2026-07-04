@@ -4,7 +4,7 @@
   "isolated": true,
   "blockProductionDeploy": false,
   "blockProductionDomain": "med.leaflock.com.au",
-  "productionServiceId": null,
+  "productionServiceId": "srv-d94f97t7vvec73dhj9rg",
   "localPort": 4280,
   "siteUrl": "https://leaflock-retail-wholesale.onrender.com",
   "parentProject": null,
