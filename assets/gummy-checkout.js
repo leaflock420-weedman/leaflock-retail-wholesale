@@ -145,6 +145,10 @@
 
   function applyUrlPreset() {
     const params = new URLSearchParams(window.location.search);
+    const store = params.get("store");
+    if (store && fields.businessName) {
+      fields.businessName.value = store;
+    }
     const units = params.get("units");
     const cartons = params.get("cartons");
     if (cartons != null) {
