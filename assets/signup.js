@@ -18,7 +18,7 @@
       fullName: fd.get("full_name"),
       role: fd.get("role"),
       abn: fd.get("abn"),
-      pharmacyReg: fd.get("pharmacy_reg"),
+      pharmacyReg: fd.get("store_reg") || fd.get("pharmacy_reg"),
       email: fd.get("email"),
       phone: fd.get("phone"),
       address: fd.get("address"),

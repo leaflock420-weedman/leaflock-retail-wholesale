@@ -82,7 +82,7 @@ function renderSetupStatus(status) {
     { ok: status.paypal, label: status.paypal ? `PayPal ${status.paypalMode} checkout enabled` : "PayPal not configured" },
     { ok: status.paypalMode === "live", label: status.paypalMode === "live" ? "PayPal LIVE (real payments)" : "PayPal sandbox — set PAYPAL_MODE=live + live credentials for production" },
     { ok: status.email, label: status.email ? "Email notifications enabled" : "SMTP not set — approve codes shown in popup only" },
-    { ok: status.smtpConfigured, label: status.smtpConfigured ? "SMTP credentials configured" : "Set SMTP_PASS on Render for med@ sending" },
+    { ok: status.smtpConfigured, label: status.smtpConfigured ? "SMTP credentials configured" : "Set SMTP_PASS on Render for info@ sending" },
     { ok: status.portalSalt, label: status.portalSalt ? "Portal code encryption active" : "Set PORTAL_CODE_SALT on Render" },
     { ok: status.adminPasswordFromEnv, label: status.adminPasswordFromEnv ? "Admin password from env var" : "Using default admin password" },
     { ok: status.portalSessionSecret, label: status.portalSessionSecret ? "Portal sessions secured" : "Set PORTAL_SESSION_SECRET on Render" },
@@ -217,10 +217,7 @@ async function refreshWholesale() {
              <button class="btn-inline btn-muted" data-action="reject-app" data-id="${a.id}">Reject</button>
              <button class="btn-inline btn-muted" data-action="send-compliance-app" data-id="${a.id}">Send docs</button>`
           : `<button class="btn-inline btn-muted" data-action="send-compliance-app" data-id="${a.id}">Send docs</button>`;
-      const extras = [
-        a.compounding === "yes" ? "compounding" : null,
-        a.bulk === "yes" ? "bulk" : null,
-      ].filter(Boolean).join(", ");
+      const extras = a.bulk === "yes" ? "bulk supply" : "";
       return `<tr>
         <td>${fmtDate(a.createdAt)}</td>
         <td>${a.businessName}${extras ? `<br><small>${extras}</small>` : ""}</td>

@@ -14,7 +14,7 @@
     fullName: document.querySelector("#fullName"),
     role: document.querySelector("#role"),
     abn: document.querySelector("#abn"),
-    pharmacyReg: document.querySelector("#pharmacyReg"),
+    pharmacyReg: document.querySelector("#storeReg"),
     email: document.querySelector("#email"),
     phone: document.querySelector("#phone"),
     address: document.querySelector("#address"),

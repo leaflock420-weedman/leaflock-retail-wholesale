@@ -17,7 +17,7 @@ const fields = {
   fullName: document.querySelector("#fullName"),
   role: document.querySelector("#role"),
   abn: document.querySelector("#abn"),
-  pharmacyReg: document.querySelector("#pharmacyReg"),
+  pharmacyReg: document.querySelector("#storeReg"),
   email: document.querySelector("#email"),
   phone: document.querySelector("#phone"),
   address: document.querySelector("#address"),
@@ -120,7 +120,7 @@ function buildOrderEmail(order) {
     `Contact: ${fields.fullName?.value || "—"}`,
     `Role: ${fields.role?.value || "—"}`,
     `ABN: ${fields.abn?.value || "—"}`,
-    `Store reg: ${fields.pharmacyReg?.value || "—"}`,
+    `Business licence / reg: ${fields.pharmacyReg?.value || "—"}`,
     `Email: ${fields.email?.value || "—"}`,
     `Phone: ${fields.phone?.value || "—"}`,
     `Address: ${fields.address?.value || "—"}`,
@@ -147,7 +147,7 @@ function buildOrderEmail(order) {
 }
 
 function updateAccountLink() {
-  const pharmacy = document.querySelector("#accountPharmacy")?.value || "—";
+  const storeName = document.querySelector("#accountPharmacy")?.value || "—";
   const email = document.querySelector("#accountEmail")?.value || "—";
   const abn = document.querySelector("#accountAbn")?.value || "—";
   const reg = document.querySelector("#accountReg")?.value || "—";
@@ -156,10 +156,10 @@ function updateAccountLink() {
     [
       "LeafLock retail store wholesale account request",
       "",
-      `Retail store: ${pharmacy}`,
+      `Retail store: ${storeName}`,
       `Contact email: ${email}`,
       `ABN: ${abn}`,
-      `Store registration number: ${reg}`,
+      `Business licence / registration: ${reg}`,
     ].join("\n"),
   );
   if (accountLink) accountLink.href = `mailto:${WHOLESALE_EMAIL}?subject=${subject}&body=${body}`;

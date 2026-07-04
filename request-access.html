@@ -27,16 +27,10 @@
               <label><span>Your Full Name *</span><input name="full_name" required autocomplete="name"></label>
               <label><span>Position / Role</span><input name="role" autocomplete="organization-title"></label>
               <label><span>ABN *</span><input name="abn" required pattern="[0-9\s]{11,14}"></label>
-              <label><span>Store registration number *</span><input name="pharmacy_reg" required></label>
+              <label><span>Business licence or registration number *</span><input name="store_reg" required placeholder="State licence, council registration, or industry ID"></label>
               <label><span>Email Address *</span><input type="email" name="email" required autocomplete="email"></label>
               <label><span>Phone Number</span><input type="tel" name="phone" autocomplete="tel"></label>
               <label class="wide"><span>Delivery Address</span><textarea name="address" rows="2" autocomplete="street-address"></textarea></label>
-              <label><span>Compounding partner?</span>
-                <select name="compounding">
-                  <option value="no">No</option>
-                  <option value="yes">Yes</option>
-                </select>
-              </label>
               <label><span>Need bulk storage supply?</span>
                 <select name="bulk">
                   <option value="no">No — retail packs only</option>
@@ -52,7 +46,7 @@
         <div class="order-steps">
           <h3>What happens next</h3>
           <ol>
-            <li>We review your store registration and ABN.</li>
+            <li>We review your business details and ABN.</li>
             <li>You receive an email with your wholesale access code if approved.</li>
             <li>Enter the code at the <a href="portal.html">wholesale portal</a> to view pricing and order.</li>
           </ol>
