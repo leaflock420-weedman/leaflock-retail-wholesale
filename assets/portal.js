@@ -35,6 +35,7 @@
   const orderSheetBody = document.querySelector("#orderSheetBody");
   const orderSheetSearch = document.querySelector("#orderSheetSearch");
   const orderSheetSummary = document.querySelector("#orderSheetSummary");
+  const volumeTierBody = document.querySelector("#volumeTierBody");
 
   function money(value) {
     return MONEY.format(value);
@@ -66,7 +67,7 @@
     let subtotal = 0;
     const lines = [];
     for (const [sku, qty] of Object.entries(catalog)) {
-      if (sku === "HP-SINGLE" || sku === "HP-3PACK") continue;
+      if (sku === "HP-SINGLE") continue;
       const item = bySku[sku];
       if (!item || qty <= 0) continue;
       const lineTotal = Math.round(item.wholesale * qty * 100) / 100;
@@ -76,18 +77,27 @@
     return { subtotal: Math.round(subtotal * 100) / 100, lines };
   }
 
-  function humiditySubtotal(singlePacks, threePacks) {
+  function humidityRate(singlePacks) {
     if (!pricing) return 0;
-    const totalHumidityPacks = singlePacks + threePacks * 3;
-    const rate =
-      totalHumidityPacks >= pricing.humidity.single.volumeThreshold
-        ? pricing.humidity.single.volume
-        : pricing.humidity.single.wholesale;
-    const threeRate =
-      rate === pricing.humidity.single.volume
-        ? pricing.humidity.threePack.volume
-        : pricing.humidity.threePack.wholesale;
-    return Math.round((singlePacks * rate + threePacks * threeRate) * 100) / 100;
+    return singlePacks >= pricing.humidity.single.volumeThreshold
+      ? pricing.humidity.single.volume
+      : pricing.humidity.single.wholesale;
+  }
+
+  function humiditySubtotal(singlePacks) {
+    if (!pricing || singlePacks <= 0) return 0;
+    return Math.round(singlePacks * humidityRate(singlePacks) * 100) / 100;
+  }
+
+  function moqWarnings(catalog) {
+    const warnings = [];
+    for (const [sku, qty] of Object.entries(catalog)) {
+      const item = sheetSkuIndex[sku];
+      if (item?.moq && qty > 0 && qty < item.moq) {
+        warnings.push(`${item.name}: minimum order is ${item.moq} (you have ${qty}).`);
+      }
+    }
+    return warnings;
   }
 
   function updateLineTotals(subtotalForSummary) {
@@ -101,19 +111,9 @@
         return;
       }
       let line = 0;
-      if (sku === "HP-SINGLE" || sku === "HP-3PACK") {
+      if (sku === "HP-SINGLE") {
         const singles = catalog["HP-SINGLE"] || 0;
-        const threes = catalog["HP-3PACK"] || 0;
-        const totalPacks = singles + threes * 3;
-        const rate =
-          totalPacks >= pricing.humidity.single.volumeThreshold
-            ? pricing.humidity.single.volume
-            : pricing.humidity.single.wholesale;
-        const threeRate =
-          rate === pricing.humidity.single.volume
-            ? pricing.humidity.threePack.volume
-            : pricing.humidity.threePack.wholesale;
-        line = sku === "HP-SINGLE" ? singles * rate : threes * threeRate;
+        line = singles * humidityRate(singles);
       } else {
         line = item.wholesale * qty;
       }
@@ -140,7 +140,7 @@
       return {
         starterBundle: true,
         singlePacks: 50,
-        threePacks: 50,
+        threePacks: 0,
         gummyIndividual: 0,
         mixedCartons: 1,
         catalog: {},
@@ -155,22 +155,22 @@
 
     const catalog = readCatalogQty();
     const singlePacks = catalog["HP-SINGLE"] || 0;
-    const threePacks = catalog["HP-3PACK"] || 0;
-    const humidityTotal = humiditySubtotal(singlePacks, threePacks);
+    const humidityTotal = humiditySubtotal(singlePacks);
     const catalogTotals = catalogSubtotal(catalog);
     const subtotal = Math.round((humidityTotal + catalogTotals.subtotal) * 100) / 100;
     const gst = Math.round(subtotal * pricing.gstRate * 100) / 100;
     const shipping = subtotal > 0 ? pricing.shipping : 0;
     const total = Math.round((subtotal + gst + shipping) * 100) / 100;
 
-    const totalHumidityPacks = singlePacks + threePacks * 3;
     const notes = [];
-    if (totalHumidityPacks >= pricing.humidity.single.volumeThreshold) {
+    if (singlePacks >= pricing.humidity.single.volumeThreshold) {
       notes.push("500+ humidity pack rate applied.");
     }
     if (catalogTotals.lines.length > 0) {
       notes.push(`${catalogTotals.lines.length} catalogue line(s) in order.`);
     }
+    const moqIssues = moqWarnings(catalog);
+    if (moqIssues.length) notes.push(...moqIssues);
     if (!notes.length) {
       notes.push(subtotal > 0 ? "Standard wholesale pricing applied." : "Add products to calculate pricing.");
     }
@@ -206,11 +206,12 @@
 
     for (const section of pricing.orderSheet) {
       rows.push(
-        `<tr class="pricing-table__category"><td colspan="7"><strong>${section.label}</strong></td></tr>`,
+        `<tr class="pricing-table__category"><td colspan="8"><strong>${section.label}</strong></td></tr>`,
       );
       for (const item of section.items) {
         sheetSkuIndex[item.sku] = item;
         const bulk = item.bulkNote || "—";
+        const moqMin = item.moq ? item.moq : 0;
         rows.push(`
           <tr class="portal-order-table__row" data-sheet-row data-search="${`${item.sku} ${item.name} ${section.label} ${item.bulkNote || ""}`.toLowerCase()}">
             <td>${item.sku}</td>
@@ -220,9 +221,10 @@
             </td>
             <td>${money(item.wholesale)}</td>
             <td class="portal-order-table__qty">
-              <input type="number" min="0" step="1" value="0" data-catalog-sku="${item.sku}" aria-label="Quantity for ${item.name}">
+              <input type="number" min="${moqMin}" step="1" value="0" data-catalog-sku="${item.sku}" data-moq="${moqMin}" aria-label="Quantity for ${item.name}">
             </td>
             <td>${money(item.rrp)}</td>
+            <td>${item.moqLabel}</td>
             <td>${bulk}</td>
             <td class="portal-order-table__line" data-line-total="${item.sku}">—</td>
           </tr>`);
@@ -259,9 +261,26 @@
     });
   }
 
+  function renderVolumeTiers() {
+    if (!volumeTierBody || !pricing?.volumeTiers) return;
+    volumeTierBody.innerHTML = pricing.volumeTiers
+      .map(
+        (tier) => `
+        <tr>
+          <td>${tier.product}</td>
+          <td>${money(tier.standard)}</td>
+          <td>${tier.threshold}</td>
+          <td>${money(tier.volumePrice)}</td>
+          <td>${tier.applies}</td>
+        </tr>`,
+      )
+      .join("");
+  }
+
   function renderPricing() {
     if (!pricing) return;
     renderOrderSheet();
+    renderVolumeTiers();
     const bundleLabel = document.querySelector("#starterBundleLabel");
     if (bundleLabel) {
       bundleLabel.textContent = `${pricing.starterBundle.label} (${money(pricing.starterBundle.totalIncGstShipping)} inc. GST & shipping)`;
@@ -334,6 +353,11 @@
     const calc = calculateOrder();
     if (!calc || calc.total <= 0) {
       totals.note.textContent = "Add at least one product before submitting.";
+      return;
+    }
+    const moqIssues = moqWarnings(calc.catalog || {});
+    if (moqIssues.length) {
+      totals.note.textContent = moqIssues.join(" ");
       return;
     }
 
@@ -517,7 +541,10 @@
     paypalLoaded = false;
     if (paypalContainer) paypalContainer.innerHTML = "";
     if (orderSheetBody) {
-      orderSheetBody.innerHTML = '<tr><td colspan="7">Login to load the price list…</td></tr>';
+      orderSheetBody.innerHTML = '<tr><td colspan="8">Login to load the price list…</td></tr>';
+    if (volumeTierBody) {
+      volumeTierBody.innerHTML = '<tr><td colspan="5">Login to load volume tiers…</td></tr>';
+    }
     }
   });
 

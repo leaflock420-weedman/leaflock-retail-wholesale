@@ -578,11 +578,13 @@ dd {
 
 .portal-order-table__qty input {
   width: 88px;
+  min-height: 40px;
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid var(--line);
-  background: var(--tint-strawberry);
-  color: var(--ink);
+  border: 1px solid rgba(15, 17, 16, 0.2);
+  background: #fff;
+  color: var(--ink-on-light);
+  -webkit-text-fill-color: var(--ink-on-light);
   text-align: center;
   font-weight: 700;
   font-size: 1rem;
@@ -591,6 +593,8 @@ dd {
 .portal-order-table__qty input:focus {
   border-color: var(--leaf);
   outline: 3px solid var(--focus-ring);
+  color: var(--ink-on-light);
+  -webkit-text-fill-color: var(--ink-on-light);
 }
 
 .portal-order-table__line {
@@ -666,6 +670,33 @@ body:has(#gatedContent:not([hidden])) {
 
 .portal-order-flow .order-section {
   padding-top: 24px;
+}
+
+.volume-pricing-section {
+  padding-top: 0;
+  background: var(--mint);
+}
+
+.volume-pricing-section .section-heading,
+.volume-pricing-section .section-lead {
+  max-width: none;
+}
+
+.volume-tier-table td:last-child {
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  min-width: 220px;
+}
+
+.portal-need-to-know {
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.portal-need-to-know .compliance-disclosure {
+  max-width: 920px;
+  margin: 0 auto;
 }
 
 .visually-hidden {

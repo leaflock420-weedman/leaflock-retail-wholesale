@@ -39,22 +39,12 @@
           <button class="button secondary" type="button" id="accessLogout">Log out</button>
         </section>
 
-        <section class="section compliance-section" id="compliance-panel">
-          <details class="compliance-disclosure">
-            <summary>Company credentials</summary>
-            <div class="compliance-body">
-              <p id="complianceCompany" class="compliance-meta"></p>
-              <ul id="credentialBadgeList" class="credential-badge-list" aria-label="Company credentials on file"></ul>
-            </div>
-          </details>
-        </section>
-
         <form class="portal-order-flow" id="orderForm" novalidate>
           <section class="section pricing-section order-sheet-section" id="order-sheet">
             <div class="section-heading">
               <p class="eyebrow">Wholesale price list</p>
               <h2>Order sheet</h2>
-              <p class="section-lead">Enter a quantity on any line — your cart total updates instantly at the bottom of the screen.</p>
+              <p class="section-lead">Enter a quantity on any line — your cart total updates instantly at the bottom of the screen. To update products or prices, edit <code>data/wholesale-catalog.csv</code> in the repo.</p>
             </div>
 
             <div class="order-sheet-toolbar">
@@ -74,12 +64,37 @@
                     <th scope="col">Wholesale ex GST</th>
                     <th scope="col">Qty</th>
                     <th scope="col">RRP</th>
+                    <th scope="col">MOQ</th>
                     <th scope="col">Bulk / notes</th>
                     <th scope="col">Line total</th>
                   </tr>
                 </thead>
                 <tbody id="orderSheetBody">
-                  <tr><td colspan="7">Login to load the price list…</td></tr>
+                  <tr><td colspan="8">Login to load the price list…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="section volume-pricing-section" id="volume-pricing">
+            <div class="section-heading">
+              <p class="eyebrow">Volume pricing</p>
+              <h2>Wholesale price tiers</h2>
+              <p class="section-lead">These breaks apply automatically when your order hits the threshold — shown here for reference, not a separate order form.</p>
+            </div>
+            <div class="pricing-table-wrap">
+              <table class="pricing-table volume-tier-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Product / range</th>
+                    <th scope="col">Standard wholesale</th>
+                    <th scope="col">Volume threshold</th>
+                    <th scope="col">Volume price</th>
+                    <th scope="col">How it applies</th>
+                  </tr>
+                </thead>
+                <tbody id="volumeTierBody">
+                  <tr><td colspan="5">Login to load volume tiers…</td></tr>
                 </tbody>
               </table>
             </div>
@@ -144,6 +159,16 @@
             </div>
           </section>
         </form>
+
+        <section class="section portal-need-to-know" id="compliance-panel">
+          <details class="compliance-disclosure">
+            <summary>Company credentials (need to know)</summary>
+            <div class="compliance-body">
+              <p id="complianceCompany" class="compliance-meta"></p>
+              <ul id="credentialBadgeList" class="credential-badge-list" aria-label="Company credentials on file"></ul>
+            </div>
+          </details>
+        </section>
       </div>
     </main>
 
