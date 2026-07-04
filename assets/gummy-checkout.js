@@ -1,8 +1,13 @@
 (function () {
-  const API_BASE = (window.LEAFLOCK_WHOLESALE && window.LEAFLOCK_WHOLESALE.SITE_URL) || "";
   const MONEY = new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" });
   let pricing = null;
   let currentOrderId = null;
+
+  const accessGate = document.querySelector("#gummyAccessGate");
+  const gatedContent = document.querySelector("#gummyGatedContent");
+  const accessForm = document.querySelector("#gummyAccessForm");
+  const accessCode = document.querySelector("#gummyAccessCode");
+  const accessError = document.querySelector("#gummyAccessError");
 
   const fields = {
     businessName: document.querySelector("#businessName"),
@@ -39,6 +44,10 @@
     "cartons-1": { gummyIndividual: 0, mixedCartons: 1 },
     custom: null,
   };
+
+  function portalFetch(path, options = {}) {
+    return window.LeafLockAccess.portalFetch(path, options);
+  }
 
   function money(value) {
     return MONEY.format(value);
@@ -172,6 +181,13 @@
     }
   }
 
+  function prefillFromSession() {
+    const pharmacy = window.LeafLockAccess?.pharmacy?.();
+    if (!pharmacy) return;
+    if (fields.businessName && !fields.businessName.value) fields.businessName.value = pharmacy.businessName || "";
+    if (fields.email && !fields.email.value) fields.email.value = pharmacy.email || "";
+  }
+
   function orderPayload() {
     const calc = calculateLocal();
     return {
@@ -188,15 +204,9 @@
     };
   }
 
-  async function api(path, options = {}) {
-    const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
-    const res = await fetch(url, {
-      ...options,
-      headers: { "Content-Type": "application/json", ...(options.headers || {}) },
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || "Request failed");
-    return data;
+  function showGated() {
+    if (accessGate) accessGate.hidden = true;
+    if (gatedContent) gatedContent.hidden = false;
   }
 
   function showSuccess() {
@@ -222,18 +232,17 @@
     if (!paypalContainer) return;
 
     try {
-      const config = await api("/api/public/gummy-checkout/paypal-config");
+      const config = await portalFetch("/api/gummy-checkout/paypal-config");
       if (!config.enabled) {
         if (paypalNote) {
-          paypalNote.textContent =
-            "PayPal not configured locally — selection and totals still work. Add PAYPAL_CLIENT_ID on Render for live pay.";
+          paypalNote.textContent = "PayPal not configured — contact info@leaflock.com.au to complete your order.";
         }
         return;
       }
 
       await loadPayPalScript(config.clientId, config.sdkBaseUrl);
       const modeLabel = config.mode === "live" ? "PayPal" : "PayPal sandbox (test)";
-      if (paypalNote) paypalNote.textContent = `Pay securely with ${modeLabel}. No password or portal login needed.`;
+      if (paypalNote) paypalNote.textContent = `Pay securely with ${modeLabel}.`;
 
       paypalContainer.innerHTML = "";
       window.paypal
@@ -246,20 +255,20 @@
             const calc = calculateLocal();
             if (!calc || calc.total <= 0) throw new Error("Select a pack with at least one product");
 
-            const orderData = await api("/api/public/gummy-checkout/orders", {
+            const orderData = await portalFetch("/api/gummy-checkout/orders", {
               method: "POST",
               body: JSON.stringify(orderPayload()),
             });
             currentOrderId = orderData.order.id;
 
-            const pp = await api("/api/public/gummy-checkout/paypal/create", {
+            const pp = await portalFetch("/api/gummy-checkout/paypal/create", {
               method: "POST",
               body: JSON.stringify({ orderId: currentOrderId }),
             });
             return pp.paypalOrderId;
           },
           onApprove: async (data) => {
-            await api("/api/public/gummy-checkout/paypal/capture", {
+            await portalFetch("/api/gummy-checkout/paypal/capture", {
               method: "POST",
               body: JSON.stringify({
                 orderId: currentOrderId,
@@ -284,25 +293,11 @@
     if (params.get("embed") !== "1") return;
     document.body.dataset.embed = "1";
     document.body.classList.add("gummy-checkout-page--embed");
-    const intro = document.querySelector(".gummy-checkout-intro");
-    if (intro) intro.hidden = true;
     const foot = document.querySelector(".gummy-checkout-foot");
     if (foot) foot.hidden = true;
   }
 
-  async function boot() {
-    applyEmbedMode();
-    try {
-      pricing = await api("/api/public/gummy-checkout/pricing");
-      updatePackPriceLabels();
-      if (pricingHint) {
-        pricingHint.textContent = `$${pricing.individual.wholesale.toFixed(2)} ex GST per pouch · $${pricing.mixedCarton.cartonSubtotal.toFixed(2)} ex GST per mixed carton (24) · $${pricing.shipping} shipping · GST on subtotal`;
-      }
-    } catch (err) {
-      if (pricingHint) pricingHint.textContent = "Could not load pricing.";
-      console.error(err);
-    }
-
+  function bindCheckoutInputs() {
     packRadios.forEach((radio) => {
       radio.addEventListener("change", () => applyPackPreset(radio.value));
     });
@@ -326,15 +321,51 @@
     closeSuccess?.addEventListener("click", () => {
       if (successModal) successModal.hidden = true;
     });
+  }
+
+  async function bootCheckout() {
+    showGated();
+    prefillFromSession();
+    bindCheckoutInputs();
+
+    try {
+      pricing = await portalFetch("/api/gummy-checkout/pricing");
+      updatePackPriceLabels();
+      if (pricingHint) {
+        pricingHint.textContent = "Wholesale totals shown for your approved account. GST and shipping included at checkout.";
+      }
+    } catch (err) {
+      if (pricingHint) pricingHint.textContent = "Could not load pricing. Log in again.";
+      console.error(err);
+      return;
+    }
 
     applyUrlPreset();
     if (!window.location.search) {
       applyPackPreset("units-6");
     }
     syncFlavoursFromPicks();
-
     await setupPayPal();
   }
 
-  boot();
+  accessForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (accessError) accessError.hidden = true;
+    try {
+      await window.LeafLockAccess.loginWithCode(accessCode?.value || "");
+      await bootCheckout();
+    } catch (err) {
+      if (accessError) {
+        accessError.textContent = err.message || "Invalid access code";
+        accessError.hidden = false;
+      }
+    }
+  });
+
+  window.LeafLockAccess.boot().then(() => {
+    applyEmbedMode();
+    if (window.LeafLockAccess.isApproved()) {
+      bootCheckout();
+    }
+  });
 })();

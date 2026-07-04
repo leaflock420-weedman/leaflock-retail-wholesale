@@ -79,6 +79,7 @@ const {
   portalAuthMiddleware,
 } = require("./lib/portal-auth");
 const paypal = require("./lib/paypal");
+const { blockSensitiveStatic, noStoreJson } = require("./lib/secure-static");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4173;
@@ -107,10 +108,6 @@ function isGummyOnlyLineItems(lineItems) {
     Number(lineItems?.threePacks || 0) === 0 &&
     (Number(lineItems?.gummyIndividual || 0) > 0 || Number(lineItems?.mixedCartons || 0) > 0)
   );
-}
-
-function isPublicGummyOrder(order) {
-  return order?.source === "gummy-checkout" && (order.pharmacyId == null || order.pharmacyId === "");
 }
 
 function gummyPayPalDescription(order) {
@@ -157,12 +154,7 @@ app.use((req, res, next) => {
   );
   next();
 });
-app.use((req, res, next) => {
-  if (/^\/data(\/|$)/.test(req.path) || /^\/private(\/|$)/.test(req.path) || /^\/\.env/.test(req.path)) {
-    return res.status(404).end();
-  }
-  next();
-});
+app.use(blockSensitiveStatic);
 app.use(express.static(ROOT));
 
 function rateLimitKey(key, max) {
@@ -245,7 +237,13 @@ app.post("/api/analytics/send-report", adminAuth, async (req, res) => {
 // ——— Portal auth & pricing (server-gated) ———
 
 app.get("/api/demo/portal", (req, res) => {
-  res.json(demoPortalInfo());
+  const info = demoPortalInfo();
+  res.json({
+    businessName: info.businessName,
+    portalUrl: info.portalUrl,
+    demoUrl: info.demoUrl,
+    message: "Use the access code emailed after approval, or the code shown on the demo launcher page.",
+  });
 });
 
 app.post("/api/portal/login", (req, res) => {
@@ -283,7 +281,7 @@ app.post("/api/portal/logout", portalAuth, (req, res) => {
   res.status(204).end();
 });
 
-app.get("/api/pricing", portalAuth, (req, res) => {
+app.get("/api/pricing", portalAuth, noStoreJson, (req, res) => {
   res.json(pricingForPortal());
 });
 
@@ -437,13 +435,23 @@ app.post("/api/paypal/capture-order", portalAuth, async (req, res) => {
   }
 });
 
-// ——— Public gummy checkout (email links, no portal login) ———
+// ——— Gummy checkout (portal login required — wholesale pricing is never public) ———
 
-app.get("/api/public/gummy-checkout/pricing", (req, res) => {
+function isPortalGummyOrder(order) {
+  return order?.source === "gummy-checkout";
+}
+
+function assertPortalGummyOrder(order, pharmacyId) {
+  if (!order || !isPortalGummyOrder(order)) return false;
+  if (pharmacyId && order.pharmacyId && order.pharmacyId !== pharmacyId) return false;
+  return true;
+}
+
+app.get("/api/gummy-checkout/pricing", portalAuth, noStoreJson, (req, res) => {
   res.json(gummyPricingPublic());
 });
 
-app.get("/api/public/gummy-checkout/paypal-config", (req, res) => {
+app.get("/api/gummy-checkout/paypal-config", portalAuth, noStoreJson, (req, res) => {
   res.json({
     enabled: paypal.isConfigured(),
     clientId: paypal.clientId(),
@@ -452,7 +460,7 @@ app.get("/api/public/gummy-checkout/paypal-config", (req, res) => {
   });
 });
 
-app.post("/api/public/gummy-checkout/orders", (req, res) => {
+app.post("/api/gummy-checkout/orders", portalAuth, (req, res) => {
   const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
   if (!rateLimitKey(`gummy-checkout:${ip}`, GUMMY_CHECKOUT_RATE_MAX)) {
     return res.status(429).json({ error: "Too many checkout attempts. Try again shortly." });
@@ -484,12 +492,12 @@ app.post("/api/public/gummy-checkout/orders", (req, res) => {
   }
 
   const order = createOrder({
-    pharmacyId: null,
-    pharmacyName: contact.businessName,
+    pharmacyId: req.portalPharmacy.id,
+    pharmacyName: req.portalPharmacy.businessName || contact.businessName,
     contact: { ...contact, flavours: body.flavours || "" },
     lineItems,
     totals,
-    notes: body.notes || "Public gummy checkout",
+    notes: body.notes || "Portal gummy checkout",
     paymentMethod: "paypal",
     source: "gummy-checkout",
   });
@@ -503,14 +511,14 @@ app.post("/api/public/gummy-checkout/orders", (req, res) => {
   });
 });
 
-app.post("/api/public/gummy-checkout/paypal/create", async (req, res) => {
+app.post("/api/gummy-checkout/paypal/create", portalAuth, async (req, res) => {
   if (!paypal.isConfigured()) {
     return res.status(503).json({ error: "PayPal not configured" });
   }
 
   const { orderId } = req.body || {};
   const order = findOrder(orderId);
-  if (!order || !isPublicGummyOrder(order)) {
+  if (!assertPortalGummyOrder(order, req.portalPharmacy.id)) {
     return res.status(404).json({ error: "Order not found" });
   }
   if (!isGummyOnlyLineItems(order.lineItems)) {
@@ -534,19 +542,19 @@ app.post("/api/public/gummy-checkout/paypal/create", async (req, res) => {
     });
     res.json({ paypalOrderId: ppOrder.id });
   } catch (err) {
-    console.error("[paypal] public gummy create:", err.message);
+    console.error("[paypal] gummy create:", err.message);
     res.status(502).json({ error: "Could not create PayPal order" });
   }
 });
 
-app.post("/api/public/gummy-checkout/paypal/capture", async (req, res) => {
+app.post("/api/gummy-checkout/paypal/capture", portalAuth, async (req, res) => {
   if (!paypal.isConfigured()) {
     return res.status(503).json({ error: "PayPal not configured" });
   }
 
   const { orderId, paypalOrderId } = req.body || {};
   const order = findOrder(orderId);
-  if (!order || !isPublicGummyOrder(order)) {
+  if (!assertPortalGummyOrder(order, req.portalPharmacy.id)) {
     return res.status(404).json({ error: "Order not found" });
   }
   if (!paypalOrderId || order.paypalOrderId !== paypalOrderId) {
@@ -558,7 +566,7 @@ app.post("/api/public/gummy-checkout/paypal/capture", async (req, res) => {
     const paid = paypal.captureAmount(capture);
     const expected = Number(order.totals?.total || 0).toFixed(2);
     if (paid == null || Number(paid).toFixed(2) !== expected) {
-      console.error("[paypal] public gummy amount mismatch", { paid, expected, orderId: order.id });
+      console.error("[paypal] gummy amount mismatch", { paid, expected, orderId: order.id });
       return res.status(400).json({ error: "Payment amount mismatch" });
     }
     const captureId = capture?.purchase_units?.[0]?.payments?.captures?.[0]?.id || null;
@@ -570,9 +578,13 @@ app.post("/api/public/gummy-checkout/paypal/capture", async (req, res) => {
     });
     res.json({ status: "paid", captureId });
   } catch (err) {
-    console.error("[paypal] public gummy capture:", err.message);
+    console.error("[paypal] gummy capture:", err.message);
     res.status(502).json({ error: "Payment capture failed" });
   }
+});
+
+app.use("/api/public/gummy-checkout", (_req, res) => {
+  res.status(403).json({ error: "Wholesale pricing requires portal login." });
 });
 
 // ——— Admin wholesale ———

@@ -10,103 +10,117 @@
   <body class="gummy-checkout-page" data-nav="" data-embed="">
     <header class="gummy-checkout-header">
       <a href="gummies.html"><img src="assets/brand/leaflock-logo.png" alt="LeafLock" width="120" height="32"></a>
-      <span>DIY Gummy Mix · Pay now</span>
+      <span>DIY Gummy Mix · Approved accounts</span>
     </header>
 
     <main class="gummy-checkout-main">
-      <section class="gummy-checkout-intro">
-        <p class="eyebrow">No login required</p>
-        <h1>Checkout gummy mix</h1>
-        <p class="page-lead">Confirm your store details and pay with PayPal. Humidity packs are not included on this page.</p>
+      <section class="gummy-checkout-intro" id="gummyAccessGate">
+        <p class="eyebrow">Wholesale access required</p>
+        <h1>Gummy mix checkout</h1>
+        <p class="page-lead">Wholesale pricing is confidential. Enter your retail store access code to view totals and pay with PayPal.</p>
+        <form id="gummyAccessForm" class="portal-card">
+          <label><span>Access code</span><input type="text" id="gummyAccessCode" required placeholder="Code from your approval email" autocomplete="one-time-code"></label>
+          <p id="gummyAccessError" class="form-error" hidden></p>
+          <button class="button primary full-width" type="submit">Unlock checkout</button>
+          <p>Need access? <a href="request-access.html">Request wholesale access</a> or use the <a href="portal.html">full portal</a>.</p>
+        </form>
       </section>
 
-      <form id="gummyCheckoutForm" class="gummy-checkout-card" novalidate>
-        <fieldset class="form-block gummy-pack-fieldset">
-          <legend>Choose your pack</legend>
-          <div class="gummy-pack-grid" role="radiogroup" aria-label="Pack size">
-            <label class="gummy-pack-option">
-              <input type="radio" name="packPreset" value="units-6" checked>
-              <span class="gummy-pack-option__inner">
-                <strong>6 pouches</strong>
-                <span>Individual 90g units</span>
-                <em id="packPrice6">$130.60 inc</em>
-              </span>
-            </label>
-            <label class="gummy-pack-option">
-              <input type="radio" name="packPreset" value="units-12">
-              <span class="gummy-pack-option__inner">
-                <strong>12 pouches</strong>
-                <span>Individual 90g units</span>
-                <em id="packPrice12">$236.20 inc</em>
-              </span>
-            </label>
-            <label class="gummy-pack-option">
-              <input type="radio" name="packPreset" value="cartons-1">
-              <span class="gummy-pack-option__inner">
-                <strong>Mixed carton</strong>
-                <span>24 units (6 per flavour)</span>
-                <em id="packPriceCarton">$368.20 inc</em>
-              </span>
-            </label>
-            <label class="gummy-pack-option">
-              <input type="radio" name="packPreset" value="custom">
-              <span class="gummy-pack-option__inner">
-                <strong>Custom quantity</strong>
-                <span>Set your own amounts</span>
-                <em>Wholesale rates</em>
-              </span>
-            </label>
+      <div id="gummyGatedContent" hidden>
+        <section class="gummy-checkout-intro">
+          <p class="eyebrow">Approved account</p>
+          <h1>Checkout gummy mix</h1>
+          <p class="page-lead">Confirm your store details and pay with PayPal. Humidity packs are not included on this page.</p>
+        </section>
+
+        <form id="gummyCheckoutForm" class="gummy-checkout-card" novalidate>
+          <fieldset class="form-block gummy-pack-fieldset">
+            <legend>Choose your pack</legend>
+            <div class="gummy-pack-grid" role="radiogroup" aria-label="Pack size">
+              <label class="gummy-pack-option">
+                <input type="radio" name="packPreset" value="units-6" checked>
+                <span class="gummy-pack-option__inner">
+                  <strong>6 pouches</strong>
+                  <span>Individual 90g units</span>
+                  <em id="packPrice6">—</em>
+                </span>
+              </label>
+              <label class="gummy-pack-option">
+                <input type="radio" name="packPreset" value="units-12">
+                <span class="gummy-pack-option__inner">
+                  <strong>12 pouches</strong>
+                  <span>Individual 90g units</span>
+                  <em id="packPrice12">—</em>
+                </span>
+              </label>
+              <label class="gummy-pack-option">
+                <input type="radio" name="packPreset" value="cartons-1">
+                <span class="gummy-pack-option__inner">
+                  <strong>Mixed carton</strong>
+                  <span>24 units (6 per flavour)</span>
+                  <em id="packPriceCarton">—</em>
+                </span>
+              </label>
+              <label class="gummy-pack-option">
+                <input type="radio" name="packPreset" value="custom">
+                <span class="gummy-pack-option__inner">
+                  <strong>Custom quantity</strong>
+                  <span>Set your own amounts</span>
+                  <em>Your rates</em>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="form-block">
+            <legend>Choose flavours</legend>
+            <p class="gummy-checkout-hint">Select all flavours you want included. Mixed cartons always include all four.</p>
+            <div class="gummy-flavour-picks" id="flavourPicks">
+              <label class="gummy-flavour-pick gummy-flavour-pick--blue"><input type="checkbox" value="Blue Raspberry" checked><span>Blue Raspberry</span></label>
+              <label class="gummy-flavour-pick gummy-flavour-pick--grape"><input type="checkbox" value="Grape" checked><span>Grape</span></label>
+              <label class="gummy-flavour-pick gummy-flavour-pick--berry"><input type="checkbox" value="Strawberry" checked><span>Strawberry</span></label>
+              <label class="gummy-flavour-pick gummy-flavour-pick--custom"><input type="checkbox" value="Create Your Own" checked><span>Create Your Own</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="form-block gummy-custom-qty" id="customQtyPanel" hidden>
+            <legend>Custom quantities</legend>
+            <div class="form-grid">
+              <label><span>Individual pouches</span><input type="number" min="0" step="1" value="0" id="gummyIndividual"></label>
+              <label><span>Mixed cartons of 24</span><input type="number" min="0" step="1" value="0" id="mixedCartons"></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="form-block">
+            <legend>Your store</legend>
+            <div class="form-grid">
+              <label><span>Retail store / business name *</span><input type="text" id="businessName" required autocomplete="organization"></label>
+              <label><span>Your name *</span><input type="text" id="fullName" required autocomplete="name"></label>
+              <label><span>Email *</span><input type="email" id="email" required autocomplete="email"></label>
+              <label><span>Phone</span><input type="tel" id="phone" autocomplete="tel"></label>
+              <label class="wide"><span>Delivery address *</span><textarea id="address" rows="2" required autocomplete="street-address"></textarea></label>
+            </div>
+          </fieldset>
+
+          <input type="hidden" id="flavours" value="Blue Raspberry, Grape, Strawberry, Create Your Own">
+          <p class="gummy-checkout-hint" id="pricingHint">Login to load wholesale totals.</p>
+
+          <div class="totals gummy-checkout-totals" aria-live="polite">
+            <div><span>Subtotal ex GST</span><strong id="subtotal">$0.00</strong></div>
+            <div><span>GST</span><strong id="gst">$0.00</strong></div>
+            <div><span>Shipping</span><strong id="shipping">$0.00</strong></div>
+            <div class="total-row"><span>Total inc GST</span><strong id="total">$0.00</strong></div>
+            <p id="pricingNote">Add gummy mix to see your total.</p>
           </div>
-        </fieldset>
 
-        <fieldset class="form-block">
-          <legend>Choose flavours</legend>
-          <p class="gummy-checkout-hint">Select all flavours you want included. Mixed cartons always include all four.</p>
-          <div class="gummy-flavour-picks" id="flavourPicks">
-            <label class="gummy-flavour-pick gummy-flavour-pick--blue"><input type="checkbox" value="Blue Raspberry" checked><span>Blue Raspberry</span></label>
-            <label class="gummy-flavour-pick gummy-flavour-pick--grape"><input type="checkbox" value="Grape" checked><span>Grape</span></label>
-            <label class="gummy-flavour-pick gummy-flavour-pick--berry"><input type="checkbox" value="Strawberry" checked><span>Strawberry</span></label>
-            <label class="gummy-flavour-pick gummy-flavour-pick--custom"><input type="checkbox" value="Create Your Own" checked><span>Create Your Own</span></label>
+          <div class="gummy-checkout-pay">
+            <p id="paypalNote" class="pricing-placeholder">Loading PayPal…</p>
+            <div id="paypalButtons"></div>
           </div>
-        </fieldset>
+        </form>
 
-        <fieldset class="form-block gummy-custom-qty" id="customQtyPanel" hidden>
-          <legend>Custom quantities</legend>
-          <div class="form-grid">
-            <label><span>Individual pouches</span><input type="number" min="0" step="1" value="0" id="gummyIndividual"></label>
-            <label><span>Mixed cartons of 24</span><input type="number" min="0" step="1" value="0" id="mixedCartons"></label>
-          </div>
-        </fieldset>
-
-        <fieldset class="form-block">
-          <legend>Your store</legend>
-          <div class="form-grid">
-            <label><span>Retail store / business name *</span><input type="text" id="businessName" required autocomplete="organization"></label>
-            <label><span>Your name *</span><input type="text" id="fullName" required autocomplete="name"></label>
-            <label><span>Email *</span><input type="email" id="email" required autocomplete="email"></label>
-            <label><span>Phone</span><input type="tel" id="phone" autocomplete="tel"></label>
-            <label class="wide"><span>Delivery address *</span><textarea id="address" rows="2" required autocomplete="street-address"></textarea></label>
-          </div>
-        </fieldset>
-
-        <input type="hidden" id="flavours" value="Blue Raspberry, Grape, Strawberry, Create Your Own">
-        <p class="gummy-checkout-hint" id="pricingHint">Wholesale ex GST · $25 shipping · 10% GST added at total</p>
-
-        <div class="totals gummy-checkout-totals" aria-live="polite">
-          <div><span>Subtotal ex GST</span><strong id="subtotal">$0.00</strong></div>
-          <div><span>GST</span><strong id="gst">$0.00</strong></div>
-          <div><span>Shipping</span><strong id="shipping">$0.00</strong></div>
-          <div class="total-row"><span>Total inc GST</span><strong id="total">$0.00</strong></div>
-          <p id="pricingNote">Add gummy mix to see your total.</p>
-        </div>
-
-        <div class="gummy-checkout-pay">
-          <p id="paypalNote" class="pricing-placeholder">Loading PayPal…</p>
-          <div id="paypalButtons"></div>
-        </div>
-      </form>
-
-      <p class="gummy-checkout-foot">Questions? Email <a href="mailto:info@leaflock.com.au">info@leaflock.com.au</a></p>
+        <p class="gummy-checkout-foot">Questions? Email <a href="mailto:info@leaflock.com.au">info@leaflock.com.au</a></p>
+      </div>
     </main>
 
     <div id="checkoutSuccess" class="modal" hidden role="alertdialog">
@@ -118,6 +132,7 @@
     </div>
 
     <script src="assets/config.js"></script>
+    <script src="assets/access.js"></script>
     <script src="assets/gummy-checkout.js"></script>
   </body>
 </html>
