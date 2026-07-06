@@ -119,16 +119,6 @@ function renderSetupStatus(status) {
     { ok: status.complianceDocuments, label: status.complianceDocuments ? "Compliance PDFs ready (NDA + pack + TM cert)" : "Compliance PDFs missing on server" },
     { ok: (status.catalogItems || 0) > 0, label: `Order form catalogue: ${status.catalogItems || 0} products (${status.catalogSource || "unknown"})` },
     { ok: status.auspostPac, label: status.auspostPac ? `Australia Post PAC connected (from ${status.auspostFromPostcode || "4217"})` : "Australia Post PAC not set" },
-    {
-      ok: (status.stockistCheckoutKeys || 0) > 0,
-      label: `${status.stockistCheckoutKeys || 0} active stockist(s) with personal gummy checkout links`,
-    },
-    {
-      ok: status.gummyCheckoutKey,
-      label: status.gummyCheckoutKey
-        ? "Optional campaign checkout key set (GUMMY_CHECKOUT_ACCESS_KEY)"
-        : "Optional: set GUMMY_CHECKOUT_ACCESS_KEY for mass email blasts without per-store links",
-    },
     { ok: true, label: "Secrets: Render env only — never paste keys in chat or GitHub" },
     { ok: true, label: "Wholesale prices: portal login & private checkout links only (not public SEO)" },
   ];
@@ -164,19 +154,13 @@ async function refreshTraffic() {
 }
 
 async function approveApplication(id) {
-  if (!confirm("Approve this application? The store will receive a private password setup link and gummy checkout link.")) return;
+  if (!confirm("Approve this stockist? They will get an email to set their password, then can log in and order anytime.")) return;
   const result = await api(`/api/admin/applications/${id}/approve`, { method: "POST" });
-  if (result.setupToken) showSetupLinkModal(result.setupToken, "Account approved — setup link");
-  if (result.checkoutLink) {
-    showCheckoutLinkModal(
-      result.checkoutLink,
-      result.application?.businessName || result.retailStockist?.businessName,
-    );
-  }
+  if (result.setupToken) showSetupLinkModal(result.setupToken, "Account approved — password setup link");
   if (result.emailSent) {
-    alert(`Approved — setup and checkout links emailed to ${result.application.email}`);
+    alert(`Approved — setup link emailed to ${result.application.email}`);
   } else {
-    alert("Approved — copy the setup and checkout links and email them to the retail stockist (SMTP not configured).");
+    alert("Approved — copy the setup link and email it to the stockist (SMTP not configured).");
   }
   await refreshWholesale();
 }
@@ -216,52 +200,42 @@ async function updateOrderStatus(id, status) {
   await refreshWholesale();
 }
 
-async function addRetailStockist() {
-  const businessName = prompt("Retail stockist / business name:");
-  if (!businessName) return;
-  const email = prompt("Contact email:");
-  if (!email) return;
+function openAddStockistModal() {
+  const modal = document.getElementById("addStockistModal");
+  const form = document.getElementById("addStockistForm");
+  form?.reset();
+  if (modal) modal.hidden = false;
+}
+
+function closeAddStockistModal() {
+  const modal = document.getElementById("addStockistModal");
+  if (modal) modal.hidden = true;
+}
+
+async function submitAddStockistForm(event) {
+  event.preventDefault();
+  const form = event.target;
+  const businessName = form.businessName?.value?.trim();
+  const email = form.email?.value?.trim();
+  if (!businessName || !email) return;
   const result = await api("/api/admin/pharmacies", {
     method: "POST",
-    body: JSON.stringify({ businessName, email }),
+    body: JSON.stringify({
+      businessName,
+      email,
+      contactName: form.contactName?.value?.trim() || "",
+      abn: form.abn?.value?.trim() || "",
+      phone: form.phone?.value?.trim() || "",
+    }),
   });
-  if (result.setupToken) showSetupLinkModal(result.setupToken, "New account — setup link");
-  if (result.checkoutLink) showCheckoutLinkModal(result.checkoutLink, businessName);
-  await refreshWholesale();
-}
-
-async function copyCheckoutLink(link) {
-  if (!link) {
-    alert("No checkout link for this account.");
-    return;
+  closeAddStockistModal();
+  if (result.setupToken) showSetupLinkModal(result.setupToken, "New account — password setup link");
+  if (result.emailSent) {
+    alert(`Account created — setup link emailed to ${email}`);
+  } else {
+    alert("Account created — copy the setup link and email it to the stockist if SMTP did not send.");
   }
-  try {
-    await navigator.clipboard.writeText(link);
-    alert("Gummy checkout link copied.");
-  } catch {
-    showCheckoutLinkModal(link);
-  }
-}
-
-async function regenerateCheckoutKey(id, businessName) {
-  if (!confirm(`Regenerate gummy checkout link for ${businessName}? The old link will stop working.`)) return;
-  const result = await api(`/api/admin/pharmacies/${id}/regenerate-checkout-key`, { method: "POST" });
-  if (result.checkoutLink) showCheckoutLinkModal(result.checkoutLink, businessName);
   await refreshWholesale();
-}
-
-async function sendComplianceToRetailStockist(id) {
-  if (!confirm("Email the compliance pack (NDA + gummy pack + TM certificate) to this retail stockist?")) return;
-  const result = await api(`/api/admin/pharmacies/${id}/send-compliance`, { method: "POST" });
-  if (result.sent) alert(`Compliance documents sent to ${result.email}`);
-  else alert("Send failed — check SMTP and that PDFs are on the server.");
-}
-
-async function sendComplianceToApplication(id) {
-  if (!confirm("Email the compliance pack (NDA + gummy pack + TM certificate) to this applicant?")) return;
-  const result = await api(`/api/admin/applications/${id}/send-compliance`, { method: "POST" });
-  if (result.sent) alert(`Compliance documents sent to ${result.email}`);
-  else alert("Send failed — check SMTP and that PDFs are on the server.");
 }
 
 async function refreshWholesale() {
@@ -271,6 +245,8 @@ async function refreshWholesale() {
     api("/api/admin/applications"),
   ]);
   renderSetupStatus(setup);
+  const postagePanel = document.getElementById("postagePanel");
+  if (postagePanel) postagePanel.hidden = !setup.auspostPac;
   renderCatalogStatus({
     items: setup.catalogItems,
     categories: setup.catalogCategories,
@@ -300,9 +276,8 @@ async function refreshWholesale() {
       const actions =
         a.status === "pending"
           ? `<button class="btn-inline" data-action="approve-app" data-id="${a.id}">Approve</button>
-             <button class="btn-inline btn-muted" data-action="reject-app" data-id="${a.id}">Reject</button>
-             <button class="btn-inline btn-muted" data-action="send-compliance-app" data-id="${a.id}">Send docs</button>`
-          : `<button class="btn-inline btn-muted" data-action="send-compliance-app" data-id="${a.id}">Send docs</button>`;
+             <button class="btn-inline btn-muted" data-action="reject-app" data-id="${a.id}">Reject</button>`
+          : "";
       const extras = a.bulk === "yes" ? "bulk supply" : "";
       return `<tr>
         <td>${fmtDate(a.createdAt)}</td>
@@ -319,25 +294,17 @@ async function refreshWholesale() {
   renderTable(
     pharmBody,
     stockistList.retailStockists || stockistList.pharmacies || [],
-    (p) => {
-      const checkoutBtn = p.checkoutLink
-        ? `<button class="btn-inline" data-action="copy-checkout-link" data-link="${encodeURIComponent(p.checkoutLink)}">Copy checkout</button>
-           <button class="btn-inline btn-muted" data-action="regenerate-checkout-key" data-id="${p.id}" data-name="${p.businessName.replace(/"/g, "&quot;")}">New checkout link</button>`
-        : `<span class="badge badge--inactive">no key</span>`;
-      return `<tr>
+    (p) => `<tr>
       <td>${p.businessName}</td>
       <td>${p.email}</td>
       <td><span class="badge badge--${p.status}">${p.status}</span></td>
       <td>${p.loginCount || 0}</td>
       <td>${fmtDate(p.lastLoginAt)}</td>
       <td class="actions-cell">
-        ${checkoutBtn}
         <button class="btn-inline" data-action="reset-password" data-id="${p.id}">Reset password</button>
-        <button class="btn-inline btn-muted" data-action="send-compliance-pharm" data-id="${p.id}">Send docs</button>
         <button class="btn-inline btn-muted" data-action="toggle-status" data-id="${p.id}" data-status="${p.status}">${p.status === "active" ? "Deactivate" : "Activate"}</button>
       </td>
-    </tr>`;
-    },
+    </tr>`,
   );
 
   const ordersBody = document.getElementById("ordersTable");
@@ -385,11 +352,7 @@ document.getElementById("tabWholesale")?.addEventListener("click", async (event)
     if (action === "approve-app") await approveApplication(id);
     else if (action === "reject-app") await rejectApplication(id);
     else if (action === "reset-password") await sendPasswordReset(id);
-    else if (action === "send-compliance-pharm") await sendComplianceToRetailStockist(id);
-    else if (action === "send-compliance-app") await sendComplianceToApplication(id);
     else if (action === "toggle-status") await toggleRetailStockistStatus(id, btn.dataset.status);
-    else if (action === "copy-checkout-link") await copyCheckoutLink(decodeURIComponent(btn.dataset.link || ""));
-    else if (action === "regenerate-checkout-key") await regenerateCheckoutKey(id, btn.dataset.name || "this store");
   } catch (err) {
     alert(err.message || "Action failed");
   }
@@ -405,18 +368,63 @@ document.getElementById("tabWholesale")?.addEventListener("change", async (event
   }
 });
 
+async function refreshOrderPreview() {
+  const body = document.getElementById("orderPreviewBody");
+  const tiers = document.getElementById("volumePreviewBody");
+  if (!body) return;
+  body.innerHTML = '<tr><td colspan="6">Loading…</td></tr>';
+  try {
+    const pricing = await api("/api/admin/order-form-preview");
+    const rows = [];
+    for (const section of pricing.orderSheet || []) {
+      rows.push(`<tr class="pricing-table__category"><td colspan="6"><strong>${section.label}</strong></td></tr>`);
+      for (const item of section.items) {
+        const img = item.image?.startsWith("http")
+          ? item.image
+          : `/${String(item.image || "").replace(/^\//, "")}`;
+        rows.push(`<tr>
+          <td>${item.sku}</td>
+          <td class="portal-order-table__product"><img src="${img}" alt="" width="40" height="40" loading="lazy"><span>${item.name}</span></td>
+          <td>${fmtMoney(item.wholesale)}</td>
+          <td>${fmtMoney(item.rrp)}</td>
+          <td>${item.moqLabel || "—"}</td>
+          <td>${item.bulkNote || "—"}</td>
+        </tr>`);
+      }
+    }
+    body.innerHTML = rows.length ? rows.join("") : '<tr><td colspan="6">No products in catalogue.</td></tr>';
+    if (tiers) {
+      tiers.innerHTML = (pricing.volumeTiers || [])
+        .map(
+          (t) => `<tr>
+            <td>${t.product}</td>
+            <td>${fmtMoney(t.standard)}</td>
+            <td>${t.threshold}</td>
+            <td>${fmtMoney(t.volumePrice)}</td>
+            <td>${t.applies}</td>
+          </tr>`,
+        )
+        .join("");
+    }
+  } catch (err) {
+    body.innerHTML = `<tr><td colspan="6">${err.message || "Could not load preview"}</td></tr>`;
+  }
+}
+
 function switchTab(name) {
   document.querySelectorAll(".dash-tab").forEach((t) => {
     t.classList.toggle("active", t.dataset.tab === name);
   });
   document.getElementById("tabTraffic").hidden = name !== "traffic";
   document.getElementById("tabWholesale").hidden = name !== "wholesale";
+  document.getElementById("tabOrderform").hidden = name !== "orderform";
 }
 
 document.querySelectorAll(".dash-tab").forEach((tab) => {
   tab.addEventListener("click", async () => {
     switchTab(tab.dataset.tab);
     if (tab.dataset.tab === "wholesale") await refreshWholesale();
+    if (tab.dataset.tab === "orderform") await refreshOrderPreview();
   });
 });
 
@@ -625,7 +633,10 @@ document.getElementById("postageQuoteBtn")?.addEventListener("click", async () =
 });
 
 document.getElementById("refreshWholesaleBtn")?.addEventListener("click", refreshWholesale);
-document.getElementById("addRetailStockistBtn")?.addEventListener("click", addRetailStockist);
+document.getElementById("refreshOrderPreviewBtn")?.addEventListener("click", refreshOrderPreview);
+document.getElementById("addRetailStockistBtn")?.addEventListener("click", openAddStockistModal);
+document.getElementById("addStockistForm")?.addEventListener("submit", submitAddStockistForm);
+document.getElementById("closeAddStockistModal")?.addEventListener("click", closeAddStockistModal);
 
 async function boot() {
   if (!token()) {

@@ -141,7 +141,7 @@ def build_pdf(pdf_path: Path) -> None:
         ["Live wholesale site", "https://www.wholesale.leaflock.com.au"],
         ["Admin dashboard", "https://www.wholesale.leaflock.com.au/admin/"],
         ["Stockist login / order form", "https://www.wholesale.leaflock.com.au/portal.html"],
-        ["Demo (try the portal)", "https://www.wholesale.leaflock.com.au/demo.html"],
+        ["Preview order form (admin)", "Admin → Order form preview tab"],
         ["New stockist sign-up", "https://www.wholesale.leaflock.com.au/request-access.html"],
         ["Gummy email checkout", "https://www.wholesale.leaflock.com.au/gummy-checkout.html"],
         ["Your email", "info@leaflock.com.au"],
@@ -252,15 +252,13 @@ def build_pdf(pdf_path: Path) -> None:
         )
     )
 
-    story.append(p("Demo login (for testing)", s["h2"]))
-    demo = [
-        ["Email", "demo@leaflock.com.au"],
-        ["Password", "Demo-Stockist-2026!"],
-        ["Quick link", "https://www.wholesale.leaflock.com.au/demo.html"],
-    ]
-    story.append(simple_table(demo, [40 * mm, 130 * mm]))
+    story.append(p("Preview the order form (no public demo page)", s["h2"]))
     story.append(
-        p("Use this to check pricing and the order form before telling stockists.", s["body"])
+        p(
+            "In Admin, open the <b>Order form preview</b> tab — same products and prices stockists see after login. "
+            "Optional test login (private — never put on the public website): demo@leaflock.com.au / Demo-Stockist-2026! at portal.html",
+            s["body"],
+        )
     )
 
     story.append(PageBreak())
@@ -393,7 +391,7 @@ def build_pdf(pdf_path: Path) -> None:
         ["Change product prices", "Edit CSV → Admin → Upload"],
         ["Approve a new shop", "Admin → Wholesale → Approve"],
         ["See orders", "Admin → Wholesale → Orders"],
-        ["Test the portal", "demo.html + demo login"],
+        ["Preview order form", "Admin → Order form preview tab"],
         ["Change homepage text", "index.html in VS Code → git push"],
         ["Change green colour", "assets\\styles.css → git push"],
     ]
@@ -431,9 +429,9 @@ MOST COMMON TASK — update order form prices:
 LINKS:
   Admin:    https://www.wholesale.leaflock.com.au/admin/
   Portal:   https://www.wholesale.leaflock.com.au/portal.html
-  Demo:     https://www.wholesale.leaflock.com.au/demo.html
+  Preview:  Admin → Order form preview tab (same view as stockists)
 
-DEMO LOGIN:
+OPTIONAL TEST LOGIN (portal only — keep private):
   Email:    demo@leaflock.com.au
   Password: Demo-Stockist-2026!
 

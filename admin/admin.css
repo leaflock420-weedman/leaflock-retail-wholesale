@@ -634,6 +634,27 @@
   color: #ff8a8a;
 }
 
+.preview-subhead {
+  margin: 20px 0 10px;
+  font-size: 1rem;
+  color: var(--leaf);
+}
+
+.stockist-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.stockist-form input {
+  padding: 10px 12px;
+  border: 1px solid rgba(246, 244, 239, 0.35);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--ink);
+}
+
 .postage-form {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -677,8 +698,10 @@ button.btn-secondary,
 #logoutBtn,
 #refreshWholesaleBtn,
 #addRetailStockistBtn,
+#refreshOrderPreviewBtn,
 #copyCodeBtn,
-#closeCodeModal {
+#closeCodeModal,
+#closeAddStockistModal {
   display: inline-flex;
   align-items: center;
   justify-content: center;

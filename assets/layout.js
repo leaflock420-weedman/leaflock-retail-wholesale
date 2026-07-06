@@ -78,7 +78,6 @@
         <a href="credit-application.html">Credit application</a>
         <a href="privacy-policy.html">Privacy</a>
         <a href="refunds-returns.html">Refunds &amp; returns</a>
-        <a href="help.html">Owner guide</a>
       </div>
       <p class="footer-disclaimer">
         General product information only. Not medical advice. Wholesale pricing and ordering available to approved Australian retail stockist accounts. Goods remain property of LeafLock™ until paid in full.

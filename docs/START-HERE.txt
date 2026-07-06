@@ -1,6 +1,6 @@
 LEAFLOCK WHOLESALE — START HERE
 ================================
-Folder created: 05 July 2026
+Folder created: 06 July 2026
 
 OPEN FIRST:
   LeafLock-Wholesale-Complete-Guide.pdf
@@ -16,9 +16,9 @@ MOST COMMON TASK — update order form prices:
 LINKS:
   Admin:    https://www.wholesale.leaflock.com.au/admin/
   Portal:   https://www.wholesale.leaflock.com.au/portal.html
-  Demo:     https://www.wholesale.leaflock.com.au/demo.html
+  Preview:  Admin → Order form preview tab (same view as stockists)
 
-DEMO LOGIN:
+OPTIONAL TEST LOGIN (portal only — keep private):
   Email:    demo@leaflock.com.au
   Password: Demo-Stockist-2026!
 

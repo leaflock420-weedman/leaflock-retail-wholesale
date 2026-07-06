@@ -310,15 +310,8 @@ app.post("/api/analytics/send-report", adminAuth, async (req, res) => {
 
 // ——— Portal auth & pricing (server-gated) ———
 
-app.get("/api/demo/portal", (req, res) => {
-  const info = demoPortalInfo();
-  res.json({
-    businessName: info.businessName,
-    email: info.email,
-    portalUrl: info.portalUrl,
-    demoUrl: info.demoUrl,
-    message: "Sign in with demo@leaflock.com.au and the demo password shown on the demo launcher page.",
-  });
+app.get("/api/demo/portal", (_req, res) => {
+  res.status(404).json({ error: "Not available" });
 });
 
 app.post("/api/portal/login", (req, res) => {
@@ -888,6 +881,10 @@ app.post("/api/admin/postage/quote", adminAuth, async (req, res) => {
   res.json(result);
 });
 
+app.get("/api/admin/order-form-preview", adminAuth, noStoreJson, (_req, res) => {
+  res.json(pricingForPortal());
+});
+
 app.get("/api/admin/catalog/download", adminAuth, (req, res) => {
   const csv = readCatalogCsvText() || categoriesToCsv(catalogForPortal());
   res.setHeader("Content-Type", "text/csv; charset=utf-8");
@@ -942,7 +939,6 @@ app.post("/api/admin/applications/:id/approve", adminAuth, async (req, res) => {
     result.emailSent = await notifyRetailStockistApproved({
       app: result.application,
       setupToken: result.setupToken,
-      checkoutLink: result.checkoutLink,
     });
   } catch (err) {
     console.warn("[mail] approval notify:", err.message);
@@ -1099,10 +1095,9 @@ app.listen(PORT, "0.0.0.0", () => {
   } catch (err) {
     console.error("[retail] Startup retail stockist seed failed:", err.message);
   }
-  const demo = demoPortalInfo();
   console.log(`LeafLock Retail Stockist Wholesale + Analytics at http://0.0.0.0:${PORT}`);
   console.log(`Admin dashboard: http://0.0.0.0:${PORT}/admin/`);
-  console.log(`Demo stockist portal: http://0.0.0.0:${PORT}/demo.html (${demo.email})`);
+  console.log(`Portal: http://0.0.0.0:${PORT}/portal.html`);
   if (paypal.isConfigured()) {
     console.log(`[paypal] ${paypal.mode()} checkout enabled`);
   } else {

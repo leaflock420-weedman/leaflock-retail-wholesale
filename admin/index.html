@@ -15,6 +15,7 @@
         <img src="../assets/brand/leaflock-logo.png" alt="LeafLock" class="admin-brand-logo" width="200" height="54">
         <h1>Admin</h1>
         <p>Traffic analytics, retail stockist accounts, and wholesale orders.</p>
+        <p class="login-hint">Bookmark <strong>/admin/</strong> — your password and setup notes live in <strong>Downloads → LeafLock-Wholesale-Complete-Guide</strong> on your computer, not on the public website.</p>
         <p id="hostWarning" class="login-hint login-hint--warn" hidden></p>
         <label>
           <span>Admin password</span>
@@ -31,7 +32,6 @@
           <img src="../assets/brand/leaflock-logo.png" alt="" class="admin-topbar__logo" width="168" height="45">
           <span class="admin-topbar__label">Admin</span>
         </a>
-        <a class="admin-topbar__help" href="/help.html" target="_blank" rel="noopener">Owner guide</a>
       </div>
       <div class="dashboard">
       <header class="dash-header">
@@ -47,7 +47,8 @@
 
       <nav class="dash-tabs" role="tablist">
         <button type="button" class="dash-tab active" data-tab="traffic" role="tab">Traffic</button>
-        <button type="button" class="dash-tab" data-tab="wholesale" role="tab">Wholesale</button>
+        <button type="button" class="dash-tab" data-tab="wholesale" role="tab">Stockists &amp; orders</button>
+        <button type="button" class="dash-tab" data-tab="orderform" role="tab">Order form preview</button>
       </nav>
 
       <div id="tabTraffic" class="tab-panel" role="tabpanel">
@@ -108,8 +109,7 @@
       <div id="tabWholesale" class="tab-panel" hidden role="tabpanel">
         <section class="panel">
           <h2>Order form spreadsheet</h2>
-          <p class="foot-note"><strong>No extra help needed:</strong> <a href="/help.html" target="_blank" rel="noopener">Open owner guide</a> · <a href="/docs/LeafLock-Wholesale-Complete-Guide.pdf" download>PDF</a> · use Download spreadsheet below</p>
-          <p class="foot-note">Download the current catalogue CSV, edit in Excel, then upload. Keep the header row the same — the portal order form updates straight away.</p>
+          <p class="foot-note">Download the catalogue CSV, edit in Excel, then upload. The portal order form updates straight away. Full instructions: <strong>Downloads → LeafLock-Wholesale-Complete-Guide</strong> on your PC.</p>
           <div class="catalog-actions">
             <button type="button" id="downloadCatalogBtn" class="btn-secondary">Download spreadsheet</button>
             <label class="catalog-upload btn-secondary">
@@ -120,9 +120,9 @@
           <p id="catalogStatus" class="foot-note">—</p>
         </section>
 
-        <section class="panel">
-          <h2>Postage estimate (Australia Post)</h2>
-          <p class="foot-note">Check real AusPost parcel cost when packing an order. Stockist checkout still uses your flat rate ($25, free over $710 ex GST).</p>
+        <section class="panel" id="postagePanel" hidden>
+          <h2>Postage estimate (Australia Post PAC)</h2>
+          <p class="foot-note">Uses your Australia Post API — estimate parcel cost when packing an order. Stockist orders still use flat $25 shipping (free over $710 ex GST).</p>
           <div class="postage-form">
             <label><span>To postcode</span><input type="text" id="postageTo" inputmode="numeric" maxlength="4" placeholder="e.g. 2000"></label>
             <label><span>Weight (kg)</span><input type="number" id="postageWeight" min="0.1" step="0.1" value="2"></label>
@@ -141,7 +141,7 @@
         <section class="panel setup-panel">
           <h2>System status</h2>
           <ul id="setupStatus" class="setup-list"></ul>
-          <p class="foot-note">Each stockist sets a private password — no shared access codes. Approve applications below; setup links are emailed if SMTP is configured, otherwise copy from the popup.</p>
+          <p class="foot-note"><strong>Simple flow:</strong> Approve application → stockist sets password from email → they log in at <a href="/portal.html" target="_blank" rel="noopener">portal</a> and order anytime. Use <em>Reset password</em> if they forget (<a href="/forgot-password.html" target="_blank" rel="noopener">forgot password</a> page works too).</p>
         </section>
 
         <section class="stat-grid">
@@ -242,7 +242,63 @@
           </div>
         </section>
       </div>
+
+      <div id="tabOrderform" class="tab-panel" hidden role="tabpanel">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Order form preview</h2>
+            <button type="button" id="refreshOrderPreviewBtn" class="btn-secondary btn-small">Refresh</button>
+          </div>
+          <p class="foot-note">Same catalogue and prices approved stockists see after login. Read-only preview — stockists order at <a href="/portal.html" target="_blank" rel="noopener">portal login</a>.</p>
+          <div class="table-scroll">
+            <table class="data-table data-table--wide portal-order-table">
+              <thead>
+                <tr>
+                  <th>SKU</th>
+                  <th>Product</th>
+                  <th>Wholesale</th>
+                  <th>RRP</th>
+                  <th>MOQ</th>
+                  <th>Bulk / notes</th>
+                </tr>
+              </thead>
+              <tbody id="orderPreviewBody"></tbody>
+            </table>
+          </div>
+          <h3 class="preview-subhead">Volume pricing tiers</h3>
+          <div class="table-scroll">
+            <table class="data-table data-table--wide">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Standard</th>
+                  <th>Volume at</th>
+                  <th>Volume price</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody id="volumePreviewBody"></tbody>
+            </table>
+          </div>
+        </section>
       </div>
+      </div>
+    </div>
+
+    <div id="addStockistModal" class="modal-overlay" hidden>
+      <form id="addStockistForm" class="modal-card-admin stockist-form">
+        <h2>Add retail stockist</h2>
+        <p>Create an account manually (same as approving an application). The stockist receives a password setup link by email if SMTP is on.</p>
+        <label><span>Retail stockist / business name *</span><input type="text" name="businessName" required autocomplete="organization"></label>
+        <label><span>Contact email *</span><input type="email" name="email" required autocomplete="email"></label>
+        <label><span>Contact name</span><input type="text" name="contactName" autocomplete="name"></label>
+        <label><span>ABN</span><input type="text" name="abn" inputmode="numeric"></label>
+        <label><span>Phone</span><input type="tel" name="phone" autocomplete="tel"></label>
+        <div class="modal-actions">
+          <button type="submit" class="btn-secondary">Create account</button>
+          <button type="button" id="closeAddStockistModal" class="btn-secondary">Cancel</button>
+        </div>
+      </form>
     </div>
 
     <div id="codeModal" class="modal-overlay" hidden>
