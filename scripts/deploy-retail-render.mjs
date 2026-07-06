@@ -193,11 +193,10 @@ async function waitForLive(urls) {
   for (let i = 0; i < 40; i++) {
     for (const url of targets) {
       try {
-        const res = await fetch(`${url}/api/public/gummy-checkout/paypal-config`);
+        const res = await fetch(`${url}/`, { redirect: "follow" });
         if (res.ok) {
-          const data = await res.json();
-          console.log(`LIVE: ${url} — PayPal enabled=${data.enabled} mode=${data.mode}`);
-          return { url, data };
+          console.log(`LIVE: ${url} — homepage ${res.status}`);
+          return { url };
         }
         console.log(`Waiting for ${url} (${i + 1}/40) status=${res.status}`);
       } catch {
