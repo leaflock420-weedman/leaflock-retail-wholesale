@@ -105,6 +105,7 @@ const env = {
   ADMIN_SESSION_SECRET: "test-admin-secret-full",
   DEMO_PORTAL_PASSWORD: "Demo-Test-Pass-2026!",
   GUMMY_CHECKOUT_ACCESS_KEY: "test-gummy-checkout-key",
+  PORTAL_MASTER_RESET_CODE: "TEST-MASTER-RESET-99",
 };
 
 const serverProc = spawn("node", ["server.js"], {
@@ -274,6 +275,27 @@ try {
 
   const oldKeyStillWorks = await json(`${base}/api/public/gummy-checkout/pricing?key=${stockistKey}`);
   assert("Old stockist key revoked", oldKeyStillWorks.res.status === 403);
+
+  r = await json(`${base}/api/portal/set-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email: "apply-test@example.com",
+      code: env.PORTAL_MASTER_RESET_CODE,
+      password: "Master-Reset-Pass-99",
+    }),
+  });
+  assert("Master support code resets password", r.res.status === 200, JSON.stringify(r.body));
+
+  r = await json(`${base}/api/portal/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email: "apply-test@example.com",
+      password: "Master-Reset-Pass-99",
+    }),
+  });
+  assert("Login works after master reset", r.res.status === 200, JSON.stringify(r.body));
 } finally {
   serverProc.kill("SIGTERM");
   await new Promise((r) => setTimeout(r, 400));

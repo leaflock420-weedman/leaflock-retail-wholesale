@@ -26,12 +26,12 @@
   let linkMode = Boolean(token);
   let accountEmail = prefilledEmail;
 
-  function showManualFallback(message) {
+  function showSupportResetMode(message) {
     linkMode = false;
     if (manualFields) manualFields.hidden = false;
     if (lead) {
       lead.textContent =
-        "Enter your account email and the 8-character setup code from your reset email, then choose a new password.";
+        "Enter your account email, the support reset code from LeafLock, and a new password (at least 10 characters).";
     }
     if (error && message) {
       error.hidden = false;
@@ -41,7 +41,6 @@
 
   async function loadStatus() {
     if (!token) {
-      showManualFallback("");
       if (prefilledEmail && emailInput) emailInput.value = prefilledEmail;
       return;
     }
@@ -55,7 +54,10 @@
     try {
       const res = await fetch(`/api/portal/password-token-status?token=${encodeURIComponent(token)}`);
       const body = await res.json();
-      if (!body.valid) return;
+      if (!body.valid) {
+        showSupportResetMode("This reset link is no longer valid. Use the support reset code from LeafLock below.");
+        return;
+      }
       accountEmail = body.email || accountEmail;
       if (account) {
         account.hidden = false;
@@ -79,14 +81,14 @@
     if (!linkMode && !email) {
       if (error) {
         error.hidden = false;
-        error.textContent = "Enter the account email from your reset email.";
+        error.textContent = "Enter your wholesale account email.";
       }
       return;
     }
     if (!linkMode && !code) {
       if (error) {
         error.hidden = false;
-        error.textContent = "Enter the 8-character setup code from your email.";
+        error.textContent = "Enter the support reset code from LeafLock.";
       }
       return;
     }
@@ -127,10 +129,8 @@
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
         const message = body.error || "Could not save password";
-        if (token && /invalid|expired|setup code/i.test(message)) {
-          showManualFallback(
-            "This reset link did not work. Use the setup code from your latest email below.",
-          );
+        if (token && /invalid|expired|support reset/i.test(message)) {
+          showSupportResetMode("This reset link did not work. Use the support reset code from LeafLock below.");
         }
         throw new Error(message);
       }

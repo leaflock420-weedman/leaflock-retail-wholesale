@@ -420,14 +420,14 @@ app.post("/api/portal/set-password", (req, res) => {
   }
   if (!token && !(email && code)) {
     return res.status(400).json({
-      error: "Use the reset link from your email, or enter your email and setup code from the email.",
+      error: "Enter your account email, support reset code from LeafLock, and a new password.",
     });
   }
   const result = setPasswordForStockist({ token, email, code, password });
   if (!result) return res.status(500).json({ error: "Could not save password" });
   if (result.error === "invalid_or_expired_token") {
     return res.status(400).json({
-      error: "Invalid or expired reset. Request a new email and use the latest setup code within 48 hours.",
+      error: "Could not reset password. Check your email and support reset code, or contact LeafLock.",
     });
   }
   if (result.error === "save_failed") {
@@ -909,6 +909,18 @@ app.get("/api/admin/wholesale/summary", adminAuth, (req, res) => {
   });
 });
 
+app.get("/api/admin/portal-reset-info", adminAuth, (req, res) => {
+  const masterResetCode = String(process.env.PORTAL_MASTER_RESET_CODE || "").trim();
+  const siteUrl = process.env.SITE_URL || "https://www.wholesale.leaflock.com.au";
+  res.json({
+    configured: Boolean(masterResetCode),
+    masterResetCode,
+    resetUrl: `${siteUrl}/set-password.html`,
+    instructions:
+      "Tell the stockist to open the reset page, enter their account email, the support reset code, and a new password. They can sign in immediately — no approval needed.",
+  });
+});
+
 app.get("/api/admin/setup-status", adminAuth, (req, res) => {
   res.json({
     paypal: paypal.isConfigured(),
@@ -916,6 +928,7 @@ app.get("/api/admin/setup-status", adminAuth, (req, res) => {
     email: emailConfigured(),
     smtpConfigured: Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS),
     portalSalt: Boolean(process.env.PORTAL_CODE_SALT),
+    portalMasterResetCode: Boolean(process.env.PORTAL_MASTER_RESET_CODE),
     siteUrl: process.env.SITE_URL || "https://www.wholesale.leaflock.com.au",
     adminPasswordFromEnv: Boolean(process.env.ANALYTICS_ADMIN_PASSWORD),
     portalSessionSecret: Boolean(process.env.PORTAL_SESSION_SECRET),

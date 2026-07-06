@@ -118,6 +118,7 @@ function renderSetupStatus(status) {
     { ok: status.email, label: status.email ? "Email notifications enabled" : "SMTP not set — approve codes shown in popup only" },
     { ok: status.smtpConfigured, label: status.smtpConfigured ? "SMTP credentials configured" : "Set SMTP_PASS on Render for info@ sending" },
     { ok: status.portalSalt, label: status.portalSalt ? "Portal code encryption active" : "Set PORTAL_CODE_SALT on Render" },
+    { ok: status.portalMasterResetCode, label: status.portalMasterResetCode ? "Support password reset code configured" : "Set PORTAL_MASTER_RESET_CODE on Render" },
     { ok: status.adminPasswordFromEnv, label: status.adminPasswordFromEnv ? "Admin password from env var" : "Using default admin password" },
     { ok: status.portalSessionSecret, label: status.portalSessionSecret ? "Portal sessions secured" : "Set PORTAL_SESSION_SECRET on Render" },
     { ok: status.adminSessionSecret, label: status.adminSessionSecret ? "Admin sessions signed (survive restarts)" : "Set ADMIN_SESSION_SECRET on Render" },
@@ -190,32 +191,20 @@ async function rejectApplication(id) {
 }
 
 async function sendPasswordReset(id) {
-  if (!confirm("Send a password reset link to this retail stockist?")) return;
-  const result = await api(`/api/admin/retail-stockists/${id}/send-password-reset`, { method: "POST" });
-  if (result.setupToken) {
-    showSetupLinkModal(result.setupToken, "Password reset link");
-    if (result.setupCode) {
-      const modal = document.getElementById("codeModal");
-      const desc = modal?.querySelector("p");
-      const codeEl = document.getElementById("generatedCode");
-      if (desc) {
-        desc.textContent = `Setup code: ${result.setupCode} — use at set-password.html with email ${result.retailStockist?.email}. Copy the link below if needed.`;
-      }
-      if (codeEl && !codeEl.textContent) {
-        codeEl.textContent = setupPasswordUrl(result.setupToken);
-      }
-    }
-  }
-  if (result.emailSent) {
-    alert(
-      `Reset emailed to ${result.retailStockist?.email}. It includes an 8-character setup code if the link fails.`,
-    );
-  } else {
-    alert(
-      `Copy the reset link and setup code ${result.setupCode || ""} and email manually (SMTP not configured).`,
-    );
-  }
-  await refreshWholesale();
+  const list = await api("/api/admin/retail-stockists");
+  const stockist = (list.retailStockists || []).find((p) => p.id === id);
+  if (!stockist) return;
+  const info = await api("/api/admin/portal-reset-info");
+  const resetUrl = `${window.location.origin}/set-password.html?email=${encodeURIComponent(stockist.email)}`;
+  const code = info.masterResetCode || "(not configured — set PORTAL_MASTER_RESET_CODE on Render)";
+  showLinkModal(
+    resetUrl,
+    `Password reset — ${stockist.businessName || stockist.email}`,
+    `Tell ${stockist.email} to open the reset page, enter their email, support code ${code}, and a new password. They can sign in immediately — no approval needed.`,
+  );
+  const modal = document.getElementById("codeModal");
+  const copyBtn = document.getElementById("copyCodeBtn");
+  if (copyBtn) copyBtn.textContent = "Copy reset page link";
 }
 
 async function toggleRetailStockistStatus(id, currentStatus) {
