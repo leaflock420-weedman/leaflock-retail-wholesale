@@ -240,9 +240,11 @@ app.get("/assets/gummy-checkout.js", (req, res) => {
 
 const NO_CACHE_PORTAL_PAGES = [
   "/portal.html",
+  "/request-access.html",
   "/set-password.html",
   "/forgot-password.html",
   "/assets/access.js",
+  "/assets/signup.js",
   "/assets/set-password.js",
   "/assets/forgot-password.js",
 ];
@@ -514,6 +516,12 @@ app.post("/api/applications", (req, res) => {
   const required = ["businessName", "fullName", "abn", "email", "password", "passwordConfirm"];
   for (const field of required) {
     if (!String(body[field] || "").trim()) {
+      if (field === "password" || field === "passwordConfirm") {
+        return res.status(400).json({
+          error:
+            "Portal password is required. Refresh the page, scroll to Portal password, and try again.",
+        });
+      }
       return res.status(400).json({ error: `Missing field: ${field}` });
     }
   }

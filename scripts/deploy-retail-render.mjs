@@ -1,3 +1,4 @@
+import fs from "fs";
 import { readFile } from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -231,6 +232,30 @@ async function main() {
   });
   if (backup.status !== 0) {
     console.warn("Pre-deploy snapshot failed — deploy continues but post-deploy restore may be skipped");
+  } else {
+    const carryover = path.join(root, "data", "live-carryover-snapshot.json");
+    if (fs.existsSync(carryover)) {
+      const commit = spawnSync(
+        "git",
+        ["add", "data/live-carryover-snapshot.json", "-f"],
+        { cwd: root, stdio: "inherit" },
+      );
+      if (commit.status === 0) {
+        const staged = spawnSync("git", ["diff", "--cached", "--quiet", "data/live-carryover-snapshot.json"], {
+          cwd: root,
+        });
+        if (staged.status !== 0) {
+          const saved = spawnSync(
+            "git",
+            ["commit", "-m", "Update live data carryover snapshot before deploy"],
+            { cwd: root, stdio: "inherit" },
+          );
+          if (saved.status === 0) {
+            spawnSync("git", ["push", "origin", "master"], { cwd: root, stdio: "inherit" });
+          }
+        }
+      }
+    }
   }
   await setEnvVars(service.id);
   await triggerDeploy(service.id);

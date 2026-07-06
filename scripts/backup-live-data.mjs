@@ -44,12 +44,16 @@ async function main() {
     path.join(outDir, "latest-snapshot.json"),
     JSON.stringify({ file, exportedAt: snapshot.exportedAt, savedAt: Date.now() }, null, 2),
   );
+  const carryoverFile = path.join(root, "data", "live-carryover-snapshot.json");
+  fs.writeFileSync(carryoverFile, JSON.stringify(snapshot, null, 2));
   const apps = snapshot.files?.["applications.json"]?.applications?.length ?? 0;
   const pending =
     snapshot.files?.["applications.json"]?.applications?.filter((a) => a.status === "pending").length ?? 0;
   const stockists = snapshot.files?.["retail-stockists.json"]?.retailStockists?.length ?? 0;
+  const events = snapshot.files?.["events.json"]?.length ?? 0;
   console.log(`Saved live data snapshot: ${file}`);
-  console.log(`Captured: ${apps} application(s) (${pending} pending), ${stockists} stockist(s)`);
+  console.log(`Captured: ${apps} application(s) (${pending} pending), ${stockists} stockist(s), ${events} analytics events`);
+  console.log(`Carryover snapshot updated: ${carryoverFile}`);
 }
 
 main().catch((err) => {

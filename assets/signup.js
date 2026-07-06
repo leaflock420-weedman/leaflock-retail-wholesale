@@ -3,24 +3,47 @@
   const success = document.getElementById("signupSuccess");
   const closeBtn = document.getElementById("closeSignupSuccess");
 
+  function ensurePasswordFields() {
+    if (!form || form.querySelector('input[name="password"]')) return;
+
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const block = document.createElement("fieldset");
+    block.className = "form-block";
+    block.id = "portalPasswordFields";
+    block.innerHTML = `
+      <legend>Portal password</legend>
+      <p class="pending-note">Choose the password you will use to sign in after approval (at least 10 characters).</p>
+      <div class="form-grid">
+        <label><span>Password *</span><input type="password" name="password" required minlength="10" autocomplete="new-password"></label>
+        <label><span>Confirm password *</span><input type="password" name="password_confirm" required minlength="10" autocomplete="new-password"></label>
+      </div>`;
+    if (submitBtn) form.insertBefore(block, submitBtn);
+    else form.appendChild(block);
+  }
+
   function closeModal() {
     if (success) success.hidden = true;
     document.body.style.overflow = "";
   }
 
+  ensurePasswordFields();
+
   form?.addEventListener("submit", async (event) => {
     event.preventDefault();
+    ensurePasswordFields();
     if (!form.reportValidity()) return;
 
     const fd = new FormData(form);
     const password = String(fd.get("password") || "");
     const passwordConfirm = String(fd.get("password_confirm") || "");
     if (password.length < 10) {
-      alert("Password must be at least 10 characters.");
+      alert("Enter a portal password (at least 10 characters) in the Portal password section below.");
+      form.querySelector('input[name="password"]')?.focus();
       return;
     }
     if (password !== passwordConfirm) {
       alert("Passwords do not match.");
+      form.querySelector('input[name="password_confirm"]')?.focus();
       return;
     }
 
@@ -54,7 +77,14 @@
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Submission failed");
+        const message = err.error || "Submission failed";
+        if (/missing field:\s*password/i.test(message)) {
+          ensurePasswordFields();
+          throw new Error(
+            "This page was out of date. Password fields are now shown — scroll down, choose a password, and submit again.",
+          );
+        }
+        throw new Error(message);
       }
 
       window.LeafLockAccess?.setPending();
