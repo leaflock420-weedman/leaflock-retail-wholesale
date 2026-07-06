@@ -80,8 +80,13 @@ const {
   loadLoginLog,
   demoPortalInfo,
   initializeRetailData,
+  reconcilePreservedRetailData,
 } = require("./lib/retail-store");
-const { snapshotAllData, backupAllProtectedFiles } = require("./lib/data-backup");
+const {
+  snapshotAllData,
+  backupAllProtectedFiles,
+  mergeSnapshotIntoLiveData,
+} = require("./lib/data-backup");
 const {
   createOrder,
   findOrder,
@@ -930,6 +935,27 @@ app.post("/api/admin/data/backup", adminAuth, (req, res) => {
 
 app.get("/api/admin/data/snapshot", adminAuth, (req, res) => {
   res.json(snapshotAllData());
+});
+
+app.post("/api/admin/data/merge", adminAuth, (req, res) => {
+  const snapshot = req.body?.snapshot || req.body;
+  if (!snapshot?.files) {
+    return res.status(400).json({ error: "snapshot.files required" });
+  }
+  backupAllProtectedFiles();
+  const result = mergeSnapshotIntoLiveData(snapshot);
+  try {
+    const preserved = reconcilePreservedRetailData();
+    if (preserved.results.length) result.results.push(...preserved.results);
+    if (preserved.changed) result.changed = true;
+  } catch (err) {
+    console.error("[admin] post-merge retail reconcile:", err.message);
+  }
+  res.json({
+    ok: true,
+    ...result,
+    snapshot: snapshotAllData(),
+  });
 });
 
 app.get("/api/admin/applications", adminAuth, (req, res) => {

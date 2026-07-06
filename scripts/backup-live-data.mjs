@@ -40,10 +40,19 @@ async function main() {
   fs.mkdirSync(outDir, { recursive: true });
   const file = path.join(outDir, `snapshot-${new Date().toISOString().replace(/[:.]/g, "-")}.json`);
   fs.writeFileSync(file, JSON.stringify(snapshot, null, 2));
+  fs.writeFileSync(
+    path.join(outDir, "latest-snapshot.json"),
+    JSON.stringify({ file, exportedAt: snapshot.exportedAt, savedAt: Date.now() }, null, 2),
+  );
+  const apps = snapshot.files?.["applications.json"]?.applications?.length ?? 0;
+  const pending =
+    snapshot.files?.["applications.json"]?.applications?.filter((a) => a.status === "pending").length ?? 0;
+  const stockists = snapshot.files?.["retail-stockists.json"]?.retailStockists?.length ?? 0;
   console.log(`Saved live data snapshot: ${file}`);
+  console.log(`Captured: ${apps} application(s) (${pending} pending), ${stockists} stockist(s)`);
 }
 
 main().catch((err) => {
-  console.warn("[backup-live-data]", err.message);
-  process.exit(0);
+  console.error("[backup-live-data]", err.message);
+  process.exit(process.env.DEPLOY_STRICT ? 1 : 0);
 });

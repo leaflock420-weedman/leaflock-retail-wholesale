@@ -224,11 +224,14 @@ async function main() {
   }
 
   await ensureCustomDomains(service.id);
-  try {
-    const { spawnSync } = await import("child_process");
-    spawnSync("node", ["scripts/backup-live-data.mjs"], { cwd: root, stdio: "inherit" });
-  } catch (err) {
-    console.warn("Pre-deploy snapshot skipped:", err.message);
+  const { spawnSync } = await import("child_process");
+  const backup = spawnSync("node", ["scripts/backup-live-data.mjs"], {
+    cwd: root,
+    stdio: "inherit",
+    env: { ...process.env, DEPLOY_STRICT: "1" },
+  });
+  if (backup.status !== 0) {
+    console.warn("Pre-deploy snapshot failed — deploy continues but post-deploy restore may be skipped");
   }
   await setEnvVars(service.id);
   await triggerDeploy(service.id);
@@ -238,6 +241,16 @@ async function main() {
     `https://${service.slug || SERVICE_NAME}.onrender.com`;
   const live = await waitForLive([SITE_URL, renderUrl]);
   const liveUrl = live?.url || SITE_URL;
+  if (backup.status === 0) {
+    const restore = spawnSync("node", ["scripts/restore-live-data.mjs"], {
+      cwd: root,
+      stdio: "inherit",
+      env: { ...process.env, SITE_URL: liveUrl },
+    });
+    if (restore.status !== 0) {
+      console.warn("Post-deploy data restore failed — check admin manually");
+    }
+  }
   console.log(`Site: ${SITE_URL}`);
   console.log(`Checkout: ${liveUrl}/gummy-checkout.html`);
 }
