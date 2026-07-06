@@ -1,5 +1,5 @@
 {
-  "exportedAt": 1783327377087,
+  "exportedAt": 1783328050983,
   "dataDir": "/opt/render/project/src/data",
   "files": {
     "applications.json": {
@@ -27,39 +27,13 @@
     "retail-stockists.json": {
       "retailStockists": [
         {
-          "id": "retail_1783327109682_1e1ccd4e",
-          "businessName": "LeafLock",
-          "email": "secretsolutions2016@gmail.com",
-          "status": "active",
-          "passwordHash": null,
-          "accessCodeHash": null,
-          "abn": "45455458420",
-          "storeReg": "",
-          "phone": "+61431295201",
-          "address": "13F Wyndham Avenue\n8",
-          "compounding": "no",
-          "bulk": "no",
-          "contactName": "Lewis Szalay",
-          "role": "",
-          "createdAt": 1783327109682,
-          "approvedAt": 1783327109682,
-          "lastLoginAt": null,
-          "loginCount": 0,
-          "applicationId": "app_1783327018660_77a89062",
-          "checkoutAccessKey": "jR1t9-tvy82xYjKvn_pJXGmY",
-          "passwordTokenHash": "ac3f2e0842f952dcd3c7b9aff7f2f027bd2bd63dfcb35eb562d3e77ebc425e89",
-          "passwordTokenExpiresAt": 1783499909682,
-          "passwordTokenPurpose": "setup",
-          "passwordSetupCodeHash": "ea28ae3c8cc5ff8a088188b1c62bbdb4ee4f98df9bf991a40053cf95257d02cd"
-        },
-        {
           "id": "pharm_demo_stockist",
           "businessName": "Demo Stockist (Preview)",
           "email": "demo@leaflock.com.au",
           "status": "active",
           "passwordHash": {
-            "salt": "f0f81644bd0f43ef897be7242b606e58",
-            "hash": "907626f4421c297cbc9790b6e273534cbdb66827ee99619a4054c9ca86fb0899e2a04cd6b2a157ccaa8f9444c4b74267b615e9602211dc4163a185ece0a49208"
+            "salt": "1e93f6918fde156e216724e57c60d1ee",
+            "hash": "a5dc9170379d673eee7b35685502bdbcb7ee87f5482e570a59b672579e6bbd1794aeed52b3b51562f69be701a4042219b7ded5c1439b4d61a3670a0bb9d5f5ce"
           },
           "accessCodeHash": null,
           "abn": "12 345 678 901",
@@ -68,11 +42,11 @@
           "address": "Surfers Paradise QLD 4217",
           "compounding": "no",
           "bulk": "no",
-          "createdAt": 1783326308246,
-          "approvedAt": 1783326308246,
+          "createdAt": 1783327405834,
+          "approvedAt": 1783327405834,
           "lastLoginAt": null,
           "loginCount": 0,
-          "checkoutAccessKey": "pbheXtn5hlqAdNVwbMYwIFKr",
+          "checkoutAccessKey": "S6eDOyOR84Es2wjd90staq5f",
           "passwordTokenHash": null,
           "passwordSetupCodeHash": null,
           "passwordTokenExpiresAt": null,
@@ -101,7 +75,7 @@
           "businessName": "LeafLock Test Retail Store",
           "email": "info@leaflock.com.au",
           "status": "active",
-          "accessCodeHash": null,
+          "accessCodeHash": "0b4c19fd2e112360af04de37f485fc4b4046c37cb5365f1590f33fb91605f392313e5491fa94629a7daf09c5c5525dc856a102071cba8fe185bc5e4a1de0386f",
           "abn": "",
           "storeReg": "",
           "phone": "",
@@ -110,18 +84,9 @@
           "bulk": "no",
           "createdAt": 1783173875471,
           "approvedAt": 1783173875471,
-          "lastLoginAt": 1783326659768,
-          "loginCount": 2,
-          "checkoutAccessKey": "XJbCECB5ilLo2El3jXePUWvp",
-          "passwordTokenHash": null,
-          "passwordTokenExpiresAt": null,
-          "passwordTokenPurpose": null,
-          "passwordSetupCodeHash": null,
-          "passwordHash": {
-            "salt": "b6b4c9805be4a374feeb6b9ec985c776",
-            "hash": "3719e751e0fa10cfe3784f6a1772d83ece0eaca58b656960865c6abc716cbf3afdc9c5a55190d09f523eb1d8ddb54bc0d3894921481f2f297d26e67aa5b0b639"
-          },
-          "passwordSetAt": 1783326639487
+          "lastLoginAt": 1783173896331,
+          "loginCount": 1,
+          "checkoutAccessKey": "XJbCECB5ilLo2El3jXePUWvp"
         },
         {
           "id": "retail_cannalicious_dee_karen",
@@ -140,7 +105,33 @@
           "approvedAt": 1783200000000,
           "lastLoginAt": null,
           "loginCount": 0,
-          "checkoutAccessKey": "Uv4gEdfOl3BpJsytC6qLoYBu"
+          "checkoutAccessKey": "Ccf7LVQz5rTfN0OEZg0aVAAf"
+        },
+        {
+          "id": "retail_1783327109682_1e1ccd4e",
+          "businessName": "LeafLock",
+          "email": "secretsolutions2016@gmail.com",
+          "status": "active",
+          "passwordHash": null,
+          "accessCodeHash": null,
+          "abn": "45455458420",
+          "storeReg": "",
+          "phone": "+61431295201",
+          "address": "13F Wyndham Avenue\n8",
+          "compounding": "no",
+          "bulk": "no",
+          "contactName": "Lewis Szalay",
+          "role": "",
+          "createdAt": 1783327109682,
+          "approvedAt": 1783327109682,
+          "lastLoginAt": null,
+          "loginCount": 0,
+          "applicationId": "app_1783327018660_77a89062",
+          "checkoutAccessKey": "jR1t9-tvy82xYjKvn_pJXGmY",
+          "passwordTokenHash": "ac3f2e0842f952dcd3c7b9aff7f2f027bd2bd63dfcb35eb562d3e77ebc425e89",
+          "passwordTokenExpiresAt": 1783499909682,
+          "passwordTokenPurpose": "setup",
+          "passwordSetupCodeHash": "ea28ae3c8cc5ff8a088188b1c62bbdb4ee4f98df9bf991a40053cf95257d02cd"
         }
       ]
     },
