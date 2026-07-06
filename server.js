@@ -401,11 +401,9 @@ app.post("/api/portal/forgot-password", async (req, res) => {
   });
 });
 
-app.post("/api/portal/set-password", (req, res) => {
+function handlePortalPasswordReset(req, res) {
   const token = String(req.body?.token || "").trim();
-  const email = String(req.body?.email || "").trim().toLowerCase();
-  const code = String(req.body?.code || "").trim();
-  const password = String(req.body?.password || "");
+  const password = String(req.body?.newPassword || req.body?.password || "");
   if (!password) {
     return res.status(400).json({ error: "Password required" });
   }
@@ -425,8 +423,22 @@ app.post("/api/portal/set-password", (req, res) => {
     return res.status(500).json({ error: "Password could not be saved. Request a new reset link and try again." });
   }
   if (result.error) return res.status(400).json({ error: result.error });
-  res.json({ ok: true, retailStockist: result.retailStockist });
-});
+  const saved = findByEmail(result.retailStockist.email);
+  if (!saved || !verifyPassword(password, saved.passwordHash)) {
+    console.error("[portal] Password reset verification failed for", result.retailStockist.email);
+    return res.status(500).json({
+      error: "Password did not save correctly. Request a new reset link and try again.",
+    });
+  }
+  res.json({
+    ok: true,
+    message: "Password updated successfully",
+    retailStockist: result.retailStockist,
+  });
+}
+
+app.post("/api/portal/set-password", handlePortalPasswordReset);
+app.post("/api/portal/reset-password", handlePortalPasswordReset);
 
 app.get("/api/portal/password-token-status", (req, res) => {
   const token = String(req.query.token || "");

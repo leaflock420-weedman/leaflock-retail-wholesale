@@ -282,12 +282,12 @@ try {
   assert("Admin password reset link", r.res.status === 200 && Boolean(r.body.setupToken));
   const resetToken = r.body.setupToken;
 
-  r = await json(`${base}/api/portal/set-password`, {
+  r = await json(`${base}/api/portal/reset-password`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token: resetToken, password: "Final-Portal-Pass-99" }),
+    body: JSON.stringify({ token: resetToken, newPassword: "Final-Portal-Pass-99" }),
   });
-  assert("Reset link sets new password", r.res.status === 200);
+  assert("Reset link sets new password", r.res.status === 200 && r.body.message);
 
   r = await json(`${base}/api/portal/login`, {
     method: "POST",

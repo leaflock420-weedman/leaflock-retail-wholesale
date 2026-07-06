@@ -136,6 +136,7 @@
 
   async function refreshAccessStatus(email) {
     const normalized = String(email || "").trim().toLowerCase();
+    const passwordJustSet = new URLSearchParams(window.location.search).get("passwordSet") === "1";
     if (!normalized) {
       if (!isPending()) setPendingNote("");
       return;
@@ -145,11 +146,15 @@
       const status = await res.json();
       if (status.canLogin || status.approved) {
         clearPending();
-        setPendingNote(
-          status.canLogin
-            ? "Your account is approved. Sign in with your email and password."
-            : "Your account is approved. Use Forgot password to set a new password, then sign in.",
-        );
+        if (passwordJustSet) {
+          setPendingNote("Password updated. Sign in with the new password you just created.");
+        } else {
+          setPendingNote(
+            status.canLogin
+              ? "Your account is approved. Sign in with your email and password."
+              : "Your account is approved. Use Forgot password to get a reset link by email.",
+          );
+        }
         return;
       }
       if (status.pending || isPending()) {
