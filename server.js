@@ -68,6 +68,8 @@ const {
   createRetailStockist,
   sendPasswordReset,
   setPasswordWithToken,
+  setPasswordForStockist,
+  adminSetStockistPassword,
   changeRetailStockistPassword,
   deleteRetailStockistAccount,
   setRetailStockistStatus,
@@ -233,6 +235,22 @@ app.get("/assets/gummy-checkout.js", (req, res) => {
   res.sendFile(path.join(ROOT, "assets", "gummy-checkout.js"));
 });
 
+const NO_CACHE_PORTAL_PAGES = [
+  "/portal.html",
+  "/set-password.html",
+  "/forgot-password.html",
+  "/assets/access.js",
+  "/assets/set-password.js",
+  "/assets/forgot-password.js",
+];
+for (const pagePath of NO_CACHE_PORTAL_PAGES) {
+  app.get(pagePath, (req, res) => {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.setHeader("Pragma", "no-cache");
+    res.sendFile(path.join(ROOT, pagePath.replace(/^\//, "")));
+  });
+}
+
 app.use(express.static(ROOT));
 
 function rateLimitKey(key, max) {
@@ -359,7 +377,11 @@ app.post("/api/portal/forgot-password", async (req, res) => {
     if (result?.setupToken) {
       const notify = retailStockist.passwordHash ? notifyPasswordReset : notifyRetailStockistApproved;
       const payload = retailStockist.passwordHash
-        ? { retailStockist: result.retailStockist, resetToken: result.setupToken }
+        ? {
+            retailStockist: result.retailStockist,
+            resetToken: result.setupToken,
+            setupCode: result.setupCode,
+          }
         : {
             app: {
               fullName: retailStockist.contactName || retailStockist.businessName,
@@ -367,6 +389,7 @@ app.post("/api/portal/forgot-password", async (req, res) => {
               email: retailStockist.email,
             },
             setupToken: result.setupToken,
+            setupCode: result.setupCode,
           };
       notify(payload).catch((err) => {
         console.warn("[mail] password reset:", err.message);
@@ -378,22 +401,30 @@ app.post("/api/portal/forgot-password", async (req, res) => {
 
 app.post("/api/portal/set-password", (req, res) => {
   const token = String(req.body?.token || "").trim();
+  const email = String(req.body?.email || "").trim().toLowerCase();
+  const code = String(req.body?.code || "").trim();
   const password = String(req.body?.password || "");
-  if (!token || !password) {
-    return res.status(400).json({ error: "Token and password required" });
+  if (!password) {
+    return res.status(400).json({ error: "Password required" });
   }
-  const result = setPasswordWithToken(token, password);
+  if (!token && !(email && code)) {
+    return res.status(400).json({
+      error: "Use the reset link from your email, or enter your email and setup code from the email.",
+    });
+  }
+  const result = setPasswordForStockist({ token, email, code, password });
   if (!result) return res.status(500).json({ error: "Could not save password" });
   if (result.error === "invalid_or_expired_token") {
-    return res.status(400).json({ error: "This link is invalid or has expired. Request a new reset link." });
+    return res.status(400).json({
+      error: "Invalid or expired reset. Request a new email and use the latest setup code within 48 hours.",
+    });
   }
   if (result.error === "save_failed") {
     return res.status(500).json({ error: "Password could not be saved. Request a new reset link and try again." });
   }
   if (result.error) return res.status(400).json({ error: result.error });
-  const publicInfo = recordLogin(result.retailStockist.id, clientMeta(req)) || result.retailStockist;
   const portalToken = createPortalToken(result.retailStockist.id);
-  res.json({ ok: true, retailStockist: publicInfo, token: portalToken });
+  res.json({ ok: true, retailStockist: result.retailStockist, token: portalToken });
 });
 
 app.get("/api/portal/password-token-status", (req, res) => {
@@ -980,6 +1011,7 @@ app.post("/api/admin/applications/:id/approve", adminAuth, async (req, res) => {
     result.emailSent = await notifyRetailStockistApproved({
       app: result.application,
       setupToken: result.setupToken,
+      setupCode: result.setupCode,
     });
   } catch (err) {
     console.warn("[mail] approval notify:", err.message);
@@ -1014,6 +1046,15 @@ app.post("/api/admin/retail-stockists", adminAuth, (req, res) => {
   res.status(201).json(asRetailStockistPayload(result));
 });
 
+app.post("/api/admin/retail-stockists/:id/set-password", adminAuth, (req, res) => {
+  const password = String(req.body?.password || "");
+  if (!password) return res.status(400).json({ error: "password required" });
+  const result = adminSetStockistPassword(req.params.id, password);
+  if (!result) return res.status(404).json({ error: "Retail stockist not found" });
+  if (result.error) return res.status(400).json({ error: result.error });
+  res.json({ ok: true, retailStockist: result.retailStockist });
+});
+
 app.post("/api/admin/retail-stockists/:id/send-password-reset", adminAuth, async (req, res) => {
   const result = sendPasswordReset(req.params.id);
   if (!result) return res.status(404).json({ error: "Retail stockist not found" });
@@ -1021,6 +1062,7 @@ app.post("/api/admin/retail-stockists/:id/send-password-reset", adminAuth, async
     result.emailSent = await notifyPasswordReset({
       retailStockist: result.retailStockist,
       resetToken: result.setupToken,
+      setupCode: result.setupCode,
     });
   } catch (err) {
     console.warn("[mail] admin password reset:", err.message);

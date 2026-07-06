@@ -181,11 +181,28 @@ async function rejectApplication(id) {
 async function sendPasswordReset(id) {
   if (!confirm("Send a password reset link to this retail stockist?")) return;
   const result = await api(`/api/admin/retail-stockists/${id}/send-password-reset`, { method: "POST" });
-  if (result.setupToken) showSetupLinkModal(result.setupToken, "Password reset link");
+  if (result.setupToken) {
+    showSetupLinkModal(result.setupToken, "Password reset link");
+    if (result.setupCode) {
+      const modal = document.getElementById("codeModal");
+      const desc = modal?.querySelector("p");
+      const codeEl = document.getElementById("generatedCode");
+      if (desc) {
+        desc.textContent = `Setup code: ${result.setupCode} — use at set-password.html with email ${result.retailStockist?.email}. Copy the link below if needed.`;
+      }
+      if (codeEl && !codeEl.textContent) {
+        codeEl.textContent = setupPasswordUrl(result.setupToken);
+      }
+    }
+  }
   if (result.emailSent) {
-    alert(`Reset link emailed to ${result.retailStockist?.email || result.retailStockist?.email}`);
+    alert(
+      `Reset emailed to ${result.retailStockist?.email}. It includes an 8-character setup code if the link fails.`,
+    );
   } else {
-    alert("Copy the reset link and email it manually (SMTP not configured).");
+    alert(
+      `Copy the reset link and setup code ${result.setupCode || ""} and email manually (SMTP not configured).`,
+    );
   }
   await refreshWholesale();
 }
