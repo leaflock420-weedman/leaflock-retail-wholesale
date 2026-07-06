@@ -35,7 +35,6 @@ const {
   sendDailyReport,
   notifyAdminNewApplication,
   notifyRetailStockistApproved,
-  notifyTemporaryPasswordReset,
   notifyPasswordReset,
   sendCompliancePack,
   notifyOrderConfirmation,
@@ -70,7 +69,6 @@ const {
   rejectApplication,
   createRetailStockist,
   sendPasswordReset,
-  completeRequiredPasswordChange,
   adminRemoveRetailStockist,
   setPasswordWithToken,
   setPasswordForStockist,
@@ -371,11 +369,7 @@ app.post("/api/portal/login", (req, res) => {
 
     const publicInfo = recordLogin(retailStockist.id, clientMeta(req));
     const token = createPortalToken(retailStockist.id);
-    res.json({
-      token,
-      retailStockist: publicInfo,
-      mustChangePassword: Boolean(retailStockist.mustChangePassword),
-    });
+    res.json({ token, retailStockist: publicInfo });
   } catch (err) {
     console.error("[portal] login failed:", err);
     res.status(500).json({ error: "Portal login unavailable. Try again shortly." });
@@ -392,10 +386,10 @@ app.post("/api/portal/forgot-password", async (req, res) => {
   const retailStockist = findByEmail(email);
   if (retailStockist) {
     const result = sendPasswordReset(retailStockist.id);
-    if (result?.temporaryPassword) {
-      notifyTemporaryPasswordReset({
+    if (result?.setupToken) {
+      notifyPasswordReset({
         retailStockist: result.retailStockist,
-        temporaryPassword: result.temporaryPassword,
+        resetToken: result.setupToken,
       }).catch((err) => {
         console.warn("[mail] password reset:", err.message);
       });
@@ -403,8 +397,7 @@ app.post("/api/portal/forgot-password", async (req, res) => {
   }
   res.json({
     ok: true,
-    message:
-      "If that email has an active account, a temporary password has been emailed. Sign in, then choose your new password.",
+    message: "If that email has an active account, a reset link has been emailed.",
   });
 });
 
@@ -416,24 +409,23 @@ app.post("/api/portal/set-password", (req, res) => {
   if (!password) {
     return res.status(400).json({ error: "Password required" });
   }
-  if (!token && !(email && code)) {
+  if (!token) {
     return res.status(400).json({
-      error: "Enter your account email, support reset code from LeafLock, and a new password.",
+      error: "Use the reset link from your email.",
     });
   }
-  const result = setPasswordForStockist({ token, email, code, password });
+  const result = setPasswordForStockist({ token, password });
   if (!result) return res.status(500).json({ error: "Could not save password" });
   if (result.error === "invalid_or_expired_token") {
     return res.status(400).json({
-      error: "Could not reset password. Check your email and support reset code, or contact LeafLock.",
+      error: "This reset link is invalid or expired. Request a new one from the forgot password page.",
     });
   }
   if (result.error === "save_failed") {
     return res.status(500).json({ error: "Password could not be saved. Request a new reset link and try again." });
   }
   if (result.error) return res.status(400).json({ error: result.error });
-  const portalToken = createPortalToken(result.retailStockist.id);
-  res.json({ ok: true, retailStockist: result.retailStockist, token: portalToken });
+  res.json({ ok: true, retailStockist: result.retailStockist });
 });
 
 app.get("/api/portal/password-token-status", (req, res) => {
@@ -448,23 +440,6 @@ app.get("/api/portal/password-token-status", (req, res) => {
     businessName: retailStockist.businessName,
     purpose: retailStockist.passwordTokenPurpose || "setup",
   });
-});
-
-app.post("/api/portal/set-new-password", portalAuth, (req, res) => {
-  if (!req.portalRetailStockist.mustChangePassword) {
-    return res.status(400).json({ error: "Password change not required" });
-  }
-  const newPassword = String(req.body?.newPassword || req.body?.password || "");
-  if (!newPassword) return res.status(400).json({ error: "New password required" });
-  const result = completeRequiredPasswordChange(req.portalRetailStockist.id, newPassword);
-  if (!result) return res.status(500).json({ error: "Could not save password" });
-  if (result.error === "save_failed") {
-    return res.status(500).json({ error: "Password could not be saved. Try again." });
-  }
-  if (result.error) return res.status(400).json({ error: result.error });
-  revokePortalToken(req.portalToken);
-  const token = createPortalToken(req.portalRetailStockist.id);
-  res.json({ ok: true, token, retailStockist: result.retailStockist, mustChangePassword: false });
 });
 
 app.post("/api/portal/change-password", portalAuth, (req, res) => {
@@ -503,10 +478,7 @@ app.get("/api/portal/bank-details", portalAuth, (req, res) => {
 });
 
 app.get("/api/portal/session", portalAuth, (req, res) => {
-  res.json({
-    retailStockist: publicRetailStockist(req.portalRetailStockist),
-    mustChangePassword: Boolean(req.portalRetailStockist.mustChangePassword),
-  });
+  res.json({ retailStockist: publicRetailStockist(req.portalRetailStockist) });
 });
 
 app.post("/api/portal/logout", portalAuth, (req, res) => {
@@ -1109,15 +1081,17 @@ app.post("/api/admin/retail-stockists/:id/set-password", adminAuth, (req, res) =
 app.post("/api/admin/retail-stockists/:id/send-password-reset", adminAuth, async (req, res) => {
   const result = sendPasswordReset(req.params.id);
   if (!result) return res.status(404).json({ error: "Retail stockist not found" });
+  const resetUrl = `${process.env.SITE_URL || "https://www.wholesale.leaflock.com.au"}/set-password.html?token=${encodeURIComponent(result.setupToken)}`;
   try {
-    result.emailSent = await notifyTemporaryPasswordReset({
+    result.emailSent = await notifyPasswordReset({
       retailStockist: result.retailStockist,
-      temporaryPassword: result.temporaryPassword,
+      resetToken: result.setupToken,
     });
   } catch (err) {
     console.warn("[mail] admin password reset:", err.message);
     result.emailSent = false;
   }
+  result.resetUrl = resetUrl;
   res.json(result);
 });
 

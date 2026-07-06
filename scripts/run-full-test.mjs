@@ -279,33 +279,22 @@ try {
     method: "POST",
     headers: { Authorization: `Bearer ${adminToken}` },
   });
-  assert("Admin temp password reset", r.res.status === 200 && Boolean(r.body.temporaryPassword));
-  const tempPassword = r.body.temporaryPassword;
+  assert("Admin password reset link", r.res.status === 200 && Boolean(r.body.setupToken));
+  const resetToken = r.body.setupToken;
 
-  r = await json(`${base}/api/portal/login`, {
+  r = await json(`${base}/api/portal/set-password`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: "apply-test@example.com", password: tempPassword }),
+    body: JSON.stringify({ token: resetToken, password: "Final-Portal-Pass-99" }),
   });
-  assert("Login with temporary password", r.res.status === 200 && r.body.mustChangePassword === true);
-  const changeToken = r.body.token;
-
-  r = await json(`${base}/api/portal/set-new-password`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${changeToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ newPassword: "Final-Portal-Pass-99" }),
-  });
-  assert("Forced new password saved", r.res.status === 200 && r.body.mustChangePassword === false);
+  assert("Reset link sets new password", r.res.status === 200);
 
   r = await json(`${base}/api/portal/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email: "apply-test@example.com", password: "Final-Portal-Pass-99" }),
   });
-  assert("Login with new password", r.res.status === 200 && !r.body.mustChangePassword);
+  assert("Login with new password", r.res.status === 200 && Boolean(r.body.token));
 
   r = await json(`${base}/api/admin/retail-stockists/${stockist.id}`, {
     method: "PATCH",

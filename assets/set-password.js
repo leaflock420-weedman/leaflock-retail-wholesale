@@ -14,84 +14,64 @@
   }
 
   const token = normalizeToken(params.get("token") || "");
-  const prefilledEmail = (params.get("email") || "").trim().toLowerCase();
   const form = document.getElementById("setPasswordForm");
   const error = document.getElementById("setPasswordError");
   const account = document.getElementById("setPasswordAccount");
   const lead = document.getElementById("setPasswordLead");
-  const emailInput = document.getElementById("setupEmail");
-  const codeInput = document.getElementById("setupCode");
-  const manualFields = document.getElementById("manualFields");
-
-  let linkMode = Boolean(token);
-  let accountEmail = prefilledEmail;
-
-  function showSupportResetMode(message) {
-    linkMode = false;
-    if (manualFields) manualFields.hidden = false;
-    if (lead) {
-      lead.textContent =
-        "Enter your account email, the support reset code from LeafLock, and a new password (at least 10 characters).";
-    }
-    if (error && message) {
-      error.hidden = false;
-      error.textContent = message;
-    }
-  }
+  const noToken = document.getElementById("setPasswordNoToken");
+  const submitBtn = document.getElementById("setPasswordSubmit");
 
   async function loadStatus() {
     if (!token) {
-      if (prefilledEmail && emailInput) emailInput.value = prefilledEmail;
+      if (noToken) noToken.hidden = false;
+      if (form) {
+        form.querySelectorAll("label").forEach((el) => {
+          el.hidden = true;
+        });
+      }
+      if (submitBtn) submitBtn.hidden = true;
+      if (lead) {
+        lead.textContent = "Use the reset link from your email, or request a new one.";
+      }
       return;
-    }
-
-    if (manualFields) manualFields.hidden = true;
-    linkMode = true;
-    if (lead) {
-      lead.textContent = "Choose a new password for your wholesale portal (at least 10 characters).";
     }
 
     try {
       const res = await fetch(`/api/portal/password-token-status?token=${encodeURIComponent(token)}`);
       const body = await res.json();
       if (!body.valid) {
-        showSupportResetMode("This reset link is no longer valid. Use the support reset code from LeafLock below.");
+        if (noToken) {
+          noToken.hidden = false;
+          noToken.textContent =
+            "This reset link has expired. Request a new one from the forgot password page.";
+        }
+        if (form) {
+          form.querySelectorAll("label").forEach((el) => {
+            el.hidden = true;
+          });
+        }
+        if (submitBtn) submitBtn.hidden = true;
         return;
       }
-      accountEmail = body.email || accountEmail;
       if (account) {
         account.hidden = false;
-        account.textContent = `Setting password for ${body.businessName} (${body.email})`;
+        account.textContent = `Resetting password for ${body.businessName} (${body.email})`;
       }
       if (lead) {
         lead.textContent = `Choose a new password for ${body.businessName}. At least 10 characters.`;
       }
     } catch {
-      /* keep password-only link mode */
+      /* allow submit attempt */
     }
   }
 
   form?.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const email = (accountEmail || emailInput?.value || "").trim().toLowerCase();
-    const code = (codeInput?.value || "").trim();
+    if (!token) return;
+
     const newPassword = document.getElementById("newPassword")?.value || "";
     const confirmPassword = document.getElementById("confirmPassword")?.value || "";
 
-    if (!linkMode && !email) {
-      if (error) {
-        error.hidden = false;
-        error.textContent = "Enter your wholesale account email.";
-      }
-      return;
-    }
-    if (!linkMode && !code) {
-      if (error) {
-        error.hidden = false;
-        error.textContent = "Enter the support reset code from LeafLock.";
-      }
-      return;
-    }
     if (newPassword.length < 10) {
       if (error) {
         error.hidden = false;
@@ -113,38 +93,25 @@
       btn.textContent = "Saving…";
     }
     try {
-      const payload = { password: newPassword };
-      if (linkMode && token) {
-        payload.token = token;
-      } else {
-        payload.email = email;
-        payload.code = code;
-      }
-
       const res = await fetch("/api/portal/set-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ token, password: newPassword }),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const message = body.error || "Could not save password";
-        if (token && /invalid|expired|support reset/i.test(message)) {
-          showSupportResetMode("This reset link did not work. Use the support reset code from LeafLock below.");
-        }
-        throw new Error(message);
-      }
-      if (body.token) {
-        sessionStorage.setItem("leaflock_portal_token", body.token);
+        throw new Error(body.error || "Could not save password");
       }
       if (account) {
         account.hidden = false;
         account.classList.add("form-success");
-        account.textContent = `Password saved for ${body.retailStockist?.email}. Opening portal…`;
+        account.textContent = `Password saved for ${body.retailStockist?.email}. Redirecting to sign in…`;
       }
       window.setTimeout(() => {
-        window.location.href = "portal.html";
-      }, 800);
+        const email = body.retailStockist?.email || "";
+        const qs = email ? `?email=${encodeURIComponent(email)}&passwordSet=1` : "?passwordSet=1";
+        window.location.href = `portal.html${qs}`;
+      }, 900);
     } catch (err) {
       if (error) {
         error.hidden = false;

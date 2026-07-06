@@ -191,23 +191,22 @@ async function rejectApplication(id) {
 }
 
 async function sendPasswordReset(id) {
-  if (!confirm("Email a temporary password to this stockist? They sign in with it, choose a new password, and they are done.")) {
+  if (!confirm("Email a password reset link to this stockist? They click it, choose a new password, then sign in.")) {
     return;
   }
   const result = await api(`/api/admin/retail-stockists/${id}/send-password-reset`, { method: "POST" });
   const email = result.retailStockist?.email || "stockist";
-  const temp = result.temporaryPassword || "";
-  const portalUrl = `${window.location.origin}/portal.html?email=${encodeURIComponent(email)}`;
+  const resetUrl = result.resetUrl || setupPasswordUrl(result.setupToken);
   if (result.emailSent) {
-    alert(`Temporary password emailed to ${email}. They sign in at the portal, then choose a new password.`);
-  } else if (temp) {
+    alert(`Reset link emailed to ${email}. They click it, set a new password, then sign in.`);
+  } else if (result.setupToken) {
     showLinkModal(
-      portalUrl,
-      `Temporary password — ${result.retailStockist?.businessName || email}`,
-      `SMTP did not send. Give ${email} this temporary password: ${temp}. They sign in at the portal link below, then choose a new password.`,
+      resetUrl,
+      `Password reset link — ${result.retailStockist?.businessName || email}`,
+      `SMTP did not send. Copy this reset link and send it to ${email}. They choose a new password, then sign in.`,
     );
     const copyBtn = document.getElementById("copyCodeBtn");
-    if (copyBtn) copyBtn.textContent = "Copy portal link";
+    if (copyBtn) copyBtn.textContent = "Copy reset link";
   } else {
     alert("Password reset failed. Try again.");
   }

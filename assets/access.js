@@ -33,7 +33,7 @@
   }
 
   function stockistFromBody(body) {
-    return body?.retailStockist  || null;
+    return body?.retailStockist || null;
   }
 
   async function portalFetch(path, options = {}) {
@@ -66,12 +66,14 @@
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) {
+      setToken(null);
+      sessionRetailStockist = null;
       throw new Error(body.error || "Invalid email or password");
     }
     setToken(body.token);
     sessionRetailStockist = stockistFromBody(body);
     clearPending();
-    return { retailStockist: sessionRetailStockist, mustChangePassword: Boolean(body.mustChangePassword) };
+    return sessionRetailStockist;
   }
 
   async function checkPortalApi() {
@@ -102,11 +104,10 @@
     try {
       const data = await portalFetch("/api/portal/session");
       sessionRetailStockist = stockistFromBody(data);
-      return {
-        retailStockist: sessionRetailStockist,
-        mustChangePassword: Boolean(data.mustChangePassword),
-      };
+      return sessionRetailStockist;
     } catch {
+      setToken(null);
+      sessionRetailStockist = null;
       return null;
     }
   }
@@ -146,44 +147,33 @@
         clearPending();
         setPendingNote(
           status.canLogin
-            ? "Your account is approved. Sign in with your email and the password you chose when you applied."
+            ? "Your account is approved. Sign in with your email and password."
             : "Your account is approved. Use Forgot password to set a new password, then sign in.",
         );
         return;
       }
       if (status.pending || isPending()) {
         setPendingNote(
-          "Your application is under review. We'll email you when it's approved — then sign in with your email and password.",
+          "Your application is under review. We'll email you when it's approved.",
         );
         return;
       }
       setPendingNote("");
     } catch {
       if (isPending()) {
-        setPendingNote(
-          "Your application is under review. We'll email you when it's approved — then sign in with your email and password.",
-        );
+        setPendingNote("Your application is under review. We'll email you when it's approved.");
       }
     }
   }
 
-  function showRequiredPasswordForm(show) {
-    const loginForm = document.getElementById("accessLoginForm");
-    const requiredForm = document.getElementById("requiredPasswordForm");
-    if (loginForm) loginForm.hidden = Boolean(show);
-    if (requiredForm) requiredForm.hidden = !show;
-  }
-
-  function protectGatedContent(options = {}) {
+  function protectGatedContent() {
     const gate = document.getElementById("accessGate");
     const content = document.getElementById("gatedContent");
     const sessionLabel = document.getElementById("portalSessionLabel");
     const accountPanel = document.getElementById("portalAccountPanel");
-    const mustChangePassword = Boolean(options.mustChangePassword);
     if (!gate || !content) return;
 
-    if (isApproved() && sessionRetailStockist && !mustChangePassword) {
-      showRequiredPasswordForm(false);
+    if (isApproved() && sessionRetailStockist) {
       gate.hidden = true;
       content.hidden = false;
       setPendingNote("");
@@ -197,12 +187,6 @@
     gate.hidden = false;
     content.hidden = true;
     if (accountPanel) accountPanel.hidden = true;
-    if (isApproved() && sessionRetailStockist && mustChangePassword) {
-      showRequiredPasswordForm(true);
-      setPendingNote("");
-      return;
-    }
-    showRequiredPasswordForm(false);
   }
 
   function bindAccessForm() {
@@ -224,8 +208,8 @@
       error.hidden = false;
       error.classList.add("form-success");
       error.textContent = prefilledEmail
-        ? `Password saved. Sign in with ${prefilledEmail} and the password you just created.`
-        : "Password saved. Sign in with your store email and the password you just created.";
+        ? `Password saved. Sign in with ${prefilledEmail} and your new password.`
+        : "Password saved. Sign in with your email and new password.";
     }
 
     form.addEventListener("submit", async (event) => {
@@ -238,21 +222,18 @@
         btn.textContent = "Signing in…";
       }
       try {
-        const result = await loginWithCredentials(email, password);
+        await loginWithCredentials(email, password);
         if (error) error.hidden = true;
-        if (result.mustChangePassword) {
-          protectGatedContent({ mustChangePassword: true });
-          return;
-        }
         protectGatedContent();
         document.dispatchEvent(new CustomEvent("leaflock:portal-login"));
       } catch (err) {
+        protectGatedContent();
         if (error) {
           error.hidden = false;
           error.classList.remove("form-success");
           error.textContent =
             err.message === "Invalid email or password"
-              ? "Invalid email or password. Use the email and password from your application. Try Forgot password if needed."
+              ? "Invalid email or password. Try Forgot password to get a reset link by email."
               : err.message || "Login failed. Please try again or email info@leaflock.com.au.";
         }
       } finally {
@@ -267,63 +248,6 @@
       await logout();
       protectGatedContent();
       document.dispatchEvent(new CustomEvent("leaflock:portal-logout"));
-    });
-  }
-
-  function bindRequiredPasswordForm() {
-    const form = document.getElementById("requiredPasswordForm");
-    const error = document.getElementById("requiredPasswordError");
-    if (!form) return;
-
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const newPassword = document.getElementById("requiredNewPassword")?.value || "";
-      const confirm = document.getElementById("requiredConfirmPassword")?.value || "";
-      if (newPassword.length < 10) {
-        if (error) {
-          error.hidden = false;
-          error.textContent = "Password must be at least 10 characters.";
-        }
-        return;
-      }
-      if (newPassword !== confirm) {
-        if (error) {
-          error.hidden = false;
-          error.textContent = "Passwords do not match.";
-        }
-        return;
-      }
-      const btn = form.querySelector('button[type="submit"]');
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = "Saving…";
-      }
-      try {
-        const data = await portalFetch("/api/portal/set-new-password", {
-          method: "POST",
-          body: JSON.stringify({ newPassword }),
-        });
-        if (data.token) setToken(data.token);
-        sessionRetailStockist = stockistFromBody(data);
-        if (error) {
-          error.hidden = false;
-          error.classList.add("form-success");
-          error.textContent = "Password saved. Opening portal…";
-        }
-        protectGatedContent();
-        document.dispatchEvent(new CustomEvent("leaflock:portal-login"));
-      } catch (err) {
-        if (error) {
-          error.hidden = false;
-          error.classList.remove("form-success");
-          error.textContent = err.message || "Could not save password.";
-        }
-      } finally {
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = "Save new password";
-        }
-      }
     });
   }
 
@@ -397,9 +321,8 @@
 
   async function boot() {
     await checkPortalApi();
-    const session = await restoreSession();
-    protectGatedContent({ mustChangePassword: session?.mustChangePassword });
-    bindRequiredPasswordForm();
+    await restoreSession();
+    protectGatedContent();
     bindAccountPanel();
     const emailInput = document.getElementById("portalEmail");
     if (emailInput?.value || isPending()) {

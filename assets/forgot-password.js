@@ -9,7 +9,7 @@
     const btn = form.querySelector('button[type="submit"]');
     if (btn) {
       btn.disabled = true;
-      btn.textContent = "Sending email…";
+      btn.textContent = "Sending…";
     }
     if (error) error.hidden = true;
     try {
@@ -24,7 +24,7 @@
         message.hidden = false;
         message.textContent =
           body.message ||
-          "If that email has an active account, a temporary password has been emailed. Sign in, then choose your new password.";
+          "If that email has an active account, a reset link has been emailed. Click it to choose a new password.";
       }
       form.reset();
     } catch (err) {
@@ -35,7 +35,7 @@
     } finally {
       if (btn) {
         btn.disabled = false;
-        btn.textContent = "Email temporary password";
+        btn.textContent = "Send reset link";
       }
     }
   });

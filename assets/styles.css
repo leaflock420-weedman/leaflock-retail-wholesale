@@ -378,6 +378,10 @@ h3 {
   gap: 18px;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .product-card,
 .checkout-card,
 .portal-card,
