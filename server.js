@@ -90,6 +90,7 @@ const {
   backupAllProtectedFiles,
   mergeSnapshotIntoLiveData,
 } = require("./lib/data-backup");
+const { DATA_DIR } = require("./lib/data-dir");
 const {
   createOrder,
   findOrder,
@@ -903,7 +904,8 @@ app.get("/api/admin/setup-status", adminAuth, (req, res) => {
     adminPasswordFromEnv: Boolean(process.env.ANALYTICS_ADMIN_PASSWORD),
     portalSessionSecret: Boolean(process.env.PORTAL_SESSION_SECRET),
     adminSessionSecret: Boolean(process.env.ADMIN_SESSION_SECRET || process.env.PORTAL_SESSION_SECRET),
-    dataDir: process.env.DATA_DIR || "data/",
+    dataDir: DATA_DIR,
+    dataDirEnv: process.env.DATA_DIR || null,
     complianceDocuments: documentsReady(),
     httpsOnly: Boolean(process.env.NODE_ENV === "production" || process.env.RENDER),
     catalogItems: catalogForPortal().reduce((n, cat) => n + cat.items.length, 0),
