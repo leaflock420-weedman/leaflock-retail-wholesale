@@ -191,20 +191,35 @@ async function rejectApplication(id) {
 }
 
 async function sendPasswordReset(id) {
-  const list = await api("/api/admin/retail-stockists");
-  const stockist = (list.retailStockists || []).find((p) => p.id === id);
-  if (!stockist) return;
-  const info = await api("/api/admin/portal-reset-info");
-  const resetUrl = `${window.location.origin}/set-password.html?email=${encodeURIComponent(stockist.email)}`;
-  const code = info.masterResetCode || "(not configured — set PORTAL_MASTER_RESET_CODE on Render)";
-  showLinkModal(
-    resetUrl,
-    `Password reset — ${stockist.businessName || stockist.email}`,
-    `Tell ${stockist.email} to open the reset page, enter their email, support code ${code}, and a new password. They can sign in immediately — no approval needed.`,
-  );
-  const modal = document.getElementById("codeModal");
-  const copyBtn = document.getElementById("copyCodeBtn");
-  if (copyBtn) copyBtn.textContent = "Copy reset page link";
+  if (!confirm("Email a temporary password to this stockist? They sign in with it, choose a new password, and they are done.")) {
+    return;
+  }
+  const result = await api(`/api/admin/retail-stockists/${id}/send-password-reset`, { method: "POST" });
+  const email = result.retailStockist?.email || "stockist";
+  const temp = result.temporaryPassword || "";
+  const portalUrl = `${window.location.origin}/portal.html?email=${encodeURIComponent(email)}`;
+  if (result.emailSent) {
+    alert(`Temporary password emailed to ${email}. They sign in at the portal, then choose a new password.`);
+  } else if (temp) {
+    showLinkModal(
+      portalUrl,
+      `Temporary password — ${result.retailStockist?.businessName || email}`,
+      `SMTP did not send. Give ${email} this temporary password: ${temp}. They sign in at the portal link below, then choose a new password.`,
+    );
+    const copyBtn = document.getElementById("copyCodeBtn");
+    if (copyBtn) copyBtn.textContent = "Copy portal link";
+  } else {
+    alert("Password reset failed. Try again.");
+  }
+  await refreshWholesale();
+}
+
+async function removeRetailStockist(id, businessName) {
+  if (!confirm(`Remove ${businessName || "this stockist"} permanently? They will disappear from this list and cannot sign in.`)) {
+    return;
+  }
+  await api(`/api/admin/retail-stockists/${id}`, { method: "DELETE" });
+  await refreshWholesale();
 }
 
 async function toggleRetailStockistStatus(id, currentStatus) {
@@ -318,10 +333,15 @@ async function refreshWholesale() {
   }
 
   const pharmBody = document.getElementById("retailStockistsTable");
+  const stockists = (stockistList.retailStockists || stockistList.pharmacies || []).filter(
+    (p) => p.status !== "deleted",
+  );
+  const showInactive = document.getElementById("showInactiveStockists")?.checked;
+  const visibleStockists = showInactive ? stockists : stockists.filter((p) => p.status === "active");
   renderTable(
     pharmBody,
-    stockistList.retailStockists || stockistList.pharmacies || [],
-    (p) => `<tr>
+    visibleStockists,
+    (p) => `<tr class="${p.status === "inactive" ? "row-muted" : ""}">
       <td>${p.businessName}</td>
       <td>${p.email}</td>
       <td><span class="badge badge--${p.status}">${p.status}</span></td>
@@ -330,6 +350,7 @@ async function refreshWholesale() {
       <td class="actions-cell">
         <button class="btn-inline" data-action="reset-password" data-id="${p.id}">Reset password</button>
         <button class="btn-inline btn-muted" data-action="toggle-status" data-id="${p.id}" data-status="${p.status}">${p.status === "active" ? "Deactivate" : "Activate"}</button>
+        <button class="btn-inline btn-muted" data-action="remove-stockist" data-id="${p.id}" data-name="${p.businessName}">Remove</button>
       </td>
     </tr>`,
   );
@@ -388,6 +409,7 @@ document.getElementById("tabWholesale")?.addEventListener("click", async (event)
     else if (action === "reject-app") await rejectApplication(id);
     else if (action === "reset-password") await sendPasswordReset(id);
     else if (action === "toggle-status") await toggleRetailStockistStatus(id, btn.dataset.status);
+    else if (action === "remove-stockist") await removeRetailStockist(id, btn.dataset.name);
   } catch (err) {
     alert(err.message || "Action failed");
   }
@@ -692,6 +714,7 @@ document.getElementById("postageQuoteBtn")?.addEventListener("click", async () =
 });
 
 document.getElementById("refreshWholesaleBtn")?.addEventListener("click", refreshWholesale);
+document.getElementById("showInactiveStockists")?.addEventListener("change", refreshWholesale);
 document.getElementById("refreshOrderPreviewBtn")?.addEventListener("click", refreshOrderPreview);
 document.getElementById("addRetailStockistBtn")?.addEventListener("click", openAddStockistModal);
 document.getElementById("addStockistForm")?.addEventListener("submit", submitAddStockistForm);

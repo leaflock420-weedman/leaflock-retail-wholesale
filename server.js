@@ -35,6 +35,7 @@ const {
   sendDailyReport,
   notifyAdminNewApplication,
   notifyRetailStockistApproved,
+  notifyTemporaryPasswordReset,
   notifyPasswordReset,
   sendCompliancePack,
   notifyOrderConfirmation,
@@ -69,6 +70,8 @@ const {
   rejectApplication,
   createRetailStockist,
   sendPasswordReset,
+  completeRequiredPasswordChange,
+  adminRemoveRetailStockist,
   setPasswordWithToken,
   setPasswordForStockist,
   adminSetStockistPassword,
@@ -368,7 +371,11 @@ app.post("/api/portal/login", (req, res) => {
 
     const publicInfo = recordLogin(retailStockist.id, clientMeta(req));
     const token = createPortalToken(retailStockist.id);
-    res.json({ token, retailStockist: publicInfo });
+    res.json({
+      token,
+      retailStockist: publicInfo,
+      mustChangePassword: Boolean(retailStockist.mustChangePassword),
+    });
   } catch (err) {
     console.error("[portal] login failed:", err);
     res.status(500).json({ error: "Portal login unavailable. Try again shortly." });
@@ -385,29 +392,20 @@ app.post("/api/portal/forgot-password", async (req, res) => {
   const retailStockist = findByEmail(email);
   if (retailStockist) {
     const result = sendPasswordReset(retailStockist.id);
-    if (result?.setupToken) {
-      const notify = retailStockist.passwordHash ? notifyPasswordReset : notifyRetailStockistApproved;
-      const payload = retailStockist.passwordHash
-        ? {
-            retailStockist: result.retailStockist,
-            resetToken: result.setupToken,
-            setupCode: result.setupCode,
-          }
-        : {
-            app: {
-              fullName: retailStockist.contactName || retailStockist.businessName,
-              businessName: retailStockist.businessName,
-              email: retailStockist.email,
-            },
-            setupToken: result.setupToken,
-            setupCode: result.setupCode,
-          };
-      notify(payload).catch((err) => {
+    if (result?.temporaryPassword) {
+      notifyTemporaryPasswordReset({
+        retailStockist: result.retailStockist,
+        temporaryPassword: result.temporaryPassword,
+      }).catch((err) => {
         console.warn("[mail] password reset:", err.message);
       });
     }
   }
-  res.json({ ok: true, message: "If that email has an account, a reset link has been sent." });
+  res.json({
+    ok: true,
+    message:
+      "If that email has an active account, a temporary password has been emailed. Sign in, then choose your new password.",
+  });
 });
 
 app.post("/api/portal/set-password", (req, res) => {
@@ -452,6 +450,23 @@ app.get("/api/portal/password-token-status", (req, res) => {
   });
 });
 
+app.post("/api/portal/set-new-password", portalAuth, (req, res) => {
+  if (!req.portalRetailStockist.mustChangePassword) {
+    return res.status(400).json({ error: "Password change not required" });
+  }
+  const newPassword = String(req.body?.newPassword || req.body?.password || "");
+  if (!newPassword) return res.status(400).json({ error: "New password required" });
+  const result = completeRequiredPasswordChange(req.portalRetailStockist.id, newPassword);
+  if (!result) return res.status(500).json({ error: "Could not save password" });
+  if (result.error === "save_failed") {
+    return res.status(500).json({ error: "Password could not be saved. Try again." });
+  }
+  if (result.error) return res.status(400).json({ error: result.error });
+  revokePortalToken(req.portalToken);
+  const token = createPortalToken(req.portalRetailStockist.id);
+  res.json({ ok: true, token, retailStockist: result.retailStockist, mustChangePassword: false });
+});
+
 app.post("/api/portal/change-password", portalAuth, (req, res) => {
   const { currentPassword, newPassword } = req.body || {};
   if (!currentPassword || !newPassword) {
@@ -488,7 +503,10 @@ app.get("/api/portal/bank-details", portalAuth, (req, res) => {
 });
 
 app.get("/api/portal/session", portalAuth, (req, res) => {
-  res.json({ retailStockist: publicRetailStockist(req.portalRetailStockist) });
+  res.json({
+    retailStockist: publicRetailStockist(req.portalRetailStockist),
+    mustChangePassword: Boolean(req.portalRetailStockist.mustChangePassword),
+  });
 });
 
 app.post("/api/portal/logout", portalAuth, (req, res) => {
@@ -1092,16 +1110,24 @@ app.post("/api/admin/retail-stockists/:id/send-password-reset", adminAuth, async
   const result = sendPasswordReset(req.params.id);
   if (!result) return res.status(404).json({ error: "Retail stockist not found" });
   try {
-    result.emailSent = await notifyPasswordReset({
+    result.emailSent = await notifyTemporaryPasswordReset({
       retailStockist: result.retailStockist,
-      resetToken: result.setupToken,
-      setupCode: result.setupCode,
+      temporaryPassword: result.temporaryPassword,
     });
   } catch (err) {
     console.warn("[mail] admin password reset:", err.message);
     result.emailSent = false;
   }
-  res.json(asRetailStockistPayload(result));
+  res.json(result);
+});
+
+app.delete("/api/admin/retail-stockists/:id", adminAuth, (req, res) => {
+  const result = adminRemoveRetailStockist(req.params.id);
+  if (!result) return res.status(404).json({ error: "Retail stockist not found" });
+  if (result.error === "demo_account") {
+    return res.status(400).json({ error: "Demo account cannot be removed" });
+  }
+  res.json(result);
 });
 
 app.patch("/api/admin/retail-stockists/:id", adminAuth, (req, res) => {

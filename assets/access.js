@@ -71,7 +71,7 @@
     setToken(body.token);
     sessionRetailStockist = stockistFromBody(body);
     clearPending();
-    return sessionRetailStockist;
+    return { retailStockist: sessionRetailStockist, mustChangePassword: Boolean(body.mustChangePassword) };
   }
 
   async function checkPortalApi() {
@@ -102,7 +102,10 @@
     try {
       const data = await portalFetch("/api/portal/session");
       sessionRetailStockist = stockistFromBody(data);
-      return sessionRetailStockist;
+      return {
+        retailStockist: sessionRetailStockist,
+        mustChangePassword: Boolean(data.mustChangePassword),
+      };
     } catch {
       return null;
     }
@@ -164,14 +167,23 @@
     }
   }
 
-  function protectGatedContent() {
+  function showRequiredPasswordForm(show) {
+    const loginForm = document.getElementById("accessLoginForm");
+    const requiredForm = document.getElementById("requiredPasswordForm");
+    if (loginForm) loginForm.hidden = Boolean(show);
+    if (requiredForm) requiredForm.hidden = !show;
+  }
+
+  function protectGatedContent(options = {}) {
     const gate = document.getElementById("accessGate");
     const content = document.getElementById("gatedContent");
     const sessionLabel = document.getElementById("portalSessionLabel");
     const accountPanel = document.getElementById("portalAccountPanel");
+    const mustChangePassword = Boolean(options.mustChangePassword);
     if (!gate || !content) return;
 
-    if (isApproved() && sessionRetailStockist) {
+    if (isApproved() && sessionRetailStockist && !mustChangePassword) {
+      showRequiredPasswordForm(false);
       gate.hidden = true;
       content.hidden = false;
       setPendingNote("");
@@ -185,6 +197,12 @@
     gate.hidden = false;
     content.hidden = true;
     if (accountPanel) accountPanel.hidden = true;
+    if (isApproved() && sessionRetailStockist && mustChangePassword) {
+      showRequiredPasswordForm(true);
+      setPendingNote("");
+      return;
+    }
+    showRequiredPasswordForm(false);
   }
 
   function bindAccessForm() {
@@ -220,8 +238,12 @@
         btn.textContent = "Signing in…";
       }
       try {
-        await loginWithCredentials(email, password);
+        const result = await loginWithCredentials(email, password);
         if (error) error.hidden = true;
+        if (result.mustChangePassword) {
+          protectGatedContent({ mustChangePassword: true });
+          return;
+        }
         protectGatedContent();
         document.dispatchEvent(new CustomEvent("leaflock:portal-login"));
       } catch (err) {
@@ -245,6 +267,63 @@
       await logout();
       protectGatedContent();
       document.dispatchEvent(new CustomEvent("leaflock:portal-logout"));
+    });
+  }
+
+  function bindRequiredPasswordForm() {
+    const form = document.getElementById("requiredPasswordForm");
+    const error = document.getElementById("requiredPasswordError");
+    if (!form) return;
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const newPassword = document.getElementById("requiredNewPassword")?.value || "";
+      const confirm = document.getElementById("requiredConfirmPassword")?.value || "";
+      if (newPassword.length < 10) {
+        if (error) {
+          error.hidden = false;
+          error.textContent = "Password must be at least 10 characters.";
+        }
+        return;
+      }
+      if (newPassword !== confirm) {
+        if (error) {
+          error.hidden = false;
+          error.textContent = "Passwords do not match.";
+        }
+        return;
+      }
+      const btn = form.querySelector('button[type="submit"]');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Saving…";
+      }
+      try {
+        const data = await portalFetch("/api/portal/set-new-password", {
+          method: "POST",
+          body: JSON.stringify({ newPassword }),
+        });
+        if (data.token) setToken(data.token);
+        sessionRetailStockist = stockistFromBody(data);
+        if (error) {
+          error.hidden = false;
+          error.classList.add("form-success");
+          error.textContent = "Password saved. Opening portal…";
+        }
+        protectGatedContent();
+        document.dispatchEvent(new CustomEvent("leaflock:portal-login"));
+      } catch (err) {
+        if (error) {
+          error.hidden = false;
+          error.classList.remove("form-success");
+          error.textContent = err.message || "Could not save password.";
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "Save new password";
+        }
+      }
     });
   }
 
@@ -318,8 +397,9 @@
 
   async function boot() {
     await checkPortalApi();
-    await restoreSession();
-    protectGatedContent();
+    const session = await restoreSession();
+    protectGatedContent({ mustChangePassword: session?.mustChangePassword });
+    bindRequiredPasswordForm();
     bindAccountPanel();
     const emailInput = document.getElementById("portalEmail");
     if (emailInput?.value || isPending()) {

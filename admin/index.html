@@ -153,7 +153,8 @@
             <h2>Retail stockist accounts</h2>
             <button type="button" id="addRetailStockistBtn" class="btn-secondary btn-small">Add retail stockist</button>
           </div>
-          <p class="foot-note">Approved stockists log in at <a href="/portal.html" target="_blank" rel="noopener">portal</a>. Use <strong>Reset password</strong> to send a new setup link (e.g. Cannalicious).</p>
+          <label class="foot-note"><input type="checkbox" id="showInactiveStockists"> Show deactivated accounts</label>
+          <p class="foot-note">Approved stockists log in at <a href="/portal.html" target="_blank" rel="noopener">portal</a>. <strong>Reset password</strong> emails a temporary password — they sign in, choose a new password, done. <strong>Deactivate</strong> blocks login but keeps the account. <strong>Remove</strong> deletes the account from this list.</p>
           <div class="table-scroll">
             <table class="data-table data-table--wide">
               <thead>
@@ -315,6 +316,6 @@
       </div>
     </div>
 
-    <script src="admin.js?v=20260706k"></script>
+    <script src="admin.js?v=20260706l"></script>
   </body>
 </html>

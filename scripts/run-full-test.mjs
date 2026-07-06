@@ -105,7 +105,6 @@ const env = {
   ADMIN_SESSION_SECRET: "test-admin-secret-full",
   DEMO_PORTAL_PASSWORD: "Demo-Test-Pass-2026!",
   GUMMY_CHECKOUT_ACCESS_KEY: "test-gummy-checkout-key",
-  PORTAL_MASTER_RESET_CODE: "TEST-MASTER-RESET-99",
 };
 
 const serverProc = spawn("node", ["server.js"], {
@@ -276,26 +275,57 @@ try {
   const oldKeyStillWorks = await json(`${base}/api/public/gummy-checkout/pricing?key=${stockistKey}`);
   assert("Old stockist key revoked", oldKeyStillWorks.res.status === 403);
 
-  r = await json(`${base}/api/portal/set-password`, {
+  r = await json(`${base}/api/admin/retail-stockists/${stockist.id}/send-password-reset`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      email: "apply-test@example.com",
-      code: env.PORTAL_MASTER_RESET_CODE,
-      password: "Master-Reset-Pass-99",
-    }),
+    headers: { Authorization: `Bearer ${adminToken}` },
   });
-  assert("Master support code resets password", r.res.status === 200, JSON.stringify(r.body));
+  assert("Admin temp password reset", r.res.status === 200 && Boolean(r.body.temporaryPassword));
+  const tempPassword = r.body.temporaryPassword;
 
   r = await json(`${base}/api/portal/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      email: "apply-test@example.com",
-      password: "Master-Reset-Pass-99",
-    }),
+    body: JSON.stringify({ email: "apply-test@example.com", password: tempPassword }),
   });
-  assert("Login works after master reset", r.res.status === 200, JSON.stringify(r.body));
+  assert("Login with temporary password", r.res.status === 200 && r.body.mustChangePassword === true);
+  const changeToken = r.body.token;
+
+  r = await json(`${base}/api/portal/set-new-password`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${changeToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ newPassword: "Final-Portal-Pass-99" }),
+  });
+  assert("Forced new password saved", r.res.status === 200 && r.body.mustChangePassword === false);
+
+  r = await json(`${base}/api/portal/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: "apply-test@example.com", password: "Final-Portal-Pass-99" }),
+  });
+  assert("Login with new password", r.res.status === 200 && !r.body.mustChangePassword);
+
+  r = await json(`${base}/api/admin/retail-stockists/${stockist.id}`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ status: "inactive" }),
+  });
+  assert("Deactivate stockist", r.res.status === 200 && r.body.retailStockist?.status === "inactive");
+
+  r = await json(`${base}/api/portal/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: "apply-test@example.com", password: "Final-Portal-Pass-99" }),
+  });
+  assert("Inactive stockist cannot login", r.res.status === 401);
+
+  await json(`${base}/api/admin/retail-stockists/${stockist.id}`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ status: "active" }),
+  });
 } finally {
   serverProc.kill("SIGTERM");
   await new Promise((r) => setTimeout(r, 400));
