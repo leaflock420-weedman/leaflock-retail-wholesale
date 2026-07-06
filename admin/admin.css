@@ -334,6 +334,14 @@
   color: var(--ink);
 }
 
+.data-table td small {
+  color: var(--muted);
+}
+
+tr.row-pending td small {
+  color: rgba(15, 17, 16, 0.72);
+}
+
 .data-table th {
   color: var(--muted);
   font-size: 0.78rem;
@@ -504,7 +512,12 @@
 }
 
 tr.row-pending {
-  background: #fffdf5;
+  background: rgba(255, 229, 102, 0.14);
+}
+
+tr.row-pending td,
+tr.row-pending td small {
+  color: var(--ink-on-light);
 }
 
 .btn-approve {
@@ -512,8 +525,9 @@ tr.row-pending {
 }
 
 .badge--pending {
-  background: rgba(255, 229, 102, 0.16);
-  color: #ffe566;
+  background: rgba(255, 229, 102, 0.35);
+  color: #5c4500;
+  font-weight: 700;
 }
 
 .badge--approved,
