@@ -1,5 +1,5 @@
 {
-  "exportedAt": 1783331605236,
+  "exportedAt": 1783332300472,
   "dataDir": "/opt/render/project/src/data",
   "files": {
     "applications.json": {
@@ -50,8 +50,8 @@
           "email": "demo@leaflock.com.au",
           "status": "active",
           "passwordHash": {
-            "salt": "c57eb28cc92501c76c204edc58bc5c63",
-            "hash": "47b3bb08e7202b62643edd97717c46d7374e5567cab1e57c06a6653f56d1ae13e3712e5b3251e42485696d0fe19377172ada86c6837542ebc5a27545df7049c7"
+            "salt": "adc857eabc200c22cae765191f693229",
+            "hash": "25d5ff23bb3f75b6392683cba2da543eb21605186aeaaab9310568d2b8b90f7d8234a4e1d9f66d263077a94acf5c1cec11606545c1870144086cdb254bb0e211"
           },
           "accessCodeHash": null,
           "abn": "12 345 678 901",
@@ -68,7 +68,8 @@
           "passwordTokenHash": null,
           "passwordSetupCodeHash": null,
           "passwordTokenExpiresAt": null,
-          "passwordTokenPurpose": null
+          "passwordTokenPurpose": null,
+          "passwordSetAt": 1783331713391
         },
         {
           "id": "pharm_1783057146391_cdafd657",
@@ -149,10 +150,10 @@
           "loginCount": 0,
           "applicationId": "app_1783327018660_77a89062",
           "checkoutAccessKey": "jR1t9-tvy82xYjKvn_pJXGmY",
-          "passwordTokenHash": "0dc93987c692effbf5955e018bba37fd984affb80fdaa486a31c9362b73cb1f4",
-          "passwordTokenExpiresAt": 1783504020117,
+          "passwordTokenHash": "6729c883e3541fc243da58b33bebe65d15fe2d921dfbbb7b1ba61c6c4001227e",
+          "passwordTokenExpiresAt": 1783504987060,
           "passwordTokenPurpose": "reset",
-          "passwordSetupCodeHash": "0e6d886e423cb1fbfaad3096005c820a7d74162d49ecc783e783be8e8c460c2b",
+          "passwordSetupCodeHash": "50da4c69a1fc564158da3532b3f6e9761d0410461a2ce1f1ea3b6a2acb0a96a7",
           "passwordSetAt": 1783329785731
         }
       ]
@@ -446,6 +447,46 @@
           "ip": "124.176.36.161",
           "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
           "success": true
+        },
+        {
+          "id": "login_1783331825057_902291c1",
+          "retailStockistId": null,
+          "businessName": null,
+          "ts": 1783331825057,
+          "ip": "124.176.36.161",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+          "success": false,
+          "emailAttempt": "se…@gmail.com"
+        },
+        {
+          "id": "login_1783331833783_7273f409",
+          "retailStockistId": null,
+          "businessName": null,
+          "ts": 1783331833783,
+          "ip": "124.176.36.161",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+          "success": false,
+          "emailAttempt": "se…@gmail.com"
+        },
+        {
+          "id": "login_1783331885082_5a037abd",
+          "retailStockistId": null,
+          "businessName": null,
+          "ts": 1783331885082,
+          "ip": "124.176.36.161",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+          "success": false,
+          "emailAttempt": "se…@gmail.com"
+        },
+        {
+          "id": "login_1783332187377_2c27a2de",
+          "retailStockistId": null,
+          "businessName": null,
+          "ts": 1783332187377,
+          "ip": "124.176.36.161",
+          "userAgent": "node",
+          "success": false,
+          "emailAttempt": "se…@gmail.com"
         }
       ]
     },
@@ -700,6 +741,61 @@
         "referrer": "https://www.wholesale.leaflock.com.au/set-password.html?email=secretsolutions2016%40gmail.com",
         "utm": {},
         "sessionId": "3712ea60-a123-4af8-b728-09b9ee417a93",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36"
+      },
+      {
+        "id": "1783331783885-fsbnhwp",
+        "ts": 1783331784042,
+        "type": "pageview",
+        "path": "/set-password.html?email=secretsolutions2016%40gmail.com",
+        "referrer": "android-app://com.google.android.gm/",
+        "utm": {},
+        "sessionId": "3712ea60-a123-4af8-b728-09b9ee417a93",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36"
+      },
+      {
+        "id": "1783331890912-k0b6uuf",
+        "ts": 1783331892174,
+        "type": "pageview",
+        "path": "/forgot-password.html",
+        "referrer": "https://www.wholesale.leaflock.com.au/portal.html",
+        "utm": {},
+        "sessionId": "79c0ed92-018a-45c7-843f-99fe8fc9baec",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+      },
+      {
+        "id": "1783331893777-0vcn0qu",
+        "ts": 1783331895050,
+        "type": "pageview",
+        "path": "/set-password.html",
+        "referrer": "https://www.wholesale.leaflock.com.au/forgot-password.html",
+        "utm": {},
+        "sessionId": "79c0ed92-018a-45c7-843f-99fe8fc9baec",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+      },
+      {
+        "id": "1783332273759-rxvc65n",
+        "ts": 1783332273922,
+        "type": "pageview",
+        "path": "/set-password.html?token=7_f64SCXmqjk-pllw0rG1B8-9nfKeJpnLrI4yYqaGUE",
+        "referrer": "android-app://com.google.android.gm/",
+        "utm": {},
+        "sessionId": "d0e53918-8233-4d00-8db8-9810b27a30c3",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36"
+      },
+      {
+        "id": "1783332286062-vvi0k6m",
+        "ts": 1783332286232,
+        "type": "pageview",
+        "path": "/set-password.html?token=7_f64SCXmqjk-pllw0rG1B8-9nfKeJpnLrI4yYqaGUE",
+        "referrer": "android-app://com.google.android.gm/",
+        "utm": {},
+        "sessionId": "7ac2ce7a-4a5e-4b9b-9db2-0ee4336f8e66",
         "eventName": null,
         "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36"
       }
