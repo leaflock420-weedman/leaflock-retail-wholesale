@@ -1,6 +1,6 @@
 (function () {
   const params = new URLSearchParams(window.location.search);
-  const token = params.get("token") || "";
+  const token = (params.get("token") || "").trim();
   const form = document.getElementById("setPasswordForm");
   const error = document.getElementById("setPasswordError");
   const account = document.getElementById("setPasswordAccount");
@@ -61,17 +61,17 @@
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error || "Could not save password");
-      const email = encodeURIComponent(body.retailStockist?.email || "");
+      if (body.token) {
+        sessionStorage.setItem("leaflock_portal_token", body.token);
+      }
       if (account) {
         account.hidden = false;
         account.classList.add("form-success");
-        account.textContent = `Password saved for ${body.retailStockist?.businessName || "your account"}. Redirecting to sign in…`;
+        account.textContent = `Password saved for ${body.retailStockist?.businessName || "your account"} (${body.retailStockist?.email || ""}). Opening portal…`;
       }
       window.setTimeout(() => {
-        window.location.href = email
-          ? `portal.html?passwordSet=1&email=${email}`
-          : "portal.html?passwordSet=1";
-      }, 1200);
+        window.location.href = body.token ? "portal.html" : "portal.html?passwordSet=1";
+      }, 900);
     } catch (err) {
       if (error) {
         error.hidden = false;

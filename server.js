@@ -323,7 +323,8 @@ app.post("/api/portal/login", (req, res) => {
     const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
     const { email, password } = req.body || {};
     const normalizedEmail = String(email || "").trim().toLowerCase();
-    if (!normalizedEmail || !password) {
+    const loginPassword = String(password || "");
+    if (!normalizedEmail || !loginPassword) {
       return res.status(400).json({ error: "Email and password required" });
     }
     if (!rateLimitLogin(`portal:${ip}:${normalizedEmail}`)) {
@@ -331,7 +332,7 @@ app.post("/api/portal/login", (req, res) => {
     }
 
     const retailStockist = findByEmail(normalizedEmail);
-    if (!retailStockist || !retailStockist.passwordHash || !verifyPassword(password, retailStockist.passwordHash)) {
+    if (!retailStockist || !retailStockist.passwordHash || !verifyPassword(loginPassword, retailStockist.passwordHash)) {
       recordFailedEmailLogin(normalizedEmail, clientMeta(req));
       return res.status(401).json({ error: "Invalid email or password" });
     }
@@ -376,7 +377,8 @@ app.post("/api/portal/forgot-password", async (req, res) => {
 });
 
 app.post("/api/portal/set-password", (req, res) => {
-  const { token, password } = req.body || {};
+  const token = String(req.body?.token || "").trim();
+  const password = String(req.body?.password || "");
   if (!token || !password) {
     return res.status(400).json({ error: "Token and password required" });
   }
@@ -385,8 +387,13 @@ app.post("/api/portal/set-password", (req, res) => {
   if (result.error === "invalid_or_expired_token") {
     return res.status(400).json({ error: "This link is invalid or has expired. Request a new reset link." });
   }
+  if (result.error === "save_failed") {
+    return res.status(500).json({ error: "Password could not be saved. Request a new reset link and try again." });
+  }
   if (result.error) return res.status(400).json({ error: result.error });
-  res.json({ ok: true, retailStockist: result.retailStockist });
+  const publicInfo = recordLogin(result.retailStockist.id, clientMeta(req)) || result.retailStockist;
+  const portalToken = createPortalToken(result.retailStockist.id);
+  res.json({ ok: true, retailStockist: publicInfo, token: portalToken });
 });
 
 app.get("/api/portal/password-token-status", (req, res) => {
