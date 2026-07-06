@@ -29,6 +29,7 @@ const {
   buildDailyReportHtml,
   loadMeta,
   saveMeta,
+  initializeAnalyticsData,
 } = require("./lib/analytics-store");
 const {
   sendDailyReport,
@@ -1175,9 +1176,10 @@ setTimeout(maybeSendDailyReport, 5000);
 app.listen(PORT, "0.0.0.0", () => {
   try {
     initializeRetailData();
+    initializeAnalyticsData();
     loadRetailStockists();
   } catch (err) {
-    console.error("[retail] Startup retail data init failed:", err.message);
+    console.error("[retail] Startup data init failed:", err.message);
   }
   console.log(`LeafLock Retail Stockist Wholesale + Analytics at http://0.0.0.0:${PORT}`);
   console.log(`Admin dashboard: http://0.0.0.0:${PORT}/admin/`);
