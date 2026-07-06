@@ -156,13 +156,14 @@ async function refreshTraffic() {
 async function approveApplication(id) {
   if (!confirm("Approve this stockist? They will get an email to set their password, then can log in and order anytime.")) return;
   const result = await api(`/api/admin/applications/${id}/approve`, { method: "POST" });
-  if (result.setupToken) showSetupLinkModal(result.setupToken, "Account approved — password setup link");
-  if (result.emailSent) {
-    alert(`Approved — setup link emailed to ${result.application.email}`);
-  } else {
-    alert("Approved — copy the setup link and email it to the stockist (SMTP not configured).");
-  }
   await refreshWholesale();
+  if (result.setupToken) showSetupLinkModal(result.setupToken, "Account approved — password setup link");
+  await showOrderFormPreviewForStockist({
+    businessName: result.application?.businessName,
+    email: result.application?.email,
+    emailSent: result.emailSent,
+    needsManualSetup: !result.emailSent && Boolean(result.setupToken),
+  });
 }
 
 async function rejectApplication(id) {
@@ -229,13 +230,14 @@ async function submitAddStockistForm(event) {
     }),
   });
   closeAddStockistModal();
-  if (result.setupToken) showSetupLinkModal(result.setupToken, "New account — password setup link");
-  if (result.emailSent) {
-    alert(`Account created — setup link emailed to ${email}`);
-  } else {
-    alert("Account created — copy the setup link and email it to the stockist if SMTP did not send.");
-  }
   await refreshWholesale();
+  if (result.setupToken) showSetupLinkModal(result.setupToken, "New account — password setup link");
+  await showOrderFormPreviewForStockist({
+    businessName,
+    email,
+    emailSent: result.emailSent,
+    needsManualSetup: !result.emailSent && Boolean(result.setupToken),
+  });
 }
 
 async function refreshWholesale() {
@@ -367,6 +369,30 @@ document.getElementById("tabWholesale")?.addEventListener("change", async (event
     alert(err.message || "Could not update order");
   }
 });
+
+function setOrderPreviewContext({ businessName, email, emailSent, needsManualSetup } = {}) {
+  const el = document.getElementById("orderPreviewContext");
+  if (!el) return;
+  if (!businessName) {
+    el.hidden = true;
+    el.textContent = "";
+    return;
+  }
+  const lines = [
+    `<strong>${businessName}</strong>${email ? ` (${email})` : ""} approved — preview below is the order form they see after portal login.`,
+  ];
+  if (emailSent) lines.push("Password setup link emailed.");
+  else if (needsManualSetup) lines.push("Copy the password setup link from the popup and email it to them.");
+  el.innerHTML = lines.join(" ");
+  el.hidden = false;
+}
+
+async function showOrderFormPreviewForStockist(ctx) {
+  setOrderPreviewContext(ctx);
+  switchTab("orderform");
+  await refreshOrderPreview();
+  document.getElementById("tabOrderform")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
 
 async function refreshOrderPreview() {
   const body = document.getElementById("orderPreviewBody");

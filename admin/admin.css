@@ -640,6 +640,16 @@
   color: var(--leaf);
 }
 
+.order-preview-context {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  background: rgba(45, 106, 79, 0.35);
+  border: 1px solid rgba(126, 217, 87, 0.45);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 .stockist-form label {
   display: flex;
   flex-direction: column;
