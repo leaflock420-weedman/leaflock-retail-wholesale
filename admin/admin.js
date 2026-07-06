@@ -37,10 +37,16 @@ function fmtMoney(n) {
   return new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" }).format(n || 0);
 }
 
-function renderTable(tbody, rows, mapRow) {
+function setStatText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
+
+function renderTable(tbody, rows, mapRow, emptyColspan = 6) {
+  if (!tbody) return;
   tbody.innerHTML = rows.length
     ? rows.map(mapRow).join("")
-    : '<tr><td colspan="6">No records yet.</td></tr>';
+    : `<tr><td colspan="${emptyColspan}">No records yet.</td></tr>`;
 }
 
 function renderDailyChart(container, daily) {
@@ -241,6 +247,7 @@ async function submitAddStockistForm(event) {
 }
 
 async function refreshWholesale() {
+  try {
   const [summary, setup, apps] = await Promise.all([
     api("/api/admin/wholesale/summary"),
     api("/api/admin/setup-status"),
@@ -265,29 +272,36 @@ async function refreshWholesale() {
   const orders = await api("/api/admin/orders");
   const loginLog = await api("/api/admin/login-log?limit=50");
 
-  document.getElementById("pendingApps").textContent = summary.pendingApplications;
-  document.getElementById("activeRetailStockists").textContent = summary.activeRetailStockists;
-  document.getElementById("ordersToday").textContent = summary.orders.ordersToday;
-  document.getElementById("loginsToday").textContent = summary.loginsToday;
+  const pendingCount = summary.pendingApplications || 0;
+  setStatText("pendingApps", pendingCount);
+  setStatText("activeRetailStockists", summary.activeRetailStockists);
+  setStatText("ordersToday", summary.orders.ordersToday);
+  setStatText("loginsToday", summary.loginsToday);
+
+  const pendingAlert = document.getElementById("pendingAlert");
+  const pendingAlertCount = document.getElementById("pendingAlertCount");
+  if (pendingAlert) pendingAlert.hidden = pendingCount === 0;
+  if (pendingAlertCount) pendingAlertCount.textContent = pendingCount;
 
   const appsBody = document.getElementById("applicationsTable");
   renderTable(
     appsBody,
-    apps.applications,
+    apps.applications || [],
     (a) => {
       const actions =
         a.status === "pending"
-          ? `<button class="btn-inline" data-action="approve-app" data-id="${a.id}">Approve</button>
+          ? `<button class="btn-inline btn-approve" data-action="approve-app" data-id="${a.id}">Approve</button>
              <button class="btn-inline btn-muted" data-action="reject-app" data-id="${a.id}">Reject</button>`
           : "";
-      const extras = a.bulk === "yes" ? "bulk supply" : "";
-      return `<tr>
+      const extras = [a.bulk === "yes" ? "bulk supply" : "", a.notes].filter(Boolean).join(" · ");
+      const rowClass = a.status === "pending" ? "row-pending" : "";
+      return `<tr class="${rowClass}">
         <td>${fmtDate(a.createdAt)}</td>
         <td>${a.businessName}${extras ? `<br><small>${extras}</small>` : ""}</td>
-        <td>${a.fullName}<br><small>${a.abn} · ${a.storeReg}</small></td>
+        <td>${a.fullName}<br><small>${a.abn}${a.storeReg ? ` · ${a.storeReg}` : ""}</small></td>
         <td>${a.email}</td>
         <td><span class="badge badge--${a.status}">${a.status}</span></td>
-        <td>${actions}</td>
+        <td class="actions-cell">${actions || "—"}</td>
       </tr>`;
     },
   );
@@ -342,6 +356,14 @@ async function refreshWholesale() {
       <td>${e.success ? "✓ Success" : "✗ Failed"}</td>
     </tr>`,
   );
+  } catch (err) {
+    console.error("[admin] refreshWholesale failed:", err);
+    alert(
+      err.message === "unauthorized"
+        ? "Session expired — log in again."
+        : `Could not load stockists & orders (${err.message || "error"}). Click Refresh or log in again.`,
+    );
+  }
 }
 
 document.getElementById("tabWholesale")?.addEventListener("click", async (event) => {

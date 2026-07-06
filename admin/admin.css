@@ -472,6 +472,45 @@
   color: var(--leaf);
 }
 
+.pending-alert {
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  background: #fff8e6;
+  border: 1px solid #e6c84a;
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pending-alert strong {
+  color: #7a5a00;
+}
+
+.stat-card--highlight {
+  border-color: var(--leaf);
+  background: linear-gradient(180deg, #f4faf0 0%, var(--white) 100%);
+}
+
+.panel--priority {
+  border-color: var(--leaf);
+}
+
+.panel--priority h2 {
+  color: var(--leaf);
+}
+
+tr.row-pending {
+  background: #fffdf5;
+}
+
+.btn-approve {
+  font-weight: 800;
+}
+
 .badge--pending {
   background: rgba(255, 229, 102, 0.16);
   color: #ffe566;

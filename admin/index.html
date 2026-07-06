@@ -107,6 +107,77 @@
       </div>
 
       <div id="tabWholesale" class="tab-panel" hidden role="tabpanel">
+        <div id="pendingAlert" class="pending-alert" hidden role="status">
+          <strong><span id="pendingAlertCount">0</span> access application(s) waiting for your approval.</strong>
+          <span>Scroll to <em>Access applications</em> → click <strong>Approve</strong> → copy the password setup link and email it to the stockist.</span>
+        </div>
+
+        <section class="stat-grid">
+          <article class="stat-card stat-card--highlight">
+            <span class="stat-label">Pending applications</span>
+            <strong id="pendingApps">0</strong>
+            <span class="stat-hint">Approve below to create their login</span>
+          </article>
+          <article class="stat-card stat-card--live">
+            <span class="stat-label">Active retail stockists</span>
+            <strong id="activeRetailStockists">0</strong>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">Orders today</span>
+            <strong id="ordersToday">0</strong>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">Logins today</span>
+            <strong id="loginsToday">0</strong>
+          </article>
+        </section>
+
+        <section class="panel panel--priority">
+          <div class="panel-head">
+            <h2>Access applications</h2>
+            <button type="button" id="refreshWholesaleBtn" class="btn-secondary btn-small">Refresh</button>
+          </div>
+          <p class="foot-note">When someone submits <a href="/request-access.html" target="_blank" rel="noopener">Request access</a>, they appear here. <strong>Approve</strong> creates their portal account and shows a one-time password link.</p>
+          <div class="table-scroll">
+            <table class="data-table data-table--wide">
+              <thead>
+                <tr>
+                  <th>Submitted</th>
+                  <th>Retail stockist</th>
+                  <th>Contact</th>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="applicationsTable"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel panel--priority">
+          <div class="panel-head">
+            <h2>Retail stockist accounts</h2>
+            <button type="button" id="addRetailStockistBtn" class="btn-secondary btn-small">Add retail stockist</button>
+          </div>
+          <p class="foot-note">Approved stockists log in at <a href="/portal.html" target="_blank" rel="noopener">portal</a>. Use <strong>Reset password</strong> to send a new setup link (e.g. Cannalicious).</p>
+          <div class="table-scroll">
+            <table class="data-table data-table--wide">
+              <thead>
+                <tr>
+                  <th>Retail stockist</th>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Logins</th>
+                  <th>Last login</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="retailStockistsTable"></tbody>
+            </table>
+          </div>
+        </section>
+
         <section class="panel">
           <h2>Order form spreadsheet</h2>
           <p class="foot-note">Download the catalogue CSV, edit in Excel, then upload. The portal order form updates straight away. Full instructions: <strong>Downloads → LeafLock-Wholesale-Complete-Guide</strong> on your PC.</p>
@@ -142,69 +213,6 @@
           <h2>System status</h2>
           <ul id="setupStatus" class="setup-list"></ul>
           <p class="foot-note"><strong>Simple flow:</strong> Approve application → stockist sets password from email → they log in at <a href="/portal.html" target="_blank" rel="noopener">portal</a> and order anytime. Use <em>Reset password</em> if they forget (<a href="/forgot-password.html" target="_blank" rel="noopener">forgot password</a> page works too).</p>
-        </section>
-
-        <section class="stat-grid">
-          <article class="stat-card">
-            <span class="stat-label">Pending applications</span>
-            <strong id="pendingApps">0</strong>
-          </article>
-          <article class="stat-card stat-card--live">
-            <span class="stat-label">Active retail stockists</span>
-            <strong id="activePharmacies">0</strong>
-          </article>
-          <article class="stat-card">
-            <span class="stat-label">Orders today</span>
-            <strong id="ordersToday">0</strong>
-          </article>
-          <article class="stat-card">
-            <span class="stat-label">Logins today</span>
-            <strong id="loginsToday">0</strong>
-          </article>
-        </section>
-
-        <section class="panel">
-          <div class="panel-head">
-            <h2>Access applications</h2>
-            <button type="button" id="refreshWholesaleBtn" class="btn-secondary btn-small">Refresh</button>
-          </div>
-          <div class="table-scroll">
-            <table class="data-table data-table--wide">
-              <thead>
-                <tr>
-                  <th>Submitted</th>
-                  <th>Retail stockist</th>
-                  <th>Contact</th>
-                  <th>Email</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="applicationsTable"></tbody>
-            </table>
-          </div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-head">
-            <h2>Retail stockist accounts</h2>
-            <button type="button" id="addRetailStockistBtn" class="btn-secondary btn-small">Add retail stockist</button>
-          </div>
-          <div class="table-scroll">
-            <table class="data-table data-table--wide">
-              <thead>
-                <tr>
-                  <th>Retail stockist</th>
-                  <th>Email</th>
-                  <th>Status</th>
-                  <th>Logins</th>
-                  <th>Last login</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="retailStockistsTable"></tbody>
-            </table>
-          </div>
         </section>
 
         <section class="panel">
