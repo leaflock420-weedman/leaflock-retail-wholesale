@@ -226,6 +226,8 @@ try {
       abn: "98 765 432 109",
       storeReg: "LIC-99",
       email: "apply-test@example.com",
+      password: "Apply-Test-Pass-99",
+      passwordConfirm: "Apply-Test-Pass-99",
     }),
   });
   assert("Application submit 201", r.res.status === 201);
@@ -237,6 +239,7 @@ try {
     headers: { Authorization: `Bearer ${adminToken}` },
   });
   assert("Application approve 200", r.res.status === 200);
+  assert("Approved stockist has password ready", r.body.passwordReady === true);
   assert("Approve returns checkout link", Boolean(r.body.checkoutLink));
 
   r = await json(`${base}/gummy-checkout.html`);

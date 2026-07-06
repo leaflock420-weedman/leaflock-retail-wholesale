@@ -15,7 +15,7 @@
       <section class="page-hero">
         <p class="eyebrow">New retail stockist accounts</p>
         <h1>Request wholesale access</h1>
-        <p class="page-lead">Complete this form to apply. We verify your retail stockist details and email a private account setup link once approved — usually within 24–48 hours.</p>
+        <p class="page-lead">Complete this form to apply and choose your portal password. Once we approve your account, sign in straight away — usually within 24–48 hours.</p>
       </section>
 
       <section class="section">
@@ -39,6 +39,14 @@
               <label class="wide"><span>Notes (optional)</span><textarea name="notes" rows="3" placeholder="Tell us which products you are interested in stocking"></textarea></label>
             </div>
           </fieldset>
+          <fieldset class="form-block">
+            <legend>Portal password</legend>
+            <p class="pending-note">Choose the password you will use to sign in after approval (at least 10 characters).</p>
+            <div class="form-grid">
+              <label><span>Password *</span><input type="password" name="password" required minlength="10" autocomplete="new-password"></label>
+              <label><span>Confirm password *</span><input type="password" name="password_confirm" required minlength="10" autocomplete="new-password"></label>
+            </div>
+          </fieldset>
           <button class="button primary full-width" type="submit">Submit access request</button>
         </form>
 
@@ -46,8 +54,8 @@
           <h3>What happens next</h3>
           <ol>
             <li>We review your business details and ABN.</li>
-            <li>You receive an email with a private password setup link if approved.</li>
-            <li>Create your password and sign in at the <a href="portal.html">wholesale portal</a> with your email.</li>
+            <li>You receive an approval email if accepted.</li>
+            <li>Sign in at the <a href="portal.html">wholesale portal</a> with your email and the password you chose above.</li>
           </ol>
           <p>Already approved? <a href="portal.html">Go to retail stockist login</a></p>
         </div>
@@ -59,7 +67,7 @@
     <div id="signupSuccess" class="modal" hidden role="alertdialog">
       <div class="modal-card">
         <h2>Application received</h2>
-        <p>Thank you. We will review your retail stockist details and email your account setup link within 24–48 hours if approved.</p>
+        <p>Thank you. We will review your details and email you when approved. Then sign in with the password you just chose.</p>
         <button class="button primary" type="button" id="closeSignupSuccess">Got it</button>
       </div>
     </div>

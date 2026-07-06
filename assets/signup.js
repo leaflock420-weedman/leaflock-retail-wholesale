@@ -13,6 +13,17 @@
     if (!form.reportValidity()) return;
 
     const fd = new FormData(form);
+    const password = String(fd.get("password") || "");
+    const passwordConfirm = String(fd.get("password_confirm") || "");
+    if (password.length < 10) {
+      alert("Password must be at least 10 characters.");
+      return;
+    }
+    if (password !== passwordConfirm) {
+      alert("Passwords do not match.");
+      return;
+    }
+
     const payload = {
       businessName: fd.get("business_name"),
       fullName: fd.get("full_name"),
@@ -25,6 +36,8 @@
       compounding: fd.get("compounding"),
       bulk: fd.get("bulk"),
       notes: fd.get("notes"),
+      password,
+      passwordConfirm,
     };
 
     const btn = form.querySelector('button[type="submit"]');

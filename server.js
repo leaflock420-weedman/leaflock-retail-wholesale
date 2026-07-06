@@ -64,6 +64,7 @@ const {
   recordLogin,
   recordFailedEmailLogin,
   submitApplication,
+  publicApplication,
   approveApplication,
   rejectApplication,
   createRetailStockist,
@@ -510,7 +511,7 @@ app.post("/api/applications", (req, res) => {
     return res.status(429).json({ error: "Too many applications. Try again later." });
   }
   const body = req.body || {};
-  const required = ["businessName", "fullName", "abn", "email"];
+  const required = ["businessName", "fullName", "abn", "email", "password", "passwordConfirm"];
   for (const field of required) {
     if (!String(body[field] || "").trim()) {
       return res.status(400).json({ error: `Missing field: ${field}` });
@@ -518,6 +519,7 @@ app.post("/api/applications", (req, res) => {
   }
   try {
     const application = submitApplication(body);
+    if (application?.error) return res.status(400).json({ error: application.error });
     notifyAdminNewApplication(application).catch((err) => {
       console.warn("[mail] application notify:", err.message);
     });
@@ -1001,7 +1003,7 @@ app.post("/api/admin/data/merge", adminAuth, (req, res) => {
 
 app.get("/api/admin/applications", adminAuth, (req, res) => {
   const status = req.query.status || null;
-  let applications = loadApplications().applications;
+  let applications = loadApplications().applications.map(publicApplication);
   if (status) applications = applications.filter((a) => a.status === status);
   res.json({ applications });
 });
@@ -1015,6 +1017,7 @@ app.post("/api/admin/applications/:id/approve", adminAuth, async (req, res) => {
       app: result.application,
       setupToken: result.setupToken,
       setupCode: result.setupCode,
+      passwordReady: result.passwordReady,
     });
   } catch (err) {
     console.warn("[mail] approval notify:", err.message);

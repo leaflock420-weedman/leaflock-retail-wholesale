@@ -160,15 +160,26 @@ async function refreshTraffic() {
 }
 
 async function approveApplication(id) {
-  if (!confirm("Approve this stockist? They will get an email to set their password, then can log in and order anytime.")) return;
+  if (
+    !confirm(
+      "Approve this stockist? They can sign in with the password they chose when applying. An approval email is sent automatically.",
+    )
+  ) {
+    return;
+  }
   const result = await api(`/api/admin/applications/${id}/approve`, { method: "POST" });
   await refreshWholesale();
-  if (result.setupToken) showSetupLinkModal(result.setupToken, "Account approved — password setup link");
+  if (result.setupToken && !result.passwordReady) {
+    showSetupLinkModal(result.setupToken, "Account approved — password setup link");
+  }
+  if (result.passwordReady) {
+    alert(`Approved. ${result.application?.email} can sign in at the portal with the password they chose when applying.`);
+  }
   await showOrderFormPreviewForStockist({
     businessName: result.application?.businessName,
     email: result.application?.email,
     emailSent: result.emailSent,
-    needsManualSetup: !result.emailSent && Boolean(result.setupToken),
+    needsManualSetup: !result.emailSent && Boolean(result.setupToken) && !result.passwordReady,
   });
 }
 
