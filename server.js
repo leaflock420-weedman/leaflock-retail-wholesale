@@ -79,7 +79,9 @@ const {
   loadApplications,
   loadLoginLog,
   demoPortalInfo,
+  initializeRetailData,
 } = require("./lib/retail-store");
+const { snapshotAllData, backupAllProtectedFiles } = require("./lib/data-backup");
 const {
   createOrder,
   findOrder,
@@ -921,6 +923,15 @@ app.post("/api/admin/catalog/upload", adminAuth, (req, res) => {
   });
 });
 
+app.post("/api/admin/data/backup", adminAuth, (req, res) => {
+  const backedUp = backupAllProtectedFiles();
+  res.json({ ok: true, backedUp, at: Date.now() });
+});
+
+app.get("/api/admin/data/snapshot", adminAuth, (req, res) => {
+  res.json(snapshotAllData());
+});
+
 app.get("/api/admin/applications", adminAuth, (req, res) => {
   const status = req.query.status || null;
   let applications = loadApplications().applications;
@@ -1088,9 +1099,10 @@ setTimeout(maybeSendDailyReport, 5000);
 
 app.listen(PORT, "0.0.0.0", () => {
   try {
+    initializeRetailData();
     loadRetailStockists();
   } catch (err) {
-    console.error("[retail] Startup retail stockist seed failed:", err.message);
+    console.error("[retail] Startup retail data init failed:", err.message);
   }
   console.log(`LeafLock Retail Stockist Wholesale + Analytics at http://0.0.0.0:${PORT}`);
   console.log(`Admin dashboard: http://0.0.0.0:${PORT}/admin/`);

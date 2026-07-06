@@ -3,6 +3,8 @@ data/events.json
 data/meta.json
 data/retail-stockists.json
 data/pharmacies.json
+data/backups/
+data/deploy-snapshots/
 data/applications.json
 data/orders.json
 data/login-log.json

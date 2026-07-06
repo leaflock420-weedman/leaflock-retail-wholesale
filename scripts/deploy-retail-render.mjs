@@ -224,6 +224,12 @@ async function main() {
   }
 
   await ensureCustomDomains(service.id);
+  try {
+    const { spawnSync } = await import("child_process");
+    spawnSync("node", ["scripts/backup-live-data.mjs"], { cwd: root, stdio: "inherit" });
+  } catch (err) {
+    console.warn("Pre-deploy snapshot skipped:", err.message);
+  }
   await setEnvVars(service.id);
   await triggerDeploy(service.id);
 
