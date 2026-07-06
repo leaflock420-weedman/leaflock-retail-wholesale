@@ -49,10 +49,6 @@
           "businessName": "Demo Stockist (Preview)",
           "email": "demo@leaflock.com.au",
           "status": "active",
-          "passwordHash": {
-            "salt": "d1ef300320b9fbbd3168133917fe18c5",
-            "hash": "98677e49ce447729dad8236cea9f17a5641ea1017d16b5ff0f178b1b450d37a842cad7e65b47a056b22d831bfb9929461560da9255a3ee25ce4ef7168d110d40"
-          },
           "accessCodeHash": null,
           "abn": "12 345 678 901",
           "storeReg": "DEMO-RETAIL-001",
@@ -65,11 +61,7 @@
           "lastLoginAt": null,
           "loginCount": 0,
           "checkoutAccessKey": "S6eDOyOR84Es2wjd90staq5f",
-          "passwordTokenHash": null,
-          "passwordSetupCodeHash": null,
-          "passwordTokenExpiresAt": null,
-          "passwordTokenPurpose": null,
-          "passwordSetAt": 1783331713391
+          "mustChangePassword": false
         },
         {
           "id": "pharm_1783057146391_cdafd657",
@@ -87,7 +79,8 @@
           "approvedAt": 1783057146424,
           "lastLoginAt": 1783059664125,
           "loginCount": 3,
-          "checkoutAccessKey": "LyVLiAjYviaqj45GYXF0KZGG"
+          "checkoutAccessKey": "LyVLiAjYviaqj45GYXF0KZGG",
+          "mustChangePassword": false
         },
         {
           "id": "pharm_1783173875441_88201f0d",
@@ -105,7 +98,8 @@
           "approvedAt": 1783173875471,
           "lastLoginAt": 1783173896331,
           "loginCount": 1,
-          "checkoutAccessKey": "XJbCECB5ilLo2El3jXePUWvp"
+          "checkoutAccessKey": "XJbCECB5ilLo2El3jXePUWvp",
+          "mustChangePassword": false
         },
         {
           "id": "retail_cannalicious_dee_karen",
@@ -124,17 +118,14 @@
           "approvedAt": 1783200000000,
           "lastLoginAt": null,
           "loginCount": 0,
-          "checkoutAccessKey": "Ccf7LVQz5rTfN0OEZg0aVAAf"
+          "checkoutAccessKey": "Ccf7LVQz5rTfN0OEZg0aVAAf",
+          "mustChangePassword": false
         },
         {
           "id": "retail_1783327109682_1e1ccd4e",
           "businessName": "LeafLock",
           "email": "secretsolutions2016@gmail.com",
           "status": "active",
-          "passwordHash": {
-            "salt": "50921d48c7854f6898c6fce4f031012f",
-            "hash": "afa7aa07e6e75fa599fe41f363e9dce64ce58e7866135a53451a42d07f896f35adaf50942907c909e9faaae495c395b60d3eb1d077ade6e0d13705cecbe56251"
-          },
           "accessCodeHash": null,
           "abn": "45455458420",
           "storeReg": "",
@@ -150,11 +141,6 @@
           "loginCount": 6,
           "applicationId": "app_1783327018660_77a89062",
           "checkoutAccessKey": "jR1t9-tvy82xYjKvn_pJXGmY",
-          "passwordTokenHash": null,
-          "passwordTokenExpiresAt": null,
-          "passwordTokenPurpose": null,
-          "passwordSetupCodeHash": null,
-          "passwordSetAt": 1783335246584,
           "mustChangePassword": false
         }
       ]

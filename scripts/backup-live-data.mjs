@@ -45,7 +45,20 @@ async function main() {
     JSON.stringify({ file, exportedAt: snapshot.exportedAt, savedAt: Date.now() }, null, 2),
   );
   const carryoverFile = path.join(root, "data", "live-carryover-snapshot.json");
-  fs.writeFileSync(carryoverFile, JSON.stringify(snapshot, null, 2));
+  const carryover = JSON.parse(JSON.stringify(snapshot));
+  const carryoverStockists = carryover.files?.["retail-stockists.json"]?.retailStockists;
+  if (Array.isArray(carryoverStockists)) {
+    for (const stockist of carryoverStockists) {
+      delete stockist.passwordHash;
+      delete stockist.passwordTokenHash;
+      delete stockist.passwordSetupCodeHash;
+      delete stockist.passwordTokenExpiresAt;
+      delete stockist.passwordTokenPurpose;
+      delete stockist.passwordSetAt;
+      stockist.mustChangePassword = false;
+    }
+  }
+  fs.writeFileSync(carryoverFile, JSON.stringify(carryover, null, 2));
   const apps = snapshot.files?.["applications.json"]?.applications?.length ?? 0;
   const pending =
     snapshot.files?.["applications.json"]?.applications?.filter((a) => a.status === "pending").length ?? 0;
