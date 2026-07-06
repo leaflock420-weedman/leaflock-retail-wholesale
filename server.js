@@ -83,6 +83,7 @@ const {
   loadApplications,
   loadLoginLog,
   demoPortalInfo,
+  portalAccessStatusForEmail,
   initializeRetailData,
   reconcilePreservedRetailData,
 } = require("./lib/retail-store");
@@ -339,6 +340,11 @@ app.post("/api/analytics/send-report", adminAuth, async (req, res) => {
 
 app.get("/api/demo/portal", (_req, res) => {
   res.status(404).json({ error: "Not available" });
+});
+
+app.get("/api/portal/access-status", (req, res) => {
+  const email = String(req.query.email || "").trim();
+  res.json(portalAccessStatusForEmail(email));
 });
 
 app.post("/api/portal/login", (req, res) => {

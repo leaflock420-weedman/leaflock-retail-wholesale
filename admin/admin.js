@@ -306,33 +306,27 @@ async function refreshWholesale() {
   setStatText("ordersToday", summary.orders.ordersToday);
   setStatText("loginsToday", summary.loginsToday);
 
-  const pendingAlert = document.getElementById("pendingAlert");
-  const pendingAlertCount = document.getElementById("pendingAlertCount");
-  if (pendingAlert) pendingAlert.hidden = pendingCount === 0;
-  if (pendingAlertCount) pendingAlertCount.textContent = pendingCount;
-
   const appsBody = document.getElementById("applicationsTable");
-  renderTable(
-    appsBody,
-    apps.applications || [],
-    (a) => {
-      const actions =
-        a.status === "pending"
-          ? `<button class="btn-inline btn-approve" data-action="approve-app" data-id="${a.id}">Approve</button>
-             <button class="btn-inline btn-muted" data-action="reject-app" data-id="${a.id}">Reject</button>`
-          : "";
-      const extras = [a.bulk === "yes" ? "bulk supply" : "", a.notes].filter(Boolean).join(" · ");
-      const rowClass = a.status === "pending" ? "row-pending" : "";
-      return `<tr class="${rowClass}">
+  const pendingApplications = (apps.applications || []).filter((a) => a.status === "pending");
+  if (appsBody) {
+    appsBody.innerHTML = pendingApplications.length
+      ? pendingApplications
+          .map((a) => {
+            const actions = `<button class="btn-inline btn-approve" data-action="approve-app" data-id="${a.id}">Approve</button>
+             <button class="btn-inline btn-muted" data-action="reject-app" data-id="${a.id}">Reject</button>`;
+            const extras = [a.bulk === "yes" ? "bulk supply" : "", a.notes].filter(Boolean).join(" · ");
+            return `<tr class="row-pending">
         <td>${fmtDate(a.createdAt)}</td>
         <td>${a.businessName}${extras ? `<br><small>${extras}</small>` : ""}</td>
         <td>${a.fullName}<br><small>${a.abn}${a.storeReg ? ` · ${a.storeReg}` : ""}</small></td>
         <td>${a.email}</td>
         <td><span class="badge badge--${a.status}">${a.status}</span></td>
-        <td class="actions-cell">${actions || "—"}</td>
+        <td class="actions-cell">${actions}</td>
       </tr>`;
-    },
-  );
+          })
+          .join("")
+      : '<tr><td colspan="6">No pending applications.</td></tr>';
+  }
 
   const pharmBody = document.getElementById("retailStockistsTable");
   renderTable(

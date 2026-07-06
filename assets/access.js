@@ -118,10 +118,55 @@
     sessionRetailStockist = null;
   }
 
+  function setPendingNote(message) {
+    const pendingNote = document.getElementById("pendingNote");
+    if (!pendingNote) return;
+    if (!message) {
+      pendingNote.hidden = true;
+      pendingNote.textContent = "";
+      return;
+    }
+    pendingNote.hidden = false;
+    pendingNote.textContent = message;
+  }
+
+  async function refreshAccessStatus(email) {
+    const normalized = String(email || "").trim().toLowerCase();
+    if (!normalized) {
+      if (!isPending()) setPendingNote("");
+      return;
+    }
+    try {
+      const res = await fetch(`/api/portal/access-status?email=${encodeURIComponent(normalized)}`);
+      const status = await res.json();
+      if (status.canLogin || status.approved) {
+        clearPending();
+        setPendingNote(
+          status.canLogin
+            ? "Your account is approved. Sign in with your email and the password you chose when you applied."
+            : "Your account is approved. Use Forgot password to set a new password, then sign in.",
+        );
+        return;
+      }
+      if (status.pending || isPending()) {
+        setPendingNote(
+          "Your application is under review. We'll email you when it's approved — then sign in with your email and password.",
+        );
+        return;
+      }
+      setPendingNote("");
+    } catch {
+      if (isPending()) {
+        setPendingNote(
+          "Your application is under review. We'll email you when it's approved — then sign in with your email and password.",
+        );
+      }
+    }
+  }
+
   function protectGatedContent() {
     const gate = document.getElementById("accessGate");
     const content = document.getElementById("gatedContent");
-    const pendingNote = document.getElementById("pendingNote");
     const sessionLabel = document.getElementById("portalSessionLabel");
     const accountPanel = document.getElementById("portalAccountPanel");
     if (!gate || !content) return;
@@ -129,6 +174,7 @@
     if (isApproved() && sessionRetailStockist) {
       gate.hidden = true;
       content.hidden = false;
+      setPendingNote("");
       if (sessionLabel) {
         sessionLabel.textContent = `Logged in as ${sessionRetailStockist.businessName} (${sessionRetailStockist.email})`;
       }
@@ -139,7 +185,6 @@
     gate.hidden = false;
     content.hidden = true;
     if (accountPanel) accountPanel.hidden = true;
-    if (pendingNote) pendingNote.hidden = !isPending();
   }
 
   function bindAccessForm() {
@@ -153,6 +198,10 @@
     if (prefilledEmail && emailInput && !emailInput.value) {
       emailInput.value = prefilledEmail;
     }
+    if (emailInput?.value) refreshAccessStatus(emailInput.value);
+    emailInput?.addEventListener("input", () => {
+      refreshAccessStatus(emailInput.value);
+    });
     if (params.get("passwordSet") === "1" && error) {
       error.hidden = false;
       error.classList.add("form-success");
@@ -181,7 +230,7 @@
           error.classList.remove("form-success");
           error.textContent =
             err.message === "Invalid email or password"
-              ? "Invalid email or password. Use the email from your approval message. Forgot password?"
+              ? "Invalid email or password. Use the email and password from your application. Try Forgot password if needed."
               : err.message || "Login failed. Please try again or email info@leaflock.com.au.";
         }
       } finally {
@@ -272,6 +321,10 @@
     await restoreSession();
     protectGatedContent();
     bindAccountPanel();
+    const emailInput = document.getElementById("portalEmail");
+    if (emailInput?.value || isPending()) {
+      await refreshAccessStatus(emailInput?.value || "");
+    }
   }
 
   window.LeafLockAccess = {
