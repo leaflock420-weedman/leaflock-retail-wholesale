@@ -665,7 +665,22 @@ dd {
 }
 
 body:has(#gatedContent:not([hidden])) {
-  padding-bottom: 78px;
+  padding-bottom: 96px;
+}
+
+body:has(#gatedContent:not([hidden])) .page-hero {
+  padding: 28px clamp(16px, 4vw, 32px) 22px;
+}
+
+body:has(#gatedContent:not([hidden])) .page-hero h1 {
+  font-size: clamp(1.25rem, 4.5vw, 2rem);
+  margin-bottom: 0.35em;
+}
+
+body:has(#gatedContent:not([hidden])) .page-lead {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 0;
 }
 
 .portal-order-flow .order-section {
@@ -1325,6 +1340,108 @@ input:focus {
   gap: 16px;
   padding-block: 20px;
   background: var(--mint);
+}
+
+.portal-toolbar--compact {
+  margin: 0;
+  padding: 10px clamp(16px, 4vw, 48px);
+  background: transparent;
+  border-bottom: 1px solid var(--line);
+}
+
+.portal-toolbar__session {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.button--small {
+  min-height: 36px;
+  padding: 0 14px;
+  font-size: 0.72rem;
+}
+
+.portal-page-footer {
+  margin-top: 8px;
+  padding: 20px clamp(16px, 4vw, 48px) 28px;
+  border-top: 1px solid var(--line);
+}
+
+.portal-compliance-note {
+  margin: 0 0 14px;
+  font-size: 0.72rem;
+  line-height: 1.55;
+  color: var(--muted);
+  opacity: 0.85;
+  max-width: 62ch;
+}
+
+.portal-compliance-note a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.portal-account-foot {
+  max-width: 520px;
+  border: 0;
+  background: transparent;
+}
+
+.portal-account-foot summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.78rem;
+  color: var(--muted);
+  padding: 4px 0;
+}
+
+.portal-account-foot summary::-webkit-details-marker {
+  display: none;
+}
+
+.portal-account-foot summary::before {
+  content: "+ ";
+  color: var(--leaf);
+  font-weight: 700;
+}
+
+.portal-account-foot[open] summary::before {
+  content: "− ";
+}
+
+.portal-foot-form {
+  margin-top: 12px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.portal-foot-form h3 {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+}
+
+.portal-foot-note {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.portal-account-foot .portal-account-grid {
+  margin-top: 8px;
+  gap: 16px;
+}
+
+.portal-account-foot .portal-account-delete {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
 }
 
 .pricing-placeholder {
@@ -2803,5 +2920,132 @@ textarea {
 @media (max-width: 520px) {
   .gummy-pack-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ——— Mobile-friendly site & portal ——— */
+@media (max-width: 768px) {
+  .section {
+    padding: 48px clamp(14px, 4vw, 24px);
+  }
+
+  .page-hero {
+    padding: 36px clamp(14px, 4vw, 24px) 28px;
+  }
+
+  .page-hero h1,
+  h1 {
+    font-size: clamp(1.65rem, 7vw, 2.35rem);
+    line-height: 1.1;
+  }
+
+  .page-lead,
+  .section-lead {
+    font-size: 0.92rem;
+  }
+
+  .pricing-table th,
+  .pricing-table td {
+    padding: 12px 10px;
+    font-size: 0.82rem;
+  }
+
+  .pricing-table {
+    min-width: 640px;
+  }
+
+  .portal-order-table__product {
+    min-width: 200px;
+    gap: 10px;
+  }
+
+  .portal-order-table__product img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .order-sheet-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .order-sheet-summary {
+    white-space: normal;
+    text-align: left;
+  }
+
+  .portal-cart-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 12px 14px 14px;
+  }
+
+  .portal-cart-bar__totals {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px 12px;
+  }
+
+  .portal-cart-bar__totals > div {
+    flex: 1 1 auto;
+    min-width: calc(50% - 8px);
+    justify-content: space-between;
+  }
+
+  .portal-cart-bar__totals .total-row {
+    flex: 1 1 100%;
+    padding-left: 0;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    padding-top: 8px;
+    margin-top: 4px;
+  }
+
+  body:has(#gatedContent:not([hidden])) {
+    padding-bottom: 132px;
+  }
+
+  .portal-toolbar--compact {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .portal-toolbar__session {
+    flex: 1 1 100%;
+    white-space: normal;
+  }
+
+  .portal-payment-options .button {
+    width: 100%;
+  }
+
+  .site-footer {
+    padding: 28px clamp(14px, 4vw, 24px);
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .site-header {
+    padding: 10px 12px;
+  }
+
+  .header-action {
+    padding: 8px 12px;
+    font-size: 0.7rem;
+  }
+
+  .access-panel,
+  .portal-card {
+    padding: 18px 16px;
+  }
+
+  .portal-foot-form label span {
+    font-size: 0.85rem;
+  }
+
+  h3 {
+    font-size: 1.05rem;
   }
 }

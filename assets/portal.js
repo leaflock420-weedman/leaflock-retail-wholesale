@@ -501,45 +501,15 @@
   }
 
   async function loadCredentials() {
-    const list = document.querySelector("#credentialBadgeList");
-    const company = document.querySelector("#complianceCompany");
-    if (!list) return;
+    const note = document.getElementById("portalComplianceNote");
+    if (!note) return;
     try {
       const data = await window.LeafLockAccess.portalFetch("/api/portal/credentials");
-      const tm = data.trademark || {};
-      const classes = (tm.classes || [])
-        .map((c) => `<li><strong>Class ${c.class}</strong> — ${c.description}</li>`)
-        .join("");
-      const onFile = (data.onFile || [])
-        .map(
-          (c) =>
-            `<li class="credential-badge${c.verified ? "" : " credential-badge--muted"}">
-              <span class="credential-badge-mark" aria-hidden="true">${c.verified ? "✓" : "·"}</span>
-              <span class="credential-badge-text"><strong>${c.label}</strong> — ${c.status}</span>
-            </li>`,
-        )
-        .join("");
-
-      if (company) {
-        company.innerHTML = [
-          `<strong>${data.company || "LeafLock & Co Pty Ltd"}</strong>`,
-          data.acn ? `ACN ${data.acn}` : "",
-          tm.mark || "LeafLock™",
-          tm.number ? `Trade Mark No. ${tm.number}` : "",
-        ]
-          .filter(Boolean)
-          .join(" · ");
-      }
-
-      list.innerHTML = `
-        <li class="credential-public-block">
-          <p class="credential-public-block-title">${tm.mark || "LeafLock™"} — Registered Australian trade mark</p>
-          ${tm.headline ? `<p class="credential-public-block-copy">${tm.headline}</p>` : ""}
-          ${classes ? `<ul class="credential-class-list">${classes}</ul>` : ""}
-        </li>
-        ${onFile}`;
+      const tm = data.trademark?.mark || "LeafLock™";
+      const company = data.company || "LeafLock & Co Pty Ltd";
+      note.innerHTML = `${company} supplies wholesale ${tm} DIY gummy mix and humidity packs in line with our certified compliance standards. Documentation is available on request from <a href="mailto:info@leaflock.com.au">info@leaflock.com.au</a>.`;
     } catch {
-      list.innerHTML = "";
+      /* static fallback text remains in HTML */
     }
   }
 
