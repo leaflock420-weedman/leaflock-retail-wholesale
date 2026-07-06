@@ -148,10 +148,17 @@
     if (!form) return;
 
     const params = new URLSearchParams(window.location.search);
+    const prefilledEmail = params.get("email") || "";
+    const emailInput = document.getElementById("portalEmail");
+    if (prefilledEmail && emailInput && !emailInput.value) {
+      emailInput.value = prefilledEmail;
+    }
     if (params.get("passwordSet") === "1" && error) {
       error.hidden = false;
       error.classList.add("form-success");
-      error.textContent = "Password saved. Sign in with your email and new password.";
+      error.textContent = prefilledEmail
+        ? `Password saved. Sign in with ${prefilledEmail} and the password you just created.`
+        : "Password saved. Sign in with your store email and the password you just created.";
     }
 
     form.addEventListener("submit", async (event) => {

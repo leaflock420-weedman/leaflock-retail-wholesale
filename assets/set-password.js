@@ -61,7 +61,17 @@
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error || "Could not save password");
-      window.location.href = "portal.html?passwordSet=1";
+      const email = encodeURIComponent(body.retailStockist?.email || "");
+      if (account) {
+        account.hidden = false;
+        account.classList.add("form-success");
+        account.textContent = `Password saved for ${body.retailStockist?.businessName || "your account"}. Redirecting to sign in…`;
+      }
+      window.setTimeout(() => {
+        window.location.href = email
+          ? `portal.html?passwordSet=1&email=${email}`
+          : "portal.html?passwordSet=1";
+      }, 1200);
     } catch (err) {
       if (error) {
         error.hidden = false;
