@@ -1,5 +1,5 @@
 {
-  "exportedAt": 1783332300472,
+  "exportedAt": 1783334146341,
   "dataDir": "/opt/render/project/src/data",
   "files": {
     "applications.json": {
@@ -50,8 +50,8 @@
           "email": "demo@leaflock.com.au",
           "status": "active",
           "passwordHash": {
-            "salt": "adc857eabc200c22cae765191f693229",
-            "hash": "25d5ff23bb3f75b6392683cba2da543eb21605186aeaaab9310568d2b8b90f7d8234a4e1d9f66d263077a94acf5c1cec11606545c1870144086cdb254bb0e211"
+            "salt": "6a8e8695bfede72aedb0cd81d0456467",
+            "hash": "c100acccfa5d554f1c1d659aa0be25e8e322a484a6fba8047957c8a17348aca2343d18955f72bf1a7102f8791807f8b5f99d0b79c6866ed6887c17909e506c02"
           },
           "accessCodeHash": null,
           "abn": "12 345 678 901",
@@ -132,8 +132,8 @@
           "email": "secretsolutions2016@gmail.com",
           "status": "active",
           "passwordHash": {
-            "salt": "b66367de355678ccf851e4480451a6bc",
-            "hash": "ad2c2ac8612a2c0695c7804c19e8f03f9c6bbfae6cbd50b58da269dd9d624132e96af76f7c46acb61336d557a4e0d9c74a683f7af1d42a9f5f2a8edc41eb564d"
+            "salt": "ffa44e10a749e4f6229b76510ad68215",
+            "hash": "639b99850b25ee125b97d3469911df3d3a94fa71902c76f8bee638a20440a68a8bb852edd9f176e2afdab9e5546e5713a195a0a6e3107eae0f89939c84402a44"
           },
           "accessCodeHash": null,
           "abn": "45455458420",
@@ -146,15 +146,16 @@
           "role": "",
           "createdAt": 1783327109682,
           "approvedAt": 1783327109682,
-          "lastLoginAt": null,
-          "loginCount": 0,
+          "lastLoginAt": 1783334056554,
+          "loginCount": 3,
           "applicationId": "app_1783327018660_77a89062",
           "checkoutAccessKey": "jR1t9-tvy82xYjKvn_pJXGmY",
-          "passwordTokenHash": "6729c883e3541fc243da58b33bebe65d15fe2d921dfbbb7b1ba61c6c4001227e",
-          "passwordTokenExpiresAt": 1783504987060,
-          "passwordTokenPurpose": "reset",
-          "passwordSetupCodeHash": "50da4c69a1fc564158da3532b3f6e9761d0410461a2ce1f1ea3b6a2acb0a96a7",
-          "passwordSetAt": 1783329785731
+          "passwordTokenHash": null,
+          "passwordTokenExpiresAt": null,
+          "passwordTokenPurpose": null,
+          "passwordSetupCodeHash": null,
+          "passwordSetAt": 1783334055336,
+          "mustChangePassword": true
         }
       ]
     },
@@ -487,6 +488,83 @@
           "userAgent": "node",
           "success": false,
           "emailAttempt": "se…@gmail.com"
+        },
+        {
+          "id": "login_1783332375295_6d9b8fdd",
+          "retailStockistId": "retail_1783327109682_1e1ccd4e",
+          "businessName": "LeafLock",
+          "ts": 1783332375295,
+          "ip": "124.176.36.161",
+          "userAgent": "node",
+          "success": true
+        },
+        {
+          "id": "login_1783332375862_f04af93b",
+          "retailStockistId": "retail_1783327109682_1e1ccd4e",
+          "businessName": "LeafLock",
+          "ts": 1783332375862,
+          "ip": "124.176.36.161",
+          "userAgent": "node",
+          "success": true
+        },
+        {
+          "id": "login_1783333488881_0fc6509e",
+          "retailStockistId": null,
+          "businessName": null,
+          "ts": 1783333488881,
+          "ip": "124.176.36.161",
+          "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36",
+          "success": false,
+          "emailAttempt": "__probe__"
+        },
+        {
+          "id": "login_1783333532158_2423519e",
+          "retailStockistId": null,
+          "businessName": null,
+          "ts": 1783333532158,
+          "ip": "124.176.36.161",
+          "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36",
+          "success": false,
+          "emailAttempt": "se…@gmail.com"
+        },
+        {
+          "id": "login_1783333606955_4ff2c02f",
+          "retailStockistId": null,
+          "businessName": null,
+          "ts": 1783333606956,
+          "ip": "124.176.36.161",
+          "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36",
+          "success": false,
+          "emailAttempt": "se…@gmail.com"
+        },
+        {
+          "id": "login_1783333672911_44337d7b",
+          "retailStockistId": null,
+          "businessName": null,
+          "ts": 1783333672911,
+          "ip": "124.176.36.161",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+          "success": false,
+          "emailAttempt": "__probe__"
+        },
+        {
+          "id": "login_1783333693334_057ac58c",
+          "retailStockistId": null,
+          "businessName": null,
+          "ts": 1783333693334,
+          "ip": "124.176.36.161",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+          "success": false,
+          "emailAttempt": "se…@gmail.com"
+        },
+        {
+          "id": "login_1783334056554_f852bf4e",
+          "retailStockistId": "retail_1783327109682_1e1ccd4e",
+          "businessName": "LeafLock",
+          "ts": 1783334056554,
+          "ip": "124.176.36.161",
+          "userAgent": "node",
+          "success": true
         }
       ]
     },
@@ -798,6 +876,50 @@
         "sessionId": "7ac2ce7a-4a5e-4b9b-9db2-0ee4336f8e66",
         "eventName": null,
         "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36"
+      },
+      {
+        "id": "1783333489121-u658n9c",
+        "ts": 1783333489275,
+        "type": "pageview",
+        "path": "/portal.html?email=secretsolutions2016%40gmail.com",
+        "referrer": "android-app://com.google.android.gm/",
+        "utm": {},
+        "sessionId": "e0798702-8c8b-4bf7-bb28-a2ed9e732aaa",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36"
+      },
+      {
+        "id": "1783333665910-brkzley",
+        "ts": 1783333667210,
+        "type": "pageview",
+        "path": "/set-password.html",
+        "referrer": "https://www.wholesale.leaflock.com.au/forgot-password.html",
+        "utm": {},
+        "sessionId": "79c0ed92-018a-45c7-843f-99fe8fc9baec",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+      },
+      {
+        "id": "1783333670322-c6h0w69",
+        "ts": 1783333671623,
+        "type": "pageview",
+        "path": "/set-password.html",
+        "referrer": "https://www.wholesale.leaflock.com.au/forgot-password.html",
+        "utm": {},
+        "sessionId": "79c0ed92-018a-45c7-843f-99fe8fc9baec",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+      },
+      {
+        "id": "1783333673079-r0k4kkc",
+        "ts": 1783333674380,
+        "type": "pageview",
+        "path": "/portal.html",
+        "referrer": "https://www.wholesale.leaflock.com.au/set-password.html",
+        "utm": {},
+        "sessionId": "79c0ed92-018a-45c7-843f-99fe8fc9baec",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
       }
     ]
   }
