@@ -1,20 +1,22 @@
 {
   "applications": [
     {
-      "id": "app_1783191949859_8e04f221",
-      "status": "pending",
-      "createdAt": 1783191949859,
+      "id": "app_1783318008009_4d87cf89",
+      "status": "approved",
+      "createdAt": 1783318008009,
       "businessName": "Apply Test Co",
       "fullName": "Jane",
       "role": "",
       "abn": "98 765 432 109",
-      "pharmacyReg": "LIC-99",
+      "storeReg": "LIC-99",
       "email": "apply-test@example.com",
       "phone": "",
       "address": "",
       "compounding": "no",
       "bulk": "no",
-      "notes": ""
+      "notes": "",
+      "approvedAt": 1783318008049,
+      "retailStockistId": "retail_1783318008047_32aca064"
     }
   ]
 }

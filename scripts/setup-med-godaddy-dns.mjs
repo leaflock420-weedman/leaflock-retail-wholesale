@@ -24,7 +24,7 @@ if (!chromium) {
 
 const DOMAIN = "leaflock.com.au";
 const SUBDOMAIN = "med";
-const TARGET = "leaflock-pharmacy-wholesale.onrender.com";
+const TARGET = "leaflock-med-wholesale.onrender.com";
 const DNS_URL = `https://dcc.godaddy.com/control/dnsmanagement?domainName=${DOMAIN}`;
 const LOGIN_URL = "https://sso.godaddy.com/?app=dcc&path=%2Fcontrol%2Fdnsmanagement%3FdomainName%3Dleaflock.com.au";
 const GODADDY_USER = process.env.GODADDY_USERNAME || "leaflock420@gmail.com";

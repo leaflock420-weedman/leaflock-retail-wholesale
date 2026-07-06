@@ -11,7 +11,7 @@ BANNER_SIZE = (1920, 560)
 MINT = (234, 245, 237)
 WHITE = (248, 250, 248)
 
-PHARMACY_PACK = ROOT / "assets" / "products" / "humidity" / "white-pharmacy-pack.jpg"
+RETAIL_PACK = ROOT / "assets" / "products" / "humidity" / "white-retail-pack.jpg"
 GUMMY_LINEUP = ROOT / "assets" / "products" / "gummies" / "gummy-lineup-white.jpg"
 
 
@@ -37,8 +37,8 @@ def pack_banner(src: Path, name: str, *, bg=MINT, inset_right=140) -> None:
 
 
 def main() -> None:
-    pack_banner(PHARMACY_PACK, "hub-banner.jpg")
-    pack_banner(PHARMACY_PACK, "humidity-banner.jpg")
+    pack_banner(RETAIL_PACK, "hub-banner.jpg")
+    pack_banner(RETAIL_PACK, "humidity-banner.jpg")
 
     if GUMMY_LINEUP.exists():
         pack_banner(GUMMY_LINEUP, "gummies-banner.jpg", bg=WHITE, inset_right=60)

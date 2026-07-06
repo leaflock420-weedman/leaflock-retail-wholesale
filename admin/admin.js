@@ -174,10 +174,10 @@ async function rejectApplication(id) {
 
 async function sendPasswordReset(id) {
   if (!confirm("Send a password reset link to this retail stockist?")) return;
-  const result = await api(`/api/admin/pharmacies/${id}/send-password-reset`, { method: "POST" });
+  const result = await api(`/api/admin/retail-stockists/${id}/send-password-reset`, { method: "POST" });
   if (result.setupToken) showSetupLinkModal(result.setupToken, "Password reset link");
   if (result.emailSent) {
-    alert(`Reset link emailed to ${result.retailStockist?.email || result.pharmacy?.email}`);
+    alert(`Reset link emailed to ${result.retailStockist?.email || result.retailStockist?.email}`);
   } else {
     alert("Copy the reset link and email it manually (SMTP not configured).");
   }
@@ -186,7 +186,7 @@ async function sendPasswordReset(id) {
 
 async function toggleRetailStockistStatus(id, currentStatus) {
   const next = currentStatus === "active" ? "inactive" : "active";
-  await api(`/api/admin/pharmacies/${id}`, {
+  await api(`/api/admin/retail-stockists/${id}`, {
     method: "PATCH",
     body: JSON.stringify({ status: next }),
   });
@@ -219,7 +219,7 @@ async function submitAddStockistForm(event) {
   const businessName = form.businessName?.value?.trim();
   const email = form.email?.value?.trim();
   if (!businessName || !email) return;
-  const result = await api("/api/admin/pharmacies", {
+  const result = await api("/api/admin/retail-stockists", {
     method: "POST",
     body: JSON.stringify({
       businessName,
@@ -261,12 +261,12 @@ async function refreshWholesale() {
   } catch {
     /* keep setup-status summary */
   }
-  const stockistList = await api("/api/admin/pharmacies");
+  const stockistList = await api("/api/admin/retail-stockists");
   const orders = await api("/api/admin/orders");
   const loginLog = await api("/api/admin/login-log?limit=50");
 
   document.getElementById("pendingApps").textContent = summary.pendingApplications;
-  document.getElementById("activePharmacies").textContent = summary.activePharmacies;
+  document.getElementById("activeRetailStockists").textContent = summary.activeRetailStockists;
   document.getElementById("ordersToday").textContent = summary.orders.ordersToday;
   document.getElementById("loginsToday").textContent = summary.loginsToday;
 
@@ -284,7 +284,7 @@ async function refreshWholesale() {
       return `<tr>
         <td>${fmtDate(a.createdAt)}</td>
         <td>${a.businessName}${extras ? `<br><small>${extras}</small>` : ""}</td>
-        <td>${a.fullName}<br><small>${a.abn} · ${a.pharmacyReg}</small></td>
+        <td>${a.fullName}<br><small>${a.abn} · ${a.storeReg}</small></td>
         <td>${a.email}</td>
         <td><span class="badge badge--${a.status}">${a.status}</span></td>
         <td>${actions}</td>
@@ -292,7 +292,7 @@ async function refreshWholesale() {
     },
   );
 
-  const pharmBody = document.getElementById("pharmaciesTable");
+  const pharmBody = document.getElementById("retailStockistsTable");
   renderTable(
     pharmBody,
     stockistList.retailStockists || stockistList.pharmacies || [],
@@ -315,7 +315,7 @@ async function refreshWholesale() {
     orders.orders,
     (o) => `<tr>
       <td>${fmtDate(o.createdAt)}</td>
-      <td>${o.pharmacyName || o.contact?.businessName || "—"}</td>
+      <td>${o.retailStockistName || o.contact?.businessName || "—"}</td>
       <td>${fmtMoney(o.totals?.total)}</td>
       <td>${o.paymentMethod || "—"} / ${o.paymentStatus || "—"}</td>
       <td><span class="badge badge--${o.status}">${o.status}</span></td>

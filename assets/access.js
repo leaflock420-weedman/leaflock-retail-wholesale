@@ -33,7 +33,7 @@
   }
 
   function stockistFromBody(body) {
-    return body?.retailStockist || body?.pharmacy || null;
+    return body?.retailStockist  || null;
   }
 
   async function portalFetch(path, options = {}) {
@@ -272,8 +272,6 @@
     isPending,
     setPending,
     retailStockist,
-    /** @deprecated use retailStockist */
-    pharmacy: retailStockist,
     portalFetch,
     loginWithCredentials,
     restoreSession,

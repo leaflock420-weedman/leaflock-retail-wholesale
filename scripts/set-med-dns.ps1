@@ -6,7 +6,7 @@ param(
 
 $domain = "leaflock.com.au"
 $name = "med"
-$value = "leaflock-pharmacy-wholesale.onrender.com"
+$value = "leaflock-med-wholesale.onrender.com"
 
 if (-not $ApiKey -or -not $ApiSecret) {
     Write-Host "No GoDaddy API keys. Set GODADDY_API_KEY and GODADDY_API_SECRET, or run:" -ForegroundColor Yellow

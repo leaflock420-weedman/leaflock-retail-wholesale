@@ -1,24 +1,24 @@
 {
   "orders": [
     {
-      "id": "ord_1783191949766_9eaf541e",
-      "invoiceNumber": "INV-20260704-AF541E",
-      "pharmacyId": "pharm_demo_stockist",
-      "pharmacyName": "Demo Stockist (Preview)",
+      "id": "ord_1783318007889_153019bd",
+      "invoiceNumber": "INV-20260706-3019BD",
+      "retailStockistId": "pharm_demo_stockist",
+      "retailStockistName": "Demo Stockist (Preview)",
       "source": "portal",
       "status": "submitted",
       "paymentMethod": "bank_transfer",
       "paymentStatus": "unpaid",
       "paypalOrderId": null,
       "paypalCaptureId": null,
-      "createdAt": 1783191949766,
-      "updatedAt": 1783191949766,
+      "createdAt": 1783318007889,
+      "updatedAt": 1783318007889,
       "contact": {
         "businessName": "Test Store",
         "fullName": "Tester",
         "role": "",
         "abn": "12 345 678 901",
-        "pharmacyReg": "REG-1",
+        "storeReg": "REG-1",
         "email": "test@example.com",
         "phone": "0400000000",
         "address": "1 Test St"
@@ -63,7 +63,7 @@
       "notes": "",
       "flavours": "",
       "termsAccepted": true,
-      "termsAcceptedAt": 1783191949766,
+      "termsAcceptedAt": 1783318007889,
       "termsVersion": "2026-07-05",
       "paymentTerms": "Prepaid — payment in full before dispatch"
     }

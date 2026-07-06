@@ -11,14 +11,14 @@ Write-Host "  https://med.leaflock.com.au"
 Write-Host ""
 Write-Host "NOT configured (no DNS):" -ForegroundColor Yellow
 Write-Host "  https://www.med.leaflock.com.au  <- different subdomain; use med.leaflock.com.au instead"
-Write-Host "  Optional: GoDaddy CNAME name=www.med value=leaflock-pharmacy-wholesale.onrender.com"
+Write-Host "  Optional: GoDaddy CNAME name=www.med value=leaflock-med-wholesale.onrender.com"
 Write-Host ""
 
 Write-Host "--- DNS ---" -ForegroundColor Cyan
 nslookup -type=CNAME med.leaflock.com.au ns43.domaincontrol.com 2>$null | Select-String "canonical"
 
 Write-Host "`n--- Live site ---" -ForegroundColor Cyan
-foreach ($url in @("https://med.leaflock.com.au/", "https://leaflock-pharmacy-wholesale.onrender.com/")) {
+foreach ($url in @("https://med.leaflock.com.au/", "https://leaflock-med-wholesale.onrender.com/")) {
     try {
         $r = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 20
         Write-Host "  OK $url ($($r.StatusCode))" -ForegroundColor Green
@@ -30,8 +30,8 @@ foreach ($url in @("https://med.leaflock.com.au/", "https://leaflock-pharmacy-wh
 Write-Host "`n--- YOU must complete (dashboard) ---" -ForegroundColor Yellow
 Write-Host "  1. Render billing: add card -> upgrade service to Starter (~`$7/mo) = no cold starts"
 Write-Host "     https://dashboard.render.com/web/$svcId/settings"
-Write-Host "  2. Render disk: Settings -> Disks -> add 1GB at /var/data (keeps pharmacy/order data)"
-Write-Host "  3. GitHub: https://github.com/settings/installations -> Render -> add leaflock-pharmacy-wholesale"
+Write-Host "  2. Render disk: Settings -> Disks -> add 1GB at /var/data (keeps retail/order data)"
+Write-Host "  3. GitHub: https://github.com/settings/installations -> Render -> add leaflock-med-wholesale"
 Write-Host "  4. PayPal Live (real payments):"
 Write-Host "     https://developer.paypal.com/dashboard/applications/live"
 Write-Host "     Create Live app -> set on Render:"

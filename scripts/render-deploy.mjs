@@ -10,9 +10,9 @@ const storeRoot = path.join(process.env.USERPROFILE || "C:\\Users\\wordo", "leaf
 const require = createRequire(import.meta.url);
 const { chromium } = require(require.resolve("playwright", { paths: [storeRoot] }));
 
-const GITHUB_REPO = "https://github.com/leaflock420-weedman/leaflock-pharmacy-wholesale";
-const SERVICE_NAME = "leaflock-pharmacy-wholesale";
-const LIVE_URL = "https://leaflock-pharmacy-wholesale.onrender.com";
+const GITHUB_REPO = "https://github.com/leaflock420-weedman/leaflock-med-wholesale";
+const SERVICE_NAME = "leaflock-med-wholesale";
+const LIVE_URL = "https://leaflock-med-wholesale.onrender.com";
 const PROFILE = path.join(root, ".chrome-render-profile");
 const CDP_PORTS = [9225, 9224, 9223, 9222];
 
@@ -133,8 +133,8 @@ async function deployWebService(page) {
   await sleep(3000);
 
   await clickFirst(page, [
-    (p) => p.getByText(/leaflock-pharmacy-wholesale/i),
-    (p) => p.locator("text=leaflock-pharmacy-wholesale"),
+    (p) => p.getByText(/leaflock-med-wholesale/i),
+    (p) => p.locator("text=leaflock-med-wholesale"),
   ], 10000);
   await sleep(2000);
 
@@ -316,7 +316,7 @@ async function main() {
     }
     if (!ok) {
       throw new Error(
-        "Deploy not completed. Private repo may need GitHub access in Render — open dashboard and grant access to leaflock-pharmacy-wholesale."
+        "Deploy not completed. Private repo may need GitHub access in Render — open dashboard and grant access to leaflock-med-wholesale."
       );
     }
   }

@@ -65,21 +65,21 @@ const {
   submitApplication,
   approveApplication,
   rejectApplication,
-  createPharmacy,
+  createRetailStockist,
   sendPasswordReset,
   setPasswordWithToken,
-  changePharmacyPassword,
-  deletePharmacyAccount,
-  setPharmacyStatus,
-  publicPharmacy,
-  adminPharmacyView,
+  changeRetailStockistPassword,
+  deleteRetailStockistAccount,
+  setRetailStockistStatus,
+  publicRetailStockist,
+  adminRetailStockistView,
   regenerateCheckoutAccessKey,
   wholesaleSummary,
-  loadPharmacies,
+  loadRetailStockists,
   loadApplications,
   loadLoginLog,
   demoPortalInfo,
-} = require("./lib/pharmacy-store");
+} = require("./lib/retail-store");
 const {
   createOrder,
   findOrder,
@@ -125,11 +125,8 @@ const LOGIN_RATE_MAX = 20;
 const APPLICATION_RATE_MAX = 8;
 const GUMMY_CHECKOUT_RATE_MAX = 12;
 
-function withRetailStockist(payload) {
-  if (!payload || typeof payload !== "object") return payload;
-  if (!payload.pharmacy) return payload;
-  const { pharmacy, ...rest } = payload;
-  return { ...rest, retailStockist: pharmacy };
+function asRetailStockistPayload(payload) {
+  return payload;
 }
 
 function dispatchOrderEmails(order, { adminLabel, confirmCustomer = false } = {}) {
@@ -326,14 +323,14 @@ app.post("/api/portal/login", (req, res) => {
       return res.status(429).json({ error: "Too many attempts. Try again later." });
     }
 
-    const pharmacy = findByEmail(normalizedEmail);
-    if (!pharmacy || !pharmacy.passwordHash || !verifyPassword(password, pharmacy.passwordHash)) {
+    const retailStockist = findByEmail(normalizedEmail);
+    if (!retailStockist || !retailStockist.passwordHash || !verifyPassword(password, retailStockist.passwordHash)) {
       recordFailedEmailLogin(normalizedEmail, clientMeta(req));
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    const publicInfo = recordLogin(pharmacy.id, clientMeta(req));
-    const token = createPortalToken(pharmacy.id);
+    const publicInfo = recordLogin(retailStockist.id, clientMeta(req));
+    const token = createPortalToken(retailStockist.id);
     res.json({ token, retailStockist: publicInfo });
   } catch (err) {
     console.error("[portal] login failed:", err);
@@ -348,18 +345,18 @@ app.post("/api/portal/forgot-password", async (req, res) => {
   }
   const email = String(req.body?.email || "").trim().toLowerCase();
   if (!email) return res.status(400).json({ error: "Email required" });
-  const pharmacy = findByEmail(email);
-  if (pharmacy) {
-    const result = sendPasswordReset(pharmacy.id);
+  const retailStockist = findByEmail(email);
+  if (retailStockist) {
+    const result = sendPasswordReset(retailStockist.id);
     if (result?.setupToken) {
-      const notify = pharmacy.passwordHash ? notifyPasswordReset : notifyRetailStockistApproved;
-      const payload = pharmacy.passwordHash
-        ? { pharmacy: result.pharmacy, resetToken: result.setupToken }
+      const notify = retailStockist.passwordHash ? notifyPasswordReset : notifyRetailStockistApproved;
+      const payload = retailStockist.passwordHash
+        ? { retailStockist: result.retailStockist, resetToken: result.setupToken }
         : {
             app: {
-              fullName: pharmacy.contactName || pharmacy.businessName,
-              businessName: pharmacy.businessName,
-              email: pharmacy.email,
+              fullName: retailStockist.contactName || retailStockist.businessName,
+              businessName: retailStockist.businessName,
+              email: retailStockist.email,
             },
             setupToken: result.setupToken,
           };
@@ -382,20 +379,20 @@ app.post("/api/portal/set-password", (req, res) => {
     return res.status(400).json({ error: "This link is invalid or has expired. Request a new reset link." });
   }
   if (result.error) return res.status(400).json({ error: result.error });
-  res.json({ ok: true, retailStockist: result.pharmacy });
+  res.json({ ok: true, retailStockist: result.retailStockist });
 });
 
 app.get("/api/portal/password-token-status", (req, res) => {
   const token = String(req.query.token || "");
-  const pharmacy = findByPasswordToken(token);
-  if (!pharmacy) {
+  const retailStockist = findByPasswordToken(token);
+  if (!retailStockist) {
     return res.status(400).json({ valid: false });
   }
   res.json({
     valid: true,
-    email: pharmacy.email,
-    businessName: pharmacy.businessName,
-    purpose: pharmacy.passwordTokenPurpose || "setup",
+    email: retailStockist.email,
+    businessName: retailStockist.businessName,
+    purpose: retailStockist.passwordTokenPurpose || "setup",
   });
 });
 
@@ -404,21 +401,21 @@ app.post("/api/portal/change-password", portalAuth, (req, res) => {
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ error: "Current and new password required" });
   }
-  const result = changePharmacyPassword(req.portalPharmacy.id, currentPassword, newPassword);
+  const result = changeRetailStockistPassword(req.portalRetailStockist.id, currentPassword, newPassword);
   if (!result) return res.status(404).json({ error: "Account not found" });
   if (result.error === "incorrect_password") {
     return res.status(401).json({ error: "Current password is incorrect" });
   }
   if (result.error) return res.status(400).json({ error: result.error });
   revokePortalToken(req.portalToken);
-  const token = createPortalToken(req.portalPharmacy.id);
+  const token = createPortalToken(req.portalRetailStockist.id);
   res.json({ ok: true, token, retailStockist: result });
 });
 
 app.post("/api/portal/delete-account", portalAuth, (req, res) => {
   const password = String(req.body?.password || "");
   if (!password) return res.status(400).json({ error: "Password required to delete your account" });
-  const result = deletePharmacyAccount(req.portalPharmacy.id, password);
+  const result = deleteRetailStockistAccount(req.portalRetailStockist.id, password);
   if (!result) return res.status(404).json({ error: "Account not found" });
   if (result.error === "incorrect_password") {
     return res.status(401).json({ error: "Password is incorrect" });
@@ -435,7 +432,7 @@ app.get("/api/portal/bank-details", portalAuth, (req, res) => {
 });
 
 app.get("/api/portal/session", portalAuth, (req, res) => {
-  res.json({ retailStockist: publicPharmacy(req.portalPharmacy) });
+  res.json({ retailStockist: publicRetailStockist(req.portalRetailStockist) });
 });
 
 app.post("/api/portal/logout", portalAuth, (req, res) => {
@@ -514,11 +511,11 @@ app.post("/api/orders", portalAuth, (req, res) => {
   }
 
   const paymentMethod = body.paymentMethod || "invoice";
-  const paymentTerms = paymentTermsLabel(req.portalPharmacy, { paymentMethod });
+  const paymentTerms = paymentTermsLabel(req.portalRetailStockist, { paymentMethod });
 
   const order = createOrder({
-    pharmacyId: req.portalPharmacy.id,
-    pharmacyName: req.portalPharmacy.businessName,
+    retailStockistId: req.portalRetailStockist.id,
+    retailStockistName: req.portalRetailStockist.businessName,
     contact: { ...contact, flavours: body.flavours || "" },
     lineItems,
     totals,
@@ -562,7 +559,7 @@ app.post("/api/credit-applications", portalAuth, (req, res) => {
   }
 
   const app = submitCreditApplication({
-    pharmacyId: req.portalPharmacy.id,
+    retailStockistId: req.portalRetailStockist.id,
     businessName: body.businessName,
     abn: body.abn,
     directorName: body.directorName,
@@ -600,7 +597,7 @@ app.post("/api/paypal/create-order", portalAuth, async (req, res) => {
 
   const { orderId } = req.body || {};
   const order = findOrder(orderId);
-  if (!order || order.pharmacyId !== req.portalPharmacy.id) {
+  if (!order || order.retailStockistId !== req.portalRetailStockist.id) {
     return res.status(404).json({ error: "Order not found" });
   }
   if (order.paymentStatus === "paid") {
@@ -632,7 +629,7 @@ app.post("/api/paypal/capture-order", portalAuth, async (req, res) => {
 
   const { orderId, paypalOrderId } = req.body || {};
   const order = findOrder(orderId);
-  if (!order || order.pharmacyId !== req.portalPharmacy.id) {
+  if (!order || order.retailStockistId !== req.portalRetailStockist.id) {
     return res.status(404).json({ error: "Order not found" });
   }
   if (!paypalOrderId || order.paypalOrderId !== paypalOrderId) {
@@ -668,15 +665,15 @@ app.post("/api/paypal/capture-order", portalAuth, async (req, res) => {
 // ——— Public gummy checkout (email links, confectionery stores — no portal login) ———
 
 function isPublicGummyOrder(order) {
-  return order?.source === "gummy-checkout" && (order.pharmacyId == null || order.pharmacyId === "");
+  return order?.source === "gummy-checkout" && (order.retailStockistId == null || order.retailStockistId === "");
 }
 
 app.get("/api/public/gummy-checkout/context", noStoreJson, gummyCheckoutAccess.requireGummyCheckoutAccess, (req, res) => {
-  const pharmacy = req.gummyCheckoutPharmacy;
+  const retailStockist = req.gummyCheckoutStockist;
   res.json({
     source: req.gummyCheckoutAccess?.source || "unknown",
-    businessName: pharmacy?.businessName || null,
-    email: pharmacy?.email || null,
+    businessName: retailStockist?.businessName || null,
+    email: retailStockist?.email || null,
   });
 });
 
@@ -736,10 +733,10 @@ app.post("/api/public/gummy-checkout/orders", gummyCheckoutAccess.requireGummyCh
       total: calculated.total,
     };
 
-    const stockist = req.gummyCheckoutPharmacy;
+    const stockist = req.gummyCheckoutStockist;
     const order = createOrder({
-      pharmacyId: stockist?.id || null,
-      pharmacyName: stockist?.businessName || contact.businessName,
+      retailStockistId: stockist?.id || null,
+      retailStockistName: stockist?.businessName || contact.businessName,
       contact: { ...contact, flavours: body.flavours || "" },
       lineItems,
       totals,
@@ -869,7 +866,7 @@ app.get("/api/admin/setup-status", adminAuth, (req, res) => {
     auspostPac: auspost.isConfigured(),
     auspostFromPostcode: auspost.fromPostcode(),
     gummyCheckoutKey: gummyCheckoutAccess.isCheckoutAccessConfigured(),
-    stockistCheckoutKeys: loadPharmacies().pharmacies.filter(
+    stockistCheckoutKeys: loadRetailStockists().retailStockists.filter(
       (p) => p.status === "active" && p.checkoutAccessKey,
     ).length,
   });
@@ -944,7 +941,7 @@ app.post("/api/admin/applications/:id/approve", adminAuth, async (req, res) => {
     console.warn("[mail] approval notify:", err.message);
     result.emailSent = false;
   }
-  res.json(withRetailStockist(result));
+  res.json(asRetailStockistPayload(result));
 });
 
 app.post("/api/admin/applications/:id/reject", adminAuth, (req, res) => {
@@ -953,60 +950,60 @@ app.post("/api/admin/applications/:id/reject", adminAuth, (req, res) => {
   res.json({ application: app });
 });
 
-app.get("/api/admin/pharmacies", adminAuth, (req, res) => {
-  const pharmacies = loadPharmacies().pharmacies.map(adminPharmacyView);
-  res.json({ retailStockists: pharmacies });
+app.get("/api/admin/retail-stockists", adminAuth, (req, res) => {
+  const retailStockists = loadRetailStockists().retailStockists.map(adminRetailStockistView);
+  res.json({ retailStockists });
 });
 
-app.post("/api/admin/pharmacies/:id/regenerate-checkout-key", adminAuth, (req, res) => {
+app.post("/api/admin/retail-stockists/:id/regenerate-checkout-key", adminAuth, (req, res) => {
   const result = regenerateCheckoutAccessKey(req.params.id);
   if (!result) return res.status(404).json({ error: "Retail stockist not found" });
-  res.json(withRetailStockist(result));
+  res.json(asRetailStockistPayload(result));
 });
 
-app.post("/api/admin/pharmacies", adminAuth, (req, res) => {
+app.post("/api/admin/retail-stockists", adminAuth, (req, res) => {
   const body = req.body || {};
   if (!body.businessName || !body.email) {
     return res.status(400).json({ error: "businessName and email required" });
   }
-  const result = createPharmacy(body);
-  res.status(201).json(withRetailStockist(result));
+  const result = createRetailStockist(body);
+  res.status(201).json(asRetailStockistPayload(result));
 });
 
-app.post("/api/admin/pharmacies/:id/send-password-reset", adminAuth, async (req, res) => {
+app.post("/api/admin/retail-stockists/:id/send-password-reset", adminAuth, async (req, res) => {
   const result = sendPasswordReset(req.params.id);
   if (!result) return res.status(404).json({ error: "Retail stockist not found" });
   try {
     result.emailSent = await notifyPasswordReset({
-      pharmacy: result.pharmacy,
+      retailStockist: result.retailStockist,
       resetToken: result.setupToken,
     });
   } catch (err) {
     console.warn("[mail] admin password reset:", err.message);
     result.emailSent = false;
   }
-  res.json(withRetailStockist(result));
+  res.json(asRetailStockistPayload(result));
 });
 
-app.patch("/api/admin/pharmacies/:id", adminAuth, (req, res) => {
+app.patch("/api/admin/retail-stockists/:id", adminAuth, (req, res) => {
   const { status } = req.body || {};
-  const pharmacy = setPharmacyStatus(req.params.id, status);
-  if (!pharmacy) return res.status(404).json({ error: "Retail stockist not found" });
-  res.json({ retailStockist: pharmacy });
+  const retailStockist = setRetailStockistStatus(req.params.id, status);
+  if (!retailStockist) return res.status(404).json({ error: "Retail stockist not found" });
+  res.json({ retailStockist });
 });
 
-app.post("/api/admin/pharmacies/:id/send-compliance", adminAuth, async (req, res) => {
-  const pharmacy = findById(req.params.id);
-  if (!pharmacy) return res.status(404).json({ error: "Retail stockist not found" });
-  if (!pharmacy.email) return res.status(400).json({ error: "Retail stockist has no email" });
+app.post("/api/admin/retail-stockists/:id/send-compliance", adminAuth, async (req, res) => {
+  const retailStockist = findById(req.params.id);
+  if (!retailStockist) return res.status(404).json({ error: "Retail stockist not found" });
+  if (!retailStockist.email) return res.status(400).json({ error: "Retail stockist has no email" });
   if (!documentsReady()) return res.status(503).json({ error: "Compliance documents not available on server" });
   try {
     const sent = await sendCompliancePack({
-      to: pharmacy.email,
-      pharmacyName: pharmacy.businessName,
-      contactName: pharmacy.businessName,
+      to: retailStockist.email,
+      retailStockistName: retailStockist.businessName,
+      contactName: retailStockist.businessName,
     });
-    res.json({ sent, email: pharmacy.email });
+    res.json({ sent, email: retailStockist.email });
   } catch (err) {
     console.warn("[mail] compliance pack:", err.message);
     res.status(502).json({ error: "Failed to send compliance documents" });
@@ -1022,7 +1019,7 @@ app.post("/api/admin/applications/:id/send-compliance", adminAuth, async (req, r
   try {
     const sent = await sendCompliancePack({
       to: application.email,
-      pharmacyName: application.businessName,
+      retailStockistName: application.businessName,
       contactName: application.fullName,
     });
     res.json({ sent, email: application.email });
@@ -1035,7 +1032,7 @@ app.post("/api/admin/applications/:id/send-compliance", adminAuth, async (req, r
 app.get("/api/admin/orders", adminAuth, (req, res) => {
   const orders = listOrders({
     status: req.query.status || null,
-    pharmacyId: req.query.pharmacyId || null,
+    retailStockistId: req.query.retailStockistId || null,
     limit: Number(req.query.limit) || 200,
   });
   res.json({ orders });
@@ -1091,7 +1088,7 @@ setTimeout(maybeSendDailyReport, 5000);
 
 app.listen(PORT, "0.0.0.0", () => {
   try {
-    loadPharmacies();
+    loadRetailStockists();
   } catch (err) {
     console.error("[retail] Startup retail stockist seed failed:", err.message);
   }

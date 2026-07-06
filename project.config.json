@@ -8,6 +8,6 @@
   "localPort": 4280,
   "siteUrl": "https://www.wholesale.leaflock.com.au",
   "parentProject": null,
-  "openInstructions": "Separate from med.leaflock.com.au (pharmacy wholesale). Never deploy this repo to the pharmacy Render service.",
+  "openInstructions": "Separate from med.leaflock.com.au (med wholesale). Never deploy this repo to the med Render service.",
   "secretsPolicy": "All API keys and passwords only in Render env or gitignored .env.local / data/.leaflock-render-env.json. Never commit or paste secrets in chat. Run npm run secrets:check before push."
 }

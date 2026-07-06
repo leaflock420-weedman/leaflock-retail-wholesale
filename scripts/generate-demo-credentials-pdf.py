@@ -70,20 +70,20 @@ story = [
             ["URL", f'<a href="{site}/admin/">{site}/admin/</a>'],
             ["Login type", "Password only (no username)"],
             ["Admin password", f"<b>{admin_pw}</b>"],
-            ["What you can test", "Traffic stats, approve pharmacies, send compliance docs, orders, login log"],
+            ["What you can test", "Traffic stats, approve retail stockists, send compliance docs, orders, login log"],
         ]
     ),
     Spacer(1, 0.35 * cm),
     p("Quick test steps", BODY),
     p(
         "Open the admin URL → enter the password → Wholesale tab → check System status is green. "
-        "Try approving a test application or Send docs on a pharmacy row.",
+        "Try approving a test application or Send docs on a retail stockist row.",
         BODY,
     ),
     Spacer(1, 0.25 * cm),
     HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#dce4df")),
     Spacer(1, 0.25 * cm),
-    p("2. Pharmacy wholesale portal (pricing + orders)", H1),
+    p("2. Med wholesale portal (pricing + orders)", H1),
     cred_table(
         [
             ["Field", "Value"],

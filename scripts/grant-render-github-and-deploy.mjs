@@ -10,8 +10,8 @@ const require = createRequire(import.meta.url);
 const { chromium } = require(require.resolve("playwright", { paths: [storeRoot] }));
 
 const SERVICE_ID = "srv-d93ivefaqgkc73c239ig";
-const REPO_NAME = "leaflock-pharmacy-wholesale";
-const LIVE_URL = "https://leaflock-pharmacy-wholesale.onrender.com";
+const REPO_NAME = "leaflock-med-wholesale";
+const LIVE_URL = "https://leaflock-med-wholesale.onrender.com";
 const PROFILE = path.join(root, ".chrome-render-profile");
 
 async function sleep(ms) {

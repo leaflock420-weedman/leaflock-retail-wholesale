@@ -175,7 +175,7 @@ try {
         businessName: "Test Store",
         fullName: "Tester",
         abn: "12 345 678 901",
-        pharmacyReg: "REG-1",
+        storeReg: "REG-1",
         email: "test@example.com",
         phone: "0400000000",
         address: "1 Test St",
@@ -224,7 +224,7 @@ try {
       businessName: "Apply Test Co",
       fullName: "Jane",
       abn: "98 765 432 109",
-      pharmacyReg: "LIC-99",
+      storeReg: "LIC-99",
       email: "apply-test@example.com",
     }),
   });
@@ -243,11 +243,11 @@ try {
   assert("Gummy checkout page 200", r.res.status === 200);
   assert("Checkout page public", r.body.raw?.includes("gummy-checkout") || typeof r.body === "object");
 
-  r = await json(`${base}/api/admin/pharmacies`, {
+  r = await json(`${base}/api/admin/retail-stockists`, {
     headers: { Authorization: `Bearer ${adminToken}` },
   });
-  assert("Admin pharmacies list", r.res.status === 200);
-  const stockist = (r.body.retailStockists || r.body.pharmacies || []).find(
+  assert("Admin retail stockists list", r.res.status === 200);
+  const stockist = (r.body.retailStockists || r.body.retailStockists || []).find(
     (p) => p.email === "apply-test@example.com",
   );
   assert("Approved stockist has checkout link", Boolean(stockist?.checkoutLink));
@@ -263,7 +263,7 @@ try {
   assert("Stockist context API", r.res.status === 200);
   assert("Context identifies stockist", r.body.source === "stockist" && r.body.businessName === "Apply Test Co");
 
-  r = await json(`${base}/api/admin/pharmacies/${stockist.id}/regenerate-checkout-key`, {
+  r = await json(`${base}/api/admin/retail-stockists/${stockist.id}/regenerate-checkout-key`, {
     method: "POST",
     headers: { Authorization: `Bearer ${adminToken}` },
   });

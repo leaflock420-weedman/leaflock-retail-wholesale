@@ -1,10 +1,10 @@
 {
   "entries": [
     {
-      "id": "login_1783191949727_9740c7fb",
-      "pharmacyId": "pharm_demo_stockist",
+      "id": "login_1783318007868_a9d86562",
+      "retailStockistId": "pharm_demo_stockist",
       "businessName": "Demo Stockist (Preview)",
-      "ts": 1783191949727,
+      "ts": 1783318007868,
       "ip": "127.0.0.1",
       "userAgent": "node",
       "success": true

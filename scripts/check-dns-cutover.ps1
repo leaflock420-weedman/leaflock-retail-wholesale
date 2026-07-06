@@ -1,6 +1,6 @@
 # Checks whether med.leaflock.com.au points to Render (ready for cutover) or still Wix.
 $domain = "med.leaflock.com.au"
-$renderTarget = "leaflock-pharmacy-wholesale.onrender.com"
+$renderTarget = "leaflock-med-wholesale.onrender.com"
 
 Write-Host "DNS check for $domain"
 Write-Host ""
