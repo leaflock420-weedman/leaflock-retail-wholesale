@@ -1,6 +1,7 @@
 node_modules/
 data/events.json
 data/meta.json
+data/retail-stockists.json
 data/pharmacies.json
 data/applications.json
 data/orders.json
