@@ -1,5 +1,5 @@
 {
-  "exportedAt": 1783335346945,
+  "exportedAt": 1783532683086,
   "dataDir": "/opt/render/project/src/data",
   "files": {
     "applications.json": {
@@ -137,8 +137,8 @@
           "role": "",
           "createdAt": 1783327109682,
           "approvedAt": 1783327109682,
-          "lastLoginAt": 1783335252156,
-          "loginCount": 6,
+          "lastLoginAt": 1783335838276,
+          "loginCount": 8,
           "applicationId": "app_1783327018660_77a89062",
           "checkoutAccessKey": "jR1t9-tvy82xYjKvn_pJXGmY",
           "mustChangePassword": false
@@ -648,6 +648,64 @@
           "ip": "124.176.36.161",
           "userAgent": "node",
           "success": true
+        },
+        {
+          "id": "login_1783335423225_c9e39721",
+          "retailStockistId": "retail_1783327109682_1e1ccd4e",
+          "businessName": "LeafLock",
+          "ts": 1783335423225,
+          "ip": "124.176.36.161",
+          "userAgent": "node",
+          "success": true
+        },
+        {
+          "id": "login_1783335788173_0a1cdc03",
+          "retailStockistId": null,
+          "businessName": null,
+          "ts": 1783335788173,
+          "ip": "124.176.36.161",
+          "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36",
+          "success": false,
+          "emailAttempt": "__probe__"
+        },
+        {
+          "id": "login_1783335826567_f257cd71",
+          "retailStockistId": null,
+          "businessName": null,
+          "ts": 1783335826567,
+          "ip": "124.176.36.161",
+          "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36",
+          "success": false,
+          "emailAttempt": "__probe__"
+        },
+        {
+          "id": "login_1783335838277_54c500bb",
+          "retailStockistId": "retail_1783327109682_1e1ccd4e",
+          "businessName": "LeafLock",
+          "ts": 1783335838277,
+          "ip": "124.176.36.161",
+          "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36",
+          "success": true
+        },
+        {
+          "id": "login_1783395398268_018bffbb",
+          "retailStockistId": null,
+          "businessName": null,
+          "ts": 1783395398268,
+          "ip": "124.176.36.161",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+          "success": false,
+          "emailAttempt": "__probe__"
+        },
+        {
+          "id": "login_1783532602241_61deeb14",
+          "retailStockistId": null,
+          "businessName": null,
+          "ts": 1783532602241,
+          "ip": "124.176.36.161",
+          "userAgent": "node",
+          "success": false,
+          "emailAttempt": "se…@gmail.com"
         }
       ]
     },
@@ -1135,7 +1193,186 @@
         "sessionId": "c464de0c-f02d-47fe-bdd2-3306c286cb89",
         "eventName": null,
         "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36"
+      },
+      {
+        "id": "1783335764105-u7rvyqf",
+        "ts": 1783335763925,
+        "type": "pageview",
+        "path": "/set-password.html?token=qcPtlHA3K1IiHyUbzaC2OG0ONIiziCGf5uXYLUK9AZc",
+        "referrer": "android-app://com.google.android.gm/",
+        "utm": {},
+        "sessionId": "02f63c5e-9faa-4279-aea3-f6eca7f61c84",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36"
+      },
+      {
+        "id": "1783335773626-dmmbn0b",
+        "ts": 1783335773451,
+        "type": "pageview",
+        "path": "/refunds-returns.html",
+        "referrer": "https://www.wholesale.leaflock.com.au/set-password.html?token=qcPtlHA3K1IiHyUbzaC2OG0ONIiziCGf5uXYLUK9AZc",
+        "utm": {},
+        "sessionId": "02f63c5e-9faa-4279-aea3-f6eca7f61c84",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36"
+      },
+      {
+        "id": "1783335782019-2lhue63",
+        "ts": 1783335781827,
+        "type": "pageview",
+        "path": "/set-password.html?token=qcPtlHA3K1IiHyUbzaC2OG0ONIiziCGf5uXYLUK9AZc",
+        "referrer": "android-app://com.google.android.gm/",
+        "utm": {},
+        "sessionId": "51da9308-8547-4f4f-a1b7-fec80c2491bc",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36"
+      },
+      {
+        "id": "1783335788468-y02ydm2",
+        "ts": 1783335788280,
+        "type": "pageview",
+        "path": "/portal.html",
+        "referrer": "https://www.wholesale.leaflock.com.au/set-password.html?token=qcPtlHA3K1IiHyUbzaC2OG0ONIiziCGf5uXYLUK9AZc",
+        "utm": {},
+        "sessionId": "51da9308-8547-4f4f-a1b7-fec80c2491bc",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36"
+      },
+      {
+        "id": "1783335790204-k7dnijv",
+        "ts": 1783335790015,
+        "type": "pageview",
+        "path": "/forgot-password.html",
+        "referrer": "https://www.wholesale.leaflock.com.au/portal.html",
+        "utm": {},
+        "sessionId": "51da9308-8547-4f4f-a1b7-fec80c2491bc",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36"
+      },
+      {
+        "id": "1783335802286-3sgbc3j",
+        "ts": 1783335802103,
+        "type": "pageview",
+        "path": "/set-password.html?token=nYOnAE9YGPi6e5yVp72bSvH1iQjJBJS2nEEARlF_AwY",
+        "referrer": "android-app://com.google.android.gm/",
+        "utm": {},
+        "sessionId": "da3dac35-63ee-4705-b23a-8c79c194a6c0",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36"
+      },
+      {
+        "id": "1783335826868-asvmlrs",
+        "ts": 1783335826682,
+        "type": "pageview",
+        "path": "/portal.html?email=secretsolutions2016%40gmail.com&passwordSet=1",
+        "referrer": "https://www.wholesale.leaflock.com.au/set-password.html?token=nYOnAE9YGPi6e5yVp72bSvH1iQjJBJS2nEEARlF_AwY",
+        "utm": {},
+        "sessionId": "da3dac35-63ee-4705-b23a-8c79c194a6c0",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36"
+      },
+      {
+        "id": "1783373286468-uxcr4ri",
+        "ts": 1783373286436,
+        "type": "pageview",
+        "path": "/?requestedBy=screenshoter&suppressbi=true&showMobileView=true",
+        "referrer": "",
+        "utm": {},
+        "sessionId": "3d20ebf5-b40d-4788-87bf-e134b5ba5571",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.7778.97 Safari/537.36 Snapshotter"
+      },
+      {
+        "id": "1783373288232-jj0m8rl",
+        "ts": 1783373288214,
+        "type": "pageview",
+        "path": "/?requestedBy=screenshoter&suppressbi=true",
+        "referrer": "",
+        "utm": {},
+        "sessionId": "fee87cf1-b8af-41fb-92d0-8c28b77a4add",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.7778.97 Safari/537.36 Snapshotter"
+      },
+      {
+        "id": "1783395398251-2l7834d",
+        "ts": 1783395399125,
+        "type": "pageview",
+        "path": "/portal.html",
+        "referrer": "https://www.wholesale.leaflock.com.au/request-access.html",
+        "utm": {},
+        "sessionId": "9d093c37-e081-485f-8a72-b7ad96dd2561",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+      },
+      {
+        "id": "1783500089142-rrx3vtd",
+        "ts": 1783500088898,
+        "type": "pageview",
+        "path": "/",
+        "referrer": "",
+        "utm": {},
+        "sessionId": "f1a984e0-eba7-4544-87df-aa0f782baee4",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36"
+      },
+      {
+        "id": "1783500220168-vqwpv4k",
+        "ts": 1783500219430,
+        "type": "pageview",
+        "path": "/",
+        "referrer": "",
+        "utm": {},
+        "sessionId": "b029a11f-b795-43f2-9f3d-fc233a37c6be",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.7.5 Mobile/15E148 Safari/604.1"
+      },
+      {
+        "id": "1783500231998-htxill0",
+        "ts": 1783500231903,
+        "type": "pageview",
+        "path": "/",
+        "referrer": "",
+        "utm": {},
+        "sessionId": "b029a11f-b795-43f2-9f3d-fc233a37c6be",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.7.5 Mobile/15E148 Safari/604.1"
+      },
+      {
+        "id": "1783511861972-96q709y",
+        "ts": 1783511861733,
+        "type": "pageview",
+        "path": "/",
+        "referrer": "",
+        "utm": {},
+        "sessionId": "4ff037cd-71b9-4d33-ba10-ec3e74e79586",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36"
+      },
+      {
+        "id": "1783511880684-i9ppy5i",
+        "ts": 1783511879773,
+        "type": "pageview",
+        "path": "/",
+        "referrer": "",
+        "utm": {},
+        "sessionId": "ba322782-6dfd-4b4a-954e-3eae0b7d7e85",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+      },
+      {
+        "id": "1783511969839-2g3scld",
+        "ts": 1783511969582,
+        "type": "pageview",
+        "path": "/gummy-checkout.html",
+        "referrer": "",
+        "utm": {},
+        "sessionId": "4ff037cd-71b9-4d33-ba10-ec3e74e79586",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36"
       }
-    ]
+    ],
+    "meta.json": {
+      "lastDailyReport": "2026-07-07"
+    }
   }
 }
