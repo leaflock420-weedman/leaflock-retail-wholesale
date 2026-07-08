@@ -1,5 +1,5 @@
 {
-  "exportedAt": 1783534060709,
+  "exportedAt": 1783547743342,
   "dataDir": "/opt/render/project/src/data",
   "files": {
     "applications.json": {
@@ -1372,7 +1372,7 @@
       }
     ],
     "meta.json": {
-      "lastDailyReport": "2026-07-07"
+      "lastDailyReport": "2026-07-08"
     }
   }
 }
