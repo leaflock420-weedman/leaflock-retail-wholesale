@@ -37,6 +37,19 @@ function fmtMoney(n) {
   return new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" }).format(n || 0);
 }
 
+function loginLogAccount(entry, stockistEmailById = new Map()) {
+  if (entry.success) {
+    const name = entry.businessName || "Approved account";
+    const email = entry.retailStockistId ? stockistEmailById.get(entry.retailStockistId) : "";
+    return email ? `${name} — ${email}` : name;
+  }
+  const emailAttempt = String(entry.emailAttempt || "").trim();
+  if (emailAttempt === "__probe__") return "Portal page check (not a user)";
+  if (emailAttempt) return emailAttempt;
+  if (entry.codeAttempt) return `Access code ${entry.codeAttempt}`;
+  return "Unknown";
+}
+
 function setStatText(id, value) {
   const el = document.getElementById(id);
   if (el) el.textContent = value;
@@ -378,15 +391,19 @@ async function refreshWholesale() {
     </tr>`,
   );
 
+  const stockistEmailById = new Map(
+    (stockistList.retailStockists || stockistList.pharmacies || []).map((p) => [p.id, p.email]),
+  );
   const logBody = document.getElementById("loginLogTable");
   renderTable(
     logBody,
     loginLog.entries,
     (e) => `<tr>
       <td>${fmtDate(e.ts)}</td>
-      <td>${e.businessName || "—"}</td>
+      <td>${loginLogAccount(e, stockistEmailById)}</td>
       <td>${e.success ? "✓ Success" : "✗ Failed"}</td>
     </tr>`,
+    3,
   );
   } catch (err) {
     console.error("[admin] refreshWholesale failed:", err);
