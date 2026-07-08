@@ -79,12 +79,8 @@
   async function checkPortalApi() {
     const hint = document.getElementById("portalHostHint");
     try {
-      const res = await fetch("/api/portal/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "__probe__", password: "__probe__" }),
-      });
-      if (res.status === 401 || res.status === 400) return true;
+      const res = await fetch("/api/portal/ping");
+      if (res.ok) return true;
       if (hint) {
         hint.hidden = false;
         hint.textContent = "Portal service unavailable on this URL. Contact LeafLock wholesale support.";

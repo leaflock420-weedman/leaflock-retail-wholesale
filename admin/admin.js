@@ -344,6 +344,7 @@ async function refreshWholesale() {
       <td>${p.businessName}</td>
       <td>${p.email}</td>
       <td><span class="badge badge--${p.status}">${p.status}</span></td>
+      <td>${p.passwordSet ? '<span class="badge badge--active">Ready</span>' : '<span class="badge badge--pending">No password</span>'}</td>
       <td>${p.loginCount || 0}</td>
       <td>${fmtDate(p.lastLoginAt)}</td>
       <td class="actions-cell">

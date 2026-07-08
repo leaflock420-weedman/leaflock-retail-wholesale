@@ -343,6 +343,10 @@ app.get("/api/demo/portal", (_req, res) => {
   res.status(404).json({ error: "Not available" });
 });
 
+app.get("/api/portal/ping", (_req, res) => {
+  res.json({ ok: true });
+});
+
 app.get("/api/portal/access-status", (req, res) => {
   const email = String(req.query.email || "").trim();
   res.json(portalAccessStatusForEmail(email));
