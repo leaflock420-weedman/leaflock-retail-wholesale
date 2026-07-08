@@ -122,12 +122,19 @@ async function createService() {
 
 async function addDisk(serviceId) {
   try {
-    await api(`/services/${serviceId}/disks`, {
+    const rows = await api(`/disks?serviceId=${serviceId}`);
+    const existing = (Array.isArray(rows) ? rows : []).map((row) => row.disk || row);
+    if (existing.some((d) => d.mountPath === "/var/data")) {
+      console.log("Persistent disk already attached at /var/data");
+      return;
+    }
+    await api("/disks", {
       method: "POST",
       body: JSON.stringify({
         name: "retail-wholesale-data",
         mountPath: "/var/data",
         sizeGB: 1,
+        serviceId,
       }),
     });
     console.log("Persistent disk attached at /var/data");
@@ -190,24 +197,31 @@ async function triggerDeploy(serviceId) {
   console.log("Deploy triggered");
 }
 
-async function waitForLive(urls) {
-  const targets = Array.isArray(urls) ? urls : [urls];
-  for (let i = 0; i < 40; i++) {
-    for (const url of targets) {
-      try {
-        const res = await fetch(`${url}/`, { redirect: "follow" });
-        if (res.ok) {
-          console.log(`LIVE: ${url} — homepage ${res.status}`);
-          return { url };
+async function waitForDeploy(serviceId, markerUrl) {
+  for (let i = 0; i < 60; i++) {
+    const rows = await api(`/services/${serviceId}/deploys?limit=1`);
+    const deploy = rows[0]?.deploy || rows[0];
+    const status = deploy?.status || "unknown";
+    if (status === "live") {
+      if (markerUrl) {
+        try {
+          const res = await fetch(markerUrl, { cache: "no-store" });
+          if (res.ok) {
+            console.log(`LIVE deploy + marker OK: ${markerUrl}`);
+            return deploy;
+          }
+        } catch {
+          /* still rolling out */
         }
-        console.log(`Waiting for ${url} (${i + 1}/40) status=${res.status}`);
-      } catch {
-        console.log(`Waiting for ${url} (${i + 1}/40)...`);
+      } else {
+        console.log(`LIVE deploy: ${deploy.id}`);
+        return deploy;
       }
     }
-    await new Promise((r) => setTimeout(r, 15000));
+    console.log(`Waiting for deploy (${i + 1}/60) status=${status}`);
+    await new Promise((r) => setTimeout(r, 10000));
   }
-  return null;
+  throw new Error("Deploy did not reach live in time");
 }
 
 async function main() {
@@ -264,8 +278,8 @@ async function main() {
   const renderUrl =
     service.serviceDetails?.url ||
     `https://${service.slug || SERVICE_NAME}.onrender.com`;
-  const live = await waitForLive([SITE_URL, renderUrl]);
-  const liveUrl = live?.url || SITE_URL;
+  const liveUrl = SITE_URL;
+  await waitForDeploy(service.id, `${liveUrl}/play-login.html`);
   if (backup.status === 0) {
     const restore = spawnSync("node", ["scripts/restore-live-data.mjs"], {
       cwd: root,

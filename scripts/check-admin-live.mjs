@@ -1,0 +1,10 @@
+const site = "https://www.wholesale.leaflock.com.au";
+const html = await (await fetch(`${site}/admin/`)).text();
+const hasAccount = html.includes("<th>Account</th>");
+const hasOld = html.includes("<th>Retail stockist</th>");
+const jsVer = html.match(/admin\.js\?v=([^"']+)/)?.[1];
+const js = await (await fetch(`${site}/admin/admin.js${jsVer ? `?v=${jsVer}` : ""}`)).text();
+console.log("Live admin HTML Account column:", hasAccount);
+console.log("Live admin HTML old Retail stockist column:", hasOld);
+console.log("admin.js version:", jsVer);
+console.log("loginLogAccount in live JS:", js.includes("loginLogAccount"));
