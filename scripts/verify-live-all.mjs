@@ -32,7 +32,7 @@ async function adminToken() {
 
 async function main() {
   console.log("\n=== Live pages ===");
-  for (const path of ["/", "/portal.html", "/play-login.html", "/request-access.html", "/admin/"]) {
+  for (const path of ["/", "/portal.html", "/request-access.html", "/admin/"]) {
     const res = await fetch(`${site}${path}`);
     ok(`${path} returns 200`, res.status === 200, String(res.status));
   }

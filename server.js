@@ -84,10 +84,13 @@ const {
   loadApplications,
   loadLoginLog,
   demoPortalInfo,
+  demoPortalPassword,
   portalAccessStatusForEmail,
   initializeRetailData,
   reconcilePreservedRetailData,
 } = require("./lib/retail-store");
+const { createAuthHandlers } = require("./lib/auth-handlers");
+const { registerAuthRoutes } = require("./lib/auth-routes");
 const {
   snapshotAllData,
   backupAllProtectedFiles,
@@ -139,8 +142,20 @@ const LOGIN_RATE_MAX = 20;
 const APPLICATION_RATE_MAX = 8;
 const GUMMY_CHECKOUT_RATE_MAX = 12;
 
+function passwordSetupPageUrl(token) {
+  const siteUrl = process.env.SITE_URL || "https://www.wholesale.leaflock.com.au";
+  return `${siteUrl}/set-password.html?token=${encodeURIComponent(token)}`;
+}
+
 function asRetailStockistPayload(payload) {
-  return payload;
+  if (!payload || typeof payload !== "object") return payload;
+  const out = { ...payload };
+  delete out.setupCode;
+  if (out.setupToken) {
+    if (!out.setupUrl) out.setupUrl = passwordSetupPageUrl(out.setupToken);
+    delete out.setupToken;
+  }
+  return out;
 }
 
 function dispatchOrderEmails(order, { adminLabel, confirmCustomer = false } = {}) {
@@ -217,13 +232,15 @@ app.use((req, res, next) => {
 });
 app.use(blockSensitiveStatic);
 
-const NOINDEX_HTML =
-  /^\/(portal|gummy-checkout|demo|help|set-password|forgot-password|credit-application)\.html$/i;
 app.use((req, res, next) => {
-  if (NOINDEX_HTML.test(req.path) || req.path.startsWith("/admin")) {
+  if (req.path.startsWith("/admin") || req.path.endsWith(".html") || req.path === "/") {
     res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
   }
   next();
+});
+
+app.get("/play-login.html", (_req, res) => {
+  res.redirect(302, "/portal.html");
 });
 
 // Never cache public gummy checkout — email links must always get the no-login page.
@@ -242,13 +259,19 @@ app.get("/assets/gummy-checkout.js", (req, res) => {
 
 const NO_CACHE_PORTAL_PAGES = [
   "/portal.html",
+  "/login.html",
+  "/signup.html",
   "/request-access.html",
   "/set-password.html",
   "/forgot-password.html",
+  "/auth-playground.html",
   "/assets/access.js",
+  "/assets/login.js",
+  "/assets/signup-page.js",
   "/assets/signup.js",
   "/assets/set-password.js",
   "/assets/forgot-password.js",
+  "/assets/auth-playground.js",
 ];
 for (const pagePath of NO_CACHE_PORTAL_PAGES) {
   app.get(pagePath, (req, res) => {
@@ -352,111 +375,29 @@ app.get("/api/portal/access-status", (req, res) => {
   res.json(portalAccessStatusForEmail(email));
 });
 
-app.post("/api/portal/login", (req, res) => {
-  try {
-    const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
-    const { email, password } = req.body || {};
-    const normalizedEmail = String(email || "").trim().toLowerCase();
-    const loginPassword = String(password || "");
-    if (!normalizedEmail || !loginPassword) {
-      return res.status(400).json({ error: "Email and password required" });
-    }
-    if (!rateLimitLogin(`portal:${ip}:${normalizedEmail}`)) {
-      return res.status(429).json({ error: "Too many attempts. Try again later." });
-    }
-
-    const retailStockist = findByEmail(normalizedEmail);
-    if (!retailStockist || !retailStockist.passwordHash || !verifyPassword(loginPassword, retailStockist.passwordHash)) {
-      recordFailedEmailLogin(normalizedEmail, clientMeta(req));
-      return res.status(401).json({ error: "Invalid email or password" });
-    }
-
-    const publicInfo = recordLogin(retailStockist.id, clientMeta(req));
-    const token = createPortalToken(retailStockist.id);
-    res.json({ token, retailStockist: publicInfo });
-  } catch (err) {
-    console.error("[portal] login failed:", err);
-    res.status(500).json({ error: "Portal login unavailable. Try again shortly." });
-  }
+const authHandlers = createAuthHandlers({
+  rateLimitLogin,
+  rateLimitKey,
+  applicationRateMax: APPLICATION_RATE_MAX,
+  clientMeta,
+  findByEmail,
+  findByPasswordToken,
+  recordLogin,
+  recordFailedEmailLogin,
+  verifyPassword,
+  createPortalToken,
+  sendPasswordReset,
+  notifyPasswordReset,
+  setPasswordForStockist,
+  submitApplication,
+  notifyAdminNewApplication,
+  demoPortalInfo,
+  demoPortalPassword,
+  getAdminPassword,
+  publicRetailStockist,
+  revokePortalToken,
 });
-
-app.post("/api/portal/forgot-password", async (req, res) => {
-  const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
-  if (!rateLimitLogin(`forgot:${ip}`)) {
-    return res.status(429).json({ error: "Too many attempts. Try again later." });
-  }
-  const email = String(req.body?.email || "").trim().toLowerCase();
-  if (!email) return res.status(400).json({ error: "Email required" });
-  const retailStockist = findByEmail(email);
-  if (retailStockist) {
-    const result = sendPasswordReset(retailStockist.id);
-    if (result?.setupToken) {
-      notifyPasswordReset({
-        retailStockist: result.retailStockist,
-        resetToken: result.setupToken,
-      }).catch((err) => {
-        console.warn("[mail] password reset:", err.message);
-      });
-    }
-  }
-  res.json({
-    ok: true,
-    message: "If that email has an active account, a reset link has been emailed.",
-  });
-});
-
-function handlePortalPasswordReset(req, res) {
-  const token = String(req.body?.token || "").trim();
-  const password = String(req.body?.newPassword || req.body?.password || "");
-  if (!password) {
-    return res.status(400).json({ error: "Password required" });
-  }
-  if (!token) {
-    return res.status(400).json({
-      error: "Use the reset link from your email.",
-    });
-  }
-  const result = setPasswordForStockist({ token, password });
-  if (!result) return res.status(500).json({ error: "Could not save password" });
-  if (result.error === "invalid_or_expired_token") {
-    return res.status(400).json({
-      error: "This reset link is invalid or expired. Request a new one from the forgot password page.",
-    });
-  }
-  if (result.error === "save_failed") {
-    return res.status(500).json({ error: "Password could not be saved. Request a new reset link and try again." });
-  }
-  if (result.error) return res.status(400).json({ error: result.error });
-  const saved = findByEmail(result.retailStockist.email);
-  if (!saved || !verifyPassword(password, saved.passwordHash)) {
-    console.error("[portal] Password reset verification failed for", result.retailStockist.email);
-    return res.status(500).json({
-      error: "Password did not save correctly. Request a new reset link and try again.",
-    });
-  }
-  res.json({
-    ok: true,
-    message: "Password updated successfully",
-    retailStockist: result.retailStockist,
-  });
-}
-
-app.post("/api/portal/set-password", handlePortalPasswordReset);
-app.post("/api/portal/reset-password", handlePortalPasswordReset);
-
-app.get("/api/portal/password-token-status", (req, res) => {
-  const token = String(req.query.token || "");
-  const retailStockist = findByPasswordToken(token);
-  if (!retailStockist) {
-    return res.status(400).json({ valid: false });
-  }
-  res.json({
-    valid: true,
-    email: retailStockist.email,
-    businessName: retailStockist.businessName,
-    purpose: retailStockist.passwordTokenPurpose || "setup",
-  });
-});
+registerAuthRoutes(app, authHandlers, portalAuth);
 
 app.post("/api/portal/change-password", portalAuth, (req, res) => {
   const { currentPassword, newPassword } = req.body || {};
@@ -515,39 +456,6 @@ app.get("/api/portal/credentials", portalAuth, (req, res) => {
     ...credentialsForPortal(),
     partner: true,
   });
-});
-
-// ——— Access applications ———
-
-app.post("/api/applications", (req, res) => {
-  const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
-  if (!rateLimitKey(`apply:${ip}`, APPLICATION_RATE_MAX)) {
-    return res.status(429).json({ error: "Too many applications. Try again later." });
-  }
-  const body = req.body || {};
-  const required = ["businessName", "fullName", "abn", "email", "password", "passwordConfirm"];
-  for (const field of required) {
-    if (!String(body[field] || "").trim()) {
-      if (field === "password" || field === "passwordConfirm") {
-        return res.status(400).json({
-          error:
-            "Portal password is required. Refresh the page, scroll to Portal password, and try again.",
-        });
-      }
-      return res.status(400).json({ error: `Missing field: ${field}` });
-    }
-  }
-  try {
-    const application = submitApplication(body);
-    if (application?.error) return res.status(400).json({ error: application.error });
-    notifyAdminNewApplication(application).catch((err) => {
-      console.warn("[mail] application notify:", err.message);
-    });
-    res.status(201).json({ id: application.id, status: application.status });
-  } catch (err) {
-    console.error("[applications] submit:", err);
-    res.status(500).json({ error: "Could not save application. Email info@leaflock.com.au" });
-  }
 });
 
 // ——— Orders ———
@@ -916,14 +824,12 @@ app.get("/api/admin/wholesale/summary", adminAuth, (req, res) => {
 });
 
 app.get("/api/admin/portal-reset-info", adminAuth, (req, res) => {
-  const masterResetCode = String(process.env.PORTAL_MASTER_RESET_CODE || "").trim();
   const siteUrl = process.env.SITE_URL || "https://www.wholesale.leaflock.com.au";
   res.json({
-    configured: Boolean(masterResetCode),
-    masterResetCode,
-    resetUrl: `${siteUrl}/set-password.html`,
     instructions:
-      "Tell the stockist to open the reset page, enter their account email, the support reset code, and a new password. They can sign in immediately — no approval needed.",
+      "Click Reset password on the stockist row. They receive an email with a private link, choose a new password, then sign in.",
+    forgotPasswordUrl: `${siteUrl}/forgot-password.html`,
+    resetPageUrl: `${siteUrl}/set-password.html`,
   });
 });
 
@@ -1049,7 +955,6 @@ app.post("/api/admin/applications/:id/approve", adminAuth, async (req, res) => {
     result.emailSent = await notifyRetailStockistApproved({
       app: result.application,
       setupToken: result.setupToken,
-      setupCode: result.setupCode,
       passwordReady: result.passwordReady,
     });
   } catch (err) {
@@ -1108,7 +1013,7 @@ app.post("/api/admin/retail-stockists/:id/send-password-reset", adminAuth, async
     result.emailSent = false;
   }
   result.resetUrl = resetUrl;
-  res.json(result);
+  res.json(asRetailStockistPayload(result));
 });
 
 app.delete("/api/admin/retail-stockists/:id", adminAuth, (req, res) => {
@@ -1232,6 +1137,12 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`LeafLock Retail Stockist Wholesale + Analytics at http://0.0.0.0:${PORT}`);
   console.log(`Admin dashboard: http://0.0.0.0:${PORT}/admin/`);
   console.log(`Portal: http://0.0.0.0:${PORT}/portal.html`);
+  if (!process.env.RENDER) {
+    console.log(`Login: http://0.0.0.0:${PORT}/login.html`);
+    console.log(`Sign up: http://0.0.0.0:${PORT}/signup.html`);
+    console.log(`Auth playground: http://0.0.0.0:${PORT}/auth-playground.html`);
+    console.log(`Demo login: demo@leaflock.com.au / ${demoPortalPassword()}`);
+  }
   if (paypal.isConfigured()) {
     console.log(`[paypal] ${paypal.mode()} checkout enabled`);
   } else {

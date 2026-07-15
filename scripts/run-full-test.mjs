@@ -279,8 +279,9 @@ try {
     method: "POST",
     headers: { Authorization: `Bearer ${adminToken}` },
   });
-  assert("Admin password reset link", r.res.status === 200 && Boolean(r.body.setupToken));
-  const resetToken = r.body.setupToken;
+  const resetUrl = r.body.resetUrl || r.body.setupUrl || "";
+  const resetToken = resetUrl ? new URL(resetUrl).searchParams.get("token") : "";
+  assert("Admin password reset link", r.res.status === 200 && Boolean(resetToken));
 
   r = await json(`${base}/api/portal/reset-password`, {
     method: "POST",

@@ -56,7 +56,6 @@ async function main() {
   const resetBody = await reset.json();
   if (!reset.ok) throw new Error(`Reset failed: ${JSON.stringify(resetBody)}`);
   console.log("Password reset sent to info@leaflock.com.au");
-  console.log("Setup code:", resetBody.setupCode);
   console.log("Reset link:", resetBody.resetUrl || resetBody.setupUrl);
 }
 

@@ -183,8 +183,12 @@ async function approveApplication(id) {
   }
   const result = await api(`/api/admin/applications/${id}/approve`, { method: "POST" });
   await refreshWholesale();
-  if (result.setupToken && !result.passwordReady) {
-    showSetupLinkModal(result.setupToken, "Account approved — password setup link");
+  if (result.setupUrl && !result.passwordReady) {
+    showLinkModal(
+      result.setupUrl,
+      "Account approved — password setup link",
+      "Copy this link and email it to the stockist if the approval email did not send.",
+    );
   }
   if (result.passwordReady) {
     alert(`Approved. ${result.application?.email} can sign in at the portal with the password they chose when applying.`);
@@ -193,7 +197,7 @@ async function approveApplication(id) {
     businessName: result.application?.businessName,
     email: result.application?.email,
     emailSent: result.emailSent,
-    needsManualSetup: !result.emailSent && Boolean(result.setupToken) && !result.passwordReady,
+    needsManualSetup: !result.emailSent && Boolean(result.setupUrl) && !result.passwordReady,
   });
 }
 
@@ -209,10 +213,10 @@ async function sendPasswordReset(id) {
   }
   const result = await api(`/api/admin/retail-stockists/${id}/send-password-reset`, { method: "POST" });
   const email = result.retailStockist?.email || "stockist";
-  const resetUrl = result.resetUrl || setupPasswordUrl(result.setupToken);
+  const resetUrl = result.resetUrl || result.setupUrl;
   if (result.emailSent) {
     alert(`Reset link emailed to ${email}. They click it, set a new password, then sign in.`);
-  } else if (result.setupToken) {
+  } else if (resetUrl) {
     showLinkModal(
       resetUrl,
       `Password reset link — ${result.retailStockist?.businessName || email}`,
@@ -281,12 +285,18 @@ async function submitAddStockistForm(event) {
   });
   closeAddStockistModal();
   await refreshWholesale();
-  if (result.setupToken) showSetupLinkModal(result.setupToken, "New account — password setup link");
+  if (result.setupUrl) {
+    showLinkModal(
+      result.setupUrl,
+      "New account — password setup link",
+      "Copy this link and email it to the stockist so they can set their password.",
+    );
+  }
   await showOrderFormPreviewForStockist({
     businessName,
     email,
     emailSent: result.emailSent,
-    needsManualSetup: !result.emailSent && Boolean(result.setupToken),
+    needsManualSetup: !result.emailSent && Boolean(result.setupUrl),
   });
 }
 
