@@ -56,7 +56,15 @@ async function testOrderPdfs() {
   const invoice = await generateInvoicePdf(order);
   const fulfillment = await generateFulfillmentPdf(order);
   assert("Invoice PDF generated", invoice.length > 500 && invoice.slice(0, 4).toString() === "%PDF");
+  assert("Invoice PDF single page", pdfPageCount(invoice) === 1);
   assert("Fulfillment PDF generated", fulfillment.length > 500 && fulfillment.slice(0, 4).toString() === "%PDF");
+}
+
+function pdfPageCount(buffer) {
+  const s = buffer.toString("latin1");
+  const tree = s.match(/\/Type\s*\/Pages\b[^]*?\/Count\s+(\d+)/);
+  if (tree) return Number(tree[1]);
+  return (s.match(/\/Type\s*\/Page\b(?!s)/g) || []).length;
 }
 
 function assert(name, condition, detail = "") {
