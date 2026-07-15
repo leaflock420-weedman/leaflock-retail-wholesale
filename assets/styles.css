@@ -3050,12 +3050,12 @@ body[data-nav="portal"] {
 
   .portal-order-table tbody tr[data-sheet-row] {
     display: grid;
-    grid-template-columns: 1fr auto auto;
+    grid-template-columns: 1.1fr 0.95fr auto auto;
     grid-template-areas:
-      "product product product"
-      "wholesale qty linetotal"
-      "meta meta meta";
-    gap: 8px 12px;
+      "product product product product"
+      "wholesale rrp qty linetotal"
+      "meta meta meta meta";
+    gap: 8px 10px;
     padding: 12px 14px;
     border-bottom: 1px solid var(--line);
     align-items: end;
@@ -3069,7 +3069,6 @@ body[data-nav="portal"] {
   }
 
   .portal-order-table tbody tr[data-sheet-row] td.portal-order-table__sku-cell,
-  .portal-order-table tbody tr[data-sheet-row] td:nth-child(5),
   .portal-order-table tbody tr[data-sheet-row] td:nth-child(7) {
     display: none;
   }
@@ -3081,6 +3080,10 @@ body[data-nav="portal"] {
 
   .portal-order-table tbody tr[data-sheet-row] td:nth-child(3) {
     grid-area: wholesale;
+  }
+
+  .portal-order-table tbody tr[data-sheet-row] td:nth-child(5) {
+    grid-area: rrp;
   }
 
   .portal-order-table tbody tr[data-sheet-row] td.portal-order-table__qty {
@@ -3102,6 +3105,7 @@ body[data-nav="portal"] {
   }
 
   .portal-order-table tbody tr[data-sheet-row] td:nth-child(3)::before,
+  .portal-order-table tbody tr[data-sheet-row] td:nth-child(5)::before,
   .portal-order-table tbody tr[data-sheet-row] td.portal-order-table__qty::before,
   .portal-order-table tbody tr[data-sheet-row] td.portal-order-table__line::before {
     display: block;
@@ -3115,6 +3119,10 @@ body[data-nav="portal"] {
 
   .portal-order-table tbody tr[data-sheet-row] td:nth-child(3)::before {
     content: "Wholesale";
+  }
+
+  .portal-order-table tbody tr[data-sheet-row] td:nth-child(5)::before {
+    content: "RRP";
   }
 
   .portal-order-table tbody tr[data-sheet-row] td.portal-order-table__qty::before {
