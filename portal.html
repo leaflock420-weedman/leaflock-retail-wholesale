@@ -6,7 +6,7 @@
     <title>Approved Retail Stockist Portal — LeafLock Retail Stockist Wholesale</title>
     <meta name="description" content="LeafLock approved retail stockist wholesale portal. Sign in with your email and password to view pricing and submit orders.">
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="assets/styles.css?v=20260715b">
+    <link rel="stylesheet" href="assets/styles.css?v=20260715c">
   </head>
   <body data-nav="portal">
     <header class="site-header" id="site-header"></header>
@@ -78,31 +78,36 @@
           </section>
 
           <section class="section volume-pricing-section" id="volume-pricing">
-            <div class="section-heading">
-              <p class="eyebrow">Volume pricing</p>
-              <h2>Wholesale price tiers</h2>
-              <p class="section-lead">These breaks apply automatically when your order hits the threshold — shown here for reference, not a separate order form.</p>
-            </div>
-            <div class="pricing-table-wrap">
-              <p class="pricing-table-scroll-hint" aria-hidden="true">Scroll sideways to see all columns</p>
-              <table class="pricing-table volume-tier-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Product / range</th>
-                    <th scope="col">Standard wholesale</th>
-                    <th scope="col">Volume threshold</th>
-                    <th scope="col">Volume price</th>
-                    <th scope="col">How it applies</th>
-                  </tr>
-                </thead>
-                <tbody id="volumeTierBody">
-                  <tr><td colspan="5">Login to load volume tiers…</td></tr>
-                </tbody>
-              </table>
-            </div>
+            <details class="portal-mobile-collapsible">
+              <summary>Volume pricing tiers</summary>
+              <div class="portal-mobile-collapsible__body">
+                <div class="section-heading">
+                  <p class="eyebrow">Volume pricing</p>
+                  <h2>Wholesale price tiers</h2>
+                  <p class="section-lead">These breaks apply automatically when your order hits the threshold — shown here for reference, not a separate order form.</p>
+                </div>
+                <div class="pricing-table-wrap">
+                  <p class="pricing-table-scroll-hint" aria-hidden="true">Scroll sideways to see all columns</p>
+                  <table class="pricing-table volume-tier-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Product / range</th>
+                        <th scope="col">Standard wholesale</th>
+                        <th scope="col">Volume threshold</th>
+                        <th scope="col">Volume price</th>
+                        <th scope="col">How it applies</th>
+                      </tr>
+                    </thead>
+                    <tbody id="volumeTierBody">
+                      <tr><td colspan="5">Login to load volume tiers…</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </details>
           </section>
 
-          <div class="portal-cart-bar" id="portalCartBar" aria-live="polite">
+          <div class="portal-cart-bar portal-cart-bar--empty" id="portalCartBar" aria-live="polite">
             <p id="pricingNote" class="portal-cart-bar__note">Add products to calculate pricing.</p>
             <div class="portal-cart-bar__totals">
               <div><span>Subtotal ex GST</span><strong id="subtotal">$0.00</strong></div>
@@ -214,7 +219,7 @@
     <script src="assets/config.js"></script>
     <script src="assets/access.js?v=20260706m"></script>
     <script src="assets/layout.js"></script>
-    <script src="assets/portal.js?v=20260706m"></script>
+    <script src="assets/portal.js?v=20260715c"></script>
     <script>
       window.LeafLockAccess.boot().then(() => {
         window.LeafLockAccess.bindAccessForm();

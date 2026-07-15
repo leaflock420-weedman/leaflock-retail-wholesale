@@ -37,6 +37,7 @@
   const orderSheetSearch = document.querySelector("#orderSheetSearch");
   const orderSheetSummary = document.querySelector("#orderSheetSummary");
   const volumeTierBody = document.querySelector("#volumeTierBody");
+  const portalCartBar = document.querySelector("#portalCartBar");
 
   function money(value) {
     return MONEY.format(value);
@@ -127,6 +128,10 @@
     }
   }
 
+  function setCartBarCompact(isEmpty) {
+    portalCartBar?.classList.toggle("portal-cart-bar--empty", Boolean(isEmpty));
+  }
+
   function calculateOrder() {
     if (!pricing || !totals.subtotal) return null;
 
@@ -137,6 +142,7 @@
       totals.shipping.textContent = money(b.shipping);
       totals.total.textContent = money(b.totalIncGstShipping);
       totals.note.textContent = `${b.label} — fixed price inc. GST and shipping.`;
+      setCartBarCompact(false);
       updateLineTotals(b.subtotal);
       return {
         starterBundle: true,
@@ -186,6 +192,7 @@
     totals.shipping.textContent = money(shipping);
     totals.total.textContent = money(total);
     totals.note.textContent = notes.join(" ");
+    setCartBarCompact(subtotal <= 0);
     updateLineTotals(subtotal);
 
     return {
@@ -220,10 +227,13 @@
         const moqMin = item.moq ? item.moq : 0;
         rows.push(`
           <tr class="portal-order-table__row" data-sheet-row data-search="${`${item.sku} ${item.name} ${section.label} ${item.bulkNote || ""}`.toLowerCase()}">
-            <td>${item.sku}</td>
+            <td class="portal-order-table__sku-cell">${item.sku}</td>
             <td class="portal-order-table__product">
               <img src="${item.image}" alt="" width="48" height="48" loading="lazy">
-              <span>${item.name}</span>
+              <div class="portal-order-table__copy">
+                <span>${item.name}</span>
+                <small class="portal-order-table__sku">${item.sku}</small>
+              </div>
             </td>
             <td>${money(item.wholesale)}</td>
             <td class="portal-order-table__qty">
