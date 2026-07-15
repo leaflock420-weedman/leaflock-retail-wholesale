@@ -120,6 +120,12 @@ assert("Carton total $367.94", carton.total === 367.94, `got ${carton.total}`);
 const bulk36 = calculateGummyOrder({ gummyIndividual: 36 });
 assert("36+ bulk rate applied", bulk36.notes.some((n) => n.includes("Bulk rate")));
 
+const { validatePassword } = await import(
+  `file://${path.join(root, "lib/portal-password.js").replace(/\\/g, "/")}`
+);
+assert("Rejects common breached password", validatePassword("Password123!") !== null);
+assert("Accepts unique password", validatePassword("K9$mango-River-2026") === null);
+
 const { bankDetails, invoiceNumber } = await import(
   `file://${path.join(root, "lib/bank-details.js").replace(/\\/g, "/")}`
 );

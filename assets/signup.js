@@ -12,7 +12,8 @@
     block.id = "portalPasswordFields";
     block.innerHTML = `
       <legend>Portal password</legend>
-      <p class="pending-note">Choose the password you will use to sign in after approval (at least 10 characters).</p>
+      <p class="pending-note">Choose the password you will use to sign in after approval (at least 10 characters). Use something unique you have not used on other websites.</p>
+      <p class="pending-note password-browser-hint">If Google Chrome shows a &ldquo;password compromised&rdquo; message, that is your browser&rsquo;s safety check — not a LeafLock issue. Pick a different unique password.</p>
       <div class="form-grid">
         <label><span>Password *</span><input type="password" name="password" required minlength="10" autocomplete="new-password"></label>
         <label><span>Confirm password *</span><input type="password" name="password_confirm" required minlength="10" autocomplete="new-password"></label>

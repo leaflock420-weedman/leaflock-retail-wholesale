@@ -18,8 +18,32 @@
   const error = document.getElementById("setPasswordError");
   const account = document.getElementById("setPasswordAccount");
   const lead = document.getElementById("setPasswordLead");
+  const eyebrow = document.getElementById("setPasswordEyebrow");
+  const title = document.getElementById("setPasswordTitle");
   const noToken = document.getElementById("setPasswordNoToken");
   const submitBtn = document.getElementById("setPasswordSubmit");
+
+  function applySetupCopy(businessName) {
+    if (eyebrow) eyebrow.textContent = "Welcome";
+    if (title) title.textContent = "Create your portal password";
+    if (lead) {
+      lead.textContent = businessName
+        ? `Choose a password for ${businessName} (at least 10 characters).`
+        : "Choose a password for your wholesale portal (at least 10 characters).";
+    }
+    if (submitBtn) submitBtn.textContent = "Create password";
+  }
+
+  function applyResetCopy(businessName) {
+    if (eyebrow) eyebrow.textContent = "Password reset";
+    if (title) title.textContent = "Create your new password";
+    if (lead) {
+      lead.textContent = businessName
+        ? `Choose a new password for ${businessName} (at least 10 characters).`
+        : "Choose a new password for your wholesale portal (at least 10 characters).";
+    }
+    if (submitBtn) submitBtn.textContent = "Save password";
+  }
 
   async function loadStatus() {
     if (!token) {
@@ -55,11 +79,13 @@
       }
       if (account) {
         account.hidden = false;
-        account.textContent = `Resetting password for ${body.businessName} (${body.email})`;
+        account.textContent =
+          body.purpose === "setup"
+            ? `Setting up access for ${body.businessName} (${body.email})`
+            : `Resetting password for ${body.businessName} (${body.email})`;
       }
-      if (lead) {
-        lead.textContent = `Choose a new password for ${body.businessName}. At least 10 characters.`;
-      }
+      if (body.purpose === "setup") applySetupCopy(body.businessName);
+      else applyResetCopy(body.businessName);
     } catch {
       /* allow submit attempt */
     }
