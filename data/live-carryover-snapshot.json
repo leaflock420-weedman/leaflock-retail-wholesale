@@ -1,5 +1,5 @@
 {
-  "exportedAt": 1784094312105,
+  "exportedAt": 1784094730576,
   "dataDir": "/var/data",
   "files": {
     "applications.json": {
@@ -208,6 +208,103 @@
     },
     "orders.json": {
       "orders": [
+        {
+          "id": "ord_1784094581451_dd531d73",
+          "invoiceNumber": "LL07151D73",
+          "retailStockistId": "pharm_1783173875441_88201f0d",
+          "retailStockistName": "LeafLock Test Retail Store",
+          "source": "portal",
+          "status": "submitted",
+          "paymentMethod": "invoice",
+          "paymentStatus": "unpaid",
+          "paypalOrderId": null,
+          "paypalCaptureId": null,
+          "createdAt": 1784094581451,
+          "updatedAt": 1784094581451,
+          "contact": {
+            "businessName": "LeafLock",
+            "fullName": "Lewis Szalay",
+            "role": "",
+            "abn": "45454543346",
+            "storeReg": "",
+            "email": "secretsolutions2016@gmail.com",
+            "phone": "+61431295201",
+            "address": "13F Wyndham Avenue\n8"
+          },
+          "lineItems": {
+            "singlePacks": 0,
+            "threePacks": 0,
+            "gummyIndividual": 0,
+            "mixedCartons": 0,
+            "starterBundle": false,
+            "catalog": {
+              "CHOP-FORB": 3,
+              "CHOP-BLUE": 3,
+              "CHOP-ORAN": 3,
+              "SNAPBACK": 10
+            }
+          },
+          "totals": {
+            "starterBundle": false,
+            "singlePacks": 0,
+            "threePacks": 0,
+            "gummyIndividual": 0,
+            "mixedCartons": 0,
+            "catalog": {
+              "CHOP-FORB": 3,
+              "CHOP-BLUE": 3,
+              "CHOP-ORAN": 3,
+              "SNAPBACK": 10
+            },
+            "catalogLines": [
+              {
+                "sku": "CHOP-FORB",
+                "name": "Mousepad / Chop Mat V2 — Forbidden Forest",
+                "qty": 3,
+                "unitWholesale": 12.99,
+                "lineTotal": 38.97,
+                "isBundle": false
+              },
+              {
+                "sku": "CHOP-BLUE",
+                "name": "Mousepad / Chop Mat V2 — Blueberry Blast",
+                "qty": 3,
+                "unitWholesale": 12.99,
+                "lineTotal": 38.97,
+                "isBundle": false
+              },
+              {
+                "sku": "CHOP-ORAN",
+                "name": "Mousepad / Chop Mat V2 — Orange Sherbies",
+                "qty": 3,
+                "unitWholesale": 12.99,
+                "lineTotal": 38.97,
+                "isBundle": false
+              },
+              {
+                "sku": "SNAPBACK",
+                "name": "Black & White Embroidered Snapback",
+                "qty": 10,
+                "unitWholesale": 18,
+                "lineTotal": 180,
+                "isBundle": false
+              }
+            ],
+            "subtotal": 296.91,
+            "gst": 29.69,
+            "shipping": 25,
+            "total": 351.6,
+            "notes": [
+              "4 catalogue line(s) included."
+            ]
+          },
+          "notes": "",
+          "flavours": "",
+          "termsAccepted": true,
+          "termsAcceptedAt": 1784094581451,
+          "termsVersion": "2026-07-05",
+          "paymentTerms": "Prepaid — payment in full before dispatch"
+        },
         {
           "id": "ord_1784092227295_44d424df",
           "invoiceNumber": "INV-20260715-D424DF",
