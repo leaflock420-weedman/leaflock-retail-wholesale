@@ -1,197 +1,447 @@
 <!doctype html>
-<html lang="en-AU">
+<html lang="en-AU" class="h-full">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Approved Retail Stockist Portal — LeafLock Retail Stockist Wholesale</title>
-    <meta name="description" content="LeafLock approved retail stockist wholesale portal. Sign in with your email and password to view pricing and submit orders.">
+    <title>Approved Retail Stockist Portal — LeafLock Wholesale</title>
+    <meta name="description" content="LeafLock approved retail stockist wholesale portal. Sign in to view pricing, manage orders, and submit replenishment.">
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="assets/styles.css?v=20260706m">
+    <link rel="icon" type="image/svg+xml" href="assets/brand/favicon.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              leaf: { 400: "#34d399", 500: "#10b981", 600: "#059669", 700: "#047857" },
+            },
+            fontFamily: {
+              sans: ["Inter", "system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      /* Keep body from horizontal scroll — tables scroll inside their wrappers only */
+      html, body { overflow-x: hidden; }
+      [hidden] { display: none !important; }
+
+      /* Dynamic rows injected by portal.js — styled here because JS does not add Tailwind classes */
+      .portal-data-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 0.875rem; }
+      .portal-data-table thead th {
+        position: sticky; top: 0; z-index: 2;
+        background: #18181b; color: #a1a1aa;
+        font-weight: 600; text-align: left; padding: 0.75rem 1rem;
+        border-bottom: 1px solid #3f3f46; white-space: nowrap;
+      }
+      .portal-data-table tbody td {
+        padding: 0.75rem 1rem; border-bottom: 1px solid #27272a;
+        color: #e4e4e7; vertical-align: middle;
+      }
+      .portal-data-table tbody tr:nth-child(even):not(.pricing-table__category) { background: rgba(24, 24, 27, 0.55); }
+      .portal-data-table tbody tr:hover:not(.pricing-table__category) { background: rgba(16, 185, 129, 0.06); }
+      .pricing-table__category td {
+        background: #14532d !important; color: #a7f3d0 !important;
+        font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase;
+        padding: 0.5rem 1rem !important; border-bottom: 1px solid #166534 !important;
+      }
+      .portal-order-table__product { display: flex; align-items: center; gap: 0.75rem; min-width: 12rem; }
+      .portal-order-table__product img { border-radius: 0.5rem; background: #27272a; flex-shrink: 0; }
+      .portal-order-table__qty input {
+        width: 4.5rem; min-height: 44px; padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem; border: 1px solid #3f3f46; background: #09090b;
+        color: #fafafa; font-size: 1rem;
+      }
+      .portal-order-table__qty input:focus { outline: 2px solid #10b981; outline-offset: 1px; }
+      .portal-order-table__line { font-weight: 600; color: #34d399; white-space: nowrap; }
+
+      .form-error { color: #fca5a5; font-size: 0.875rem; }
+      .form-error.form-success { color: #6ee7b7; }
+
+      #portalCartBar {
+        position: sticky; bottom: 0; z-index: 30;
+        backdrop-filter: blur(12px);
+      }
+
+      #formSuccess:not([hidden]) {
+        display: flex !important;
+        align-items: center; justify-content: center;
+        position: fixed; inset: 0; z-index: 50;
+        background: rgba(0, 0, 0, 0.7); padding: 1rem;
+      }
+    </style>
   </head>
-  <body data-nav="portal">
-    <header class="site-header" id="site-header"></header>
+  <body class="min-h-full bg-zinc-950 text-zinc-100 font-sans antialiased" data-nav="portal">
 
-    <main>
-      <section class="page-hero">
-        <p class="eyebrow">Approved accounts</p>
-        <h1>Retail stockist wholesale portal</h1>
-        <p class="page-lead">Sign in with your store email and private password, browse the price list, add quantities, and submit — same layout as your replenishment order form.</p>
-      </section>
+    <!-- ===== 1. HEADER / NAVIGATION ===== -->
+    <header class="sticky top-0 z-40 border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-md">
+      <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+        <a href="index.html" class="flex min-h-[44px] min-w-[44px] shrink-0 items-center gap-3 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf-500">
+          <img src="assets/brand/leaflock-logo.png" alt="LeafLock" width="40" height="40" class="h-10 w-10 rounded-lg object-contain">
+          <div class="hidden sm:block">
+            <p class="text-sm font-semibold leading-tight text-white">LeafLock Wholesale</p>
+            <p class="text-xs text-zinc-400">Approved stockist portal</p>
+          </div>
+        </a>
 
-      <section class="section" id="accessGate">
-        <div class="access-panel">
-          <p id="pendingNote" class="pending-note" hidden></p>
-          <form id="accessLoginForm" class="portal-card">
-            <h3>Retail stockist login</h3>
-            <p id="portalHostHint" class="pending-note" hidden></p>
-            <label><span>Email address</span><input type="email" id="portalEmail" required placeholder="Your approved wholesale email" autocomplete="username"></label>
-            <label><span>Password</span><input type="password" id="portalPassword" required placeholder="Your private portal password" autocomplete="current-password"></label>
-            <p id="accessError" class="form-error" hidden></p>
-            <button class="button primary full-width" type="submit">Sign in</button>
-            <p><a href="forgot-password.html">Forgot password?</a> · Need access? <a href="request-access.html">Apply</a></p>
-          </form>
+        <!-- Desktop navigation -->
+        <nav class="hidden items-center gap-1 md:flex" aria-label="Primary navigation">
+          <a href="index.html" class="min-h-[44px] rounded-lg px-3 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800 hover:text-white">Home</a>
+          <a href="humidity-packs.html" class="min-h-[44px] rounded-lg px-3 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800 hover:text-white">Humidity Packs</a>
+          <a href="gummies.html" class="min-h-[44px] rounded-lg px-3 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800 hover:text-white">Gummy Mix</a>
+          <a href="request-access.html" class="min-h-[44px] rounded-lg px-3 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800 hover:text-white">Request Access</a>
+          <a href="portal.html" aria-current="page" class="min-h-[44px] rounded-lg bg-emerald-500/10 px-3 py-2 text-sm font-medium text-emerald-400">Portal</a>
+        </nav>
+
+        <!-- Logged-in user panel (shown by access.js when authenticated) -->
+        <div id="portalAccountPanel" class="items-center gap-3 md:flex" hidden>
+          <p id="portalSessionLabel" class="max-w-[14rem] truncate text-right text-xs text-zinc-400 sm:max-w-xs sm:text-sm">Logged in</p>
+          <button id="accessLogout" type="button" class="min-h-[44px] rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-200 transition hover:border-zinc-600 hover:bg-zinc-800">
+            Log out
+          </button>
+        </div>
+
+        <!-- Mobile menu toggle — 44px min tap target -->
+        <button id="mobileMenuBtn" type="button" class="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-200 md:hidden" aria-expanded="false" aria-controls="mobileMenu">
+          <span class="sr-only">Open menu</span>
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+
+      <!-- Mobile slide-down menu -->
+      <div id="mobileMenu" class="hidden border-t border-zinc-800 bg-zinc-950 md:hidden" hidden>
+        <nav class="flex flex-col gap-1 px-4 py-3" aria-label="Mobile navigation">
+          <a href="index.html" class="min-h-[44px] rounded-lg px-3 py-3 text-base text-zinc-200 hover:bg-zinc-800">Home</a>
+          <a href="humidity-packs.html" class="min-h-[44px] rounded-lg px-3 py-3 text-base text-zinc-200 hover:bg-zinc-800">Humidity Packs</a>
+          <a href="gummies.html" class="min-h-[44px] rounded-lg px-3 py-3 text-base text-zinc-200 hover:bg-zinc-800">Gummy Mix</a>
+          <a href="request-access.html" class="min-h-[44px] rounded-lg px-3 py-3 text-base text-zinc-200 hover:bg-zinc-800">Request Access</a>
+          <a href="portal.html" class="min-h-[44px] rounded-lg bg-emerald-500/10 px-3 py-3 text-base font-medium text-emerald-400">Portal</a>
+          <div id="mobileUserPanel" class="mt-2 border-t border-zinc-800 pt-3" hidden>
+            <p id="mobileSessionLabel" class="mb-2 px-3 text-sm text-zinc-400"></p>
+            <button id="mobileLogout" type="button" class="w-full min-h-[44px] rounded-lg border border-zinc-700 px-3 py-3 text-left text-base text-zinc-200 hover:bg-zinc-800">Log out</button>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+
+      <!-- ===== 2. WELCOME / LOGIN AREA ===== -->
+      <section id="accessGate" class="mb-8">
+        <div class="overflow-hidden rounded-2xl border border-zinc-800 bg-gradient-to-br from-zinc-900 via-zinc-900 to-emerald-950/30">
+          <div class="grid gap-8 p-6 sm:p-8 lg:grid-cols-2 lg:items-center lg:gap-12">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-widest text-emerald-400">Approved accounts</p>
+              <h1 class="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl lg:text-4xl">Retail stockist wholesale portal</h1>
+              <p class="mt-3 text-base leading-relaxed text-zinc-400">Sign in with your approved store email and password to view wholesale pricing, build orders, and submit replenishment — optimised for phone, tablet, and desktop.</p>
+              <p id="pendingNote" class="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200" hidden></p>
+            </div>
+
+            <form id="accessLoginForm" class="rounded-xl border border-zinc-700/80 bg-zinc-950/80 p-5 sm:p-6">
+              <h2 class="text-lg font-semibold text-white">Stockist sign in</h2>
+              <p id="portalHostHint" class="mt-2 text-sm text-amber-300" hidden></p>
+              <div class="mt-5 space-y-4">
+                <label class="block">
+                  <span class="mb-1.5 block text-sm font-medium text-zinc-300">Email address</span>
+                  <input type="email" id="portalEmail" required autocomplete="username" placeholder="your@store.com.au"
+                    class="w-full min-h-[44px] rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-base text-white placeholder:text-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
+                </label>
+                <label class="block">
+                  <span class="mb-1.5 block text-sm font-medium text-zinc-300">Password</span>
+                  <input type="password" id="portalPassword" required autocomplete="current-password" placeholder="Your private portal password"
+                    class="w-full min-h-[44px] rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-base text-white placeholder:text-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
+                </label>
+                <p id="accessError" class="form-error" hidden></p>
+                <button type="submit" class="w-full min-h-[44px] rounded-lg bg-emerald-600 px-4 py-3 text-base font-semibold text-white transition hover:bg-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950">
+                  Sign in
+                </button>
+                <p class="text-center text-sm text-zinc-400">
+                  <a href="forgot-password.html" class="text-emerald-400 hover:text-emerald-300">Forgot password?</a>
+                  <span class="text-zinc-600"> · </span>
+                  <a href="request-access.html" class="text-emerald-400 hover:text-emerald-300">Request access</a>
+                </p>
+              </div>
+            </form>
+          </div>
         </div>
       </section>
 
+      <!-- ===== LOGGED-IN DASHBOARD (hidden until authenticated) ===== -->
       <div id="gatedContent" hidden>
-        <section class="portal-toolbar portal-toolbar--compact" id="portalAccountPanel" hidden>
-          <p id="portalSessionLabel" class="portal-toolbar__session">Logged in</p>
-          <button class="button secondary button--small" type="button" id="accessLogout">Log out</button>
+
+        <!-- Welcome banner (logged-in state) -->
+        <section class="mb-8 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-widest text-emerald-400">Welcome back</p>
+              <h2 class="mt-1 text-xl font-bold text-white sm:text-2xl">Hello, <span id="welcomeStockistName">Stockist</span></h2>
+              <p class="mt-2 text-sm text-zinc-400">Approved retail stockist account · wholesale pricing &amp; ordering enabled</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <span class="inline-flex min-h-[44px] items-center rounded-full border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-300">Account active</span>
+              <a href="#order-sheet" class="inline-flex min-h-[44px] items-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500">New order</a>
+            </div>
+          </div>
         </section>
 
-        <form class="portal-order-flow" id="orderForm" novalidate>
-          <section class="section pricing-section order-sheet-section" id="order-sheet">
-            <div class="section-heading">
-              <p class="eyebrow">Wholesale price list</p>
-              <h2>Order sheet</h2>
-              <p class="section-lead">Enter a quantity on any line — your cart total updates instantly at the bottom of the screen.</p>
+        <!-- ===== 3. DASHBOARD STATS — 1 col mobile, 2 tablet, 4 desktop ===== -->
+        <section class="mb-8" aria-label="Dashboard overview">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <article class="rounded-xl border border-zinc-800 bg-zinc-900/80 p-5 transition hover:border-zinc-700">
+              <p class="text-xs font-medium uppercase tracking-wide text-zinc-500">Active products</p>
+              <p id="statActiveProducts" class="mt-2 text-3xl font-bold text-white">24</p>
+              <p class="mt-1 text-sm text-zinc-400">In wholesale catalogue</p>
+            </article>
+            <article class="rounded-xl border border-zinc-800 bg-zinc-900/80 p-5 transition hover:border-zinc-700">
+              <p class="text-xs font-medium uppercase tracking-wide text-zinc-500">Pending orders</p>
+              <p id="statPendingOrders" class="mt-2 text-3xl font-bold text-amber-400">1</p>
+              <p class="mt-1 text-sm text-zinc-400">Awaiting dispatch</p>
+            </article>
+            <article class="rounded-xl border border-zinc-800 bg-zinc-900/80 p-5 transition hover:border-zinc-700">
+              <p class="text-xs font-medium uppercase tracking-wide text-zinc-500">Orders this month</p>
+              <p id="statOrdersMonth" class="mt-2 text-3xl font-bold text-white">3</p>
+              <p class="mt-1 text-sm text-zinc-400">July 2026</p>
+            </article>
+            <article class="rounded-xl border border-zinc-800 bg-zinc-900/80 p-5 transition hover:border-zinc-700">
+              <p class="text-xs font-medium uppercase tracking-wide text-zinc-500">Account status</p>
+              <p id="statAccountStatus" class="mt-2 text-3xl font-bold text-emerald-400">Active</p>
+              <p class="mt-1 text-sm text-zinc-400">Verified stockist</p>
+            </article>
+          </div>
+        </section>
+
+        <form id="orderForm" novalidate>
+
+          <!-- ===== 4. PRODUCT / INVENTORY TABLE (highest priority) ===== -->
+          <section id="order-sheet" class="mb-10">
+            <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-widest text-emerald-400">Wholesale price list</p>
+                <h2 class="mt-1 text-xl font-bold text-white sm:text-2xl">Order sheet</h2>
+                <p class="mt-1 text-sm text-zinc-400">Enter quantities — your cart total updates at the bottom of the screen.</p>
+              </div>
+              <div class="flex w-full flex-col gap-2 sm:w-auto sm:min-w-[16rem]">
+                <label class="block">
+                  <span class="sr-only">Search products</span>
+                  <input type="search" id="orderSheetSearch" placeholder="Search SKU or product…" autocomplete="off"
+                    class="w-full min-h-[44px] rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-base text-white placeholder:text-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
+                </label>
+                <p id="orderSheetSummary" class="text-right text-sm font-medium text-emerald-400" aria-live="polite">0 lines · $0.00 ex GST</p>
+              </div>
             </div>
 
-            <div class="order-sheet-toolbar">
-              <label class="order-sheet-search">
-                <span class="visually-hidden">Search products</span>
-                <input type="search" id="orderSheetSearch" placeholder="Search SKU or product name…" autocomplete="off">
-              </label>
-              <p id="orderSheetSummary" class="order-sheet-summary" aria-live="polite">0 lines · $0.00 ex GST</p>
-            </div>
-
-            <div class="pricing-table-wrap">
-              <table class="pricing-table portal-order-table" id="orderSheetTable">
-                <thead>
-                  <tr>
-                    <th scope="col">SKU</th>
-                    <th scope="col">Product</th>
-                    <th scope="col">Wholesale ex GST</th>
-                    <th scope="col">Qty</th>
-                    <th scope="col">RRP</th>
-                    <th scope="col">MOQ</th>
-                    <th scope="col">Bulk / notes</th>
-                    <th scope="col">Line total</th>
-                  </tr>
-                </thead>
-                <tbody id="orderSheetBody">
-                  <tr><td colspan="8">Login to load the price list…</td></tr>
-                </tbody>
-              </table>
+            <!-- Responsive table: overflow-x-auto keeps scroll inside this box, not the page body -->
+            <div class="rounded-xl border border-zinc-800 bg-zinc-900/40" role="region" aria-label="Product price list">
+              <p class="flex items-center gap-2 border-b border-zinc-800 px-4 py-2.5 text-xs text-zinc-500 sm:hidden">
+                <svg class="h-4 w-4 shrink-0 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0-3-3m3 3-3 3M16 17H4m0 0 3 3m-3-3 3-3"/></svg>
+                Scroll table horizontally to see all columns
+              </p>
+              <div class="overflow-x-auto overscroll-x-contain">
+                <table class="portal-data-table pricing-table portal-order-table min-w-[880px]" id="orderSheetTable">
+                  <thead>
+                    <tr>
+                      <th scope="col">SKU</th>
+                      <th scope="col">Product</th>
+                      <th scope="col">Wholesale ex GST</th>
+                      <th scope="col">Qty</th>
+                      <th scope="col">RRP</th>
+                      <th scope="col">MOQ</th>
+                      <th scope="col">Bulk / notes</th>
+                      <th scope="col">Line total</th>
+                    </tr>
+                  </thead>
+                  <tbody id="orderSheetBody">
+                    <tr><td colspan="8" class="text-zinc-500">Sign in to load the price list…</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </section>
 
-          <section class="section volume-pricing-section" id="volume-pricing">
-            <div class="section-heading">
-              <p class="eyebrow">Volume pricing</p>
-              <h2>Wholesale price tiers</h2>
-              <p class="section-lead">These breaks apply automatically when your order hits the threshold — shown here for reference, not a separate order form.</p>
+          <!-- ===== 5. RECENT ORDERS TABLE ===== -->
+          <section class="mb-10" aria-label="Recent orders">
+            <div class="mb-4">
+              <p class="text-xs font-semibold uppercase tracking-widest text-emerald-400">Order history</p>
+              <h2 class="mt-1 text-xl font-bold text-white sm:text-2xl">Recent orders</h2>
+              <p class="mt-1 text-sm text-zinc-500">Sample data shown — full order history is emailed with each confirmation.</p>
             </div>
-            <div class="pricing-table-wrap">
-              <table class="pricing-table volume-tier-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Product / range</th>
-                    <th scope="col">Standard wholesale</th>
-                    <th scope="col">Volume threshold</th>
-                    <th scope="col">Volume price</th>
-                    <th scope="col">How it applies</th>
-                  </tr>
-                </thead>
-                <tbody id="volumeTierBody">
-                  <tr><td colspan="5">Login to load volume tiers…</td></tr>
-                </tbody>
-              </table>
+            <div class="rounded-xl border border-zinc-800 bg-zinc-900/40" role="region" aria-label="Recent orders list">
+              <p class="flex items-center gap-2 border-b border-zinc-800 px-4 py-2.5 text-xs text-zinc-500 sm:hidden">
+                <svg class="h-4 w-4 shrink-0 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0-3-3m3 3-3 3M16 17H4m0 0 3 3m-3-3 3-3"/></svg>
+                Scroll table horizontally on small screens
+              </p>
+              <div class="overflow-x-auto overscroll-x-contain">
+                <table class="portal-data-table min-w-[640px]">
+                  <thead>
+                    <tr>
+                      <th scope="col">Order #</th>
+                      <th scope="col">Date</th>
+                      <th scope="col">Items</th>
+                      <th scope="col">Total</th>
+                      <th scope="col">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="font-medium text-white">INV-2026-0842</td>
+                      <td>12 Jul 2026</td>
+                      <td>8 lines</td>
+                      <td>$1,248.50</td>
+                      <td><span class="inline-flex rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-medium text-emerald-300">Delivered</span></td>
+                    </tr>
+                    <tr>
+                      <td class="font-medium text-white">INV-2026-0791</td>
+                      <td>28 Jun 2026</td>
+                      <td>5 lines</td>
+                      <td>$684.00</td>
+                      <td><span class="inline-flex rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-medium text-emerald-300">Delivered</span></td>
+                    </tr>
+                    <tr>
+                      <td class="font-medium text-white">INV-2026-0756</td>
+                      <td>14 Jun 2026</td>
+                      <td>12 lines</td>
+                      <td>$2,105.20</td>
+                      <td><span class="inline-flex rounded-full bg-amber-500/15 px-2.5 py-1 text-xs font-medium text-amber-300">Processing</span></td>
+                    </tr>
+                    <tr>
+                      <td class="font-medium text-white">INV-2026-0712</td>
+                      <td>02 Jun 2026</td>
+                      <td>3 lines</td>
+                      <td>$312.80</td>
+                      <td><span class="inline-flex rounded-full bg-zinc-500/20 px-2.5 py-1 text-xs font-medium text-zinc-400">Invoiced</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </section>
 
-          <div class="portal-cart-bar" id="portalCartBar" aria-live="polite">
-            <p id="pricingNote" class="portal-cart-bar__note">Add products to calculate pricing.</p>
-            <div class="portal-cart-bar__totals">
-              <div><span>Subtotal ex GST</span><strong id="subtotal">$0.00</strong></div>
-              <div><span>GST</span><strong id="gst">$0.00</strong></div>
-              <div><span>Shipping</span><strong id="shipping">$0.00</strong></div>
-              <div class="total-row"><span>Total inc GST</span><strong id="total">$0.00</strong></div>
+          <!-- Volume pricing reference -->
+          <section id="volume-pricing" class="mb-10">
+            <div class="mb-4">
+              <p class="text-xs font-semibold uppercase tracking-widest text-emerald-400">Volume pricing</p>
+              <h2 class="mt-1 text-xl font-bold text-white sm:text-2xl">Wholesale price tiers</h2>
+              <p class="mt-1 text-sm text-zinc-400">Automatic breaks when your order hits the threshold.</p>
+            </div>
+            <div class="rounded-xl border border-zinc-800 bg-zinc-900/40" role="region" aria-label="Volume pricing tiers">
+              <div class="overflow-x-auto overscroll-x-contain">
+                <table class="portal-data-table pricing-table volume-tier-table min-w-[720px]">
+                  <thead>
+                    <tr>
+                      <th scope="col">Product / range</th>
+                      <th scope="col">Standard wholesale</th>
+                      <th scope="col">Volume threshold</th>
+                      <th scope="col">Volume price</th>
+                      <th scope="col">How it applies</th>
+                    </tr>
+                  </thead>
+                  <tbody id="volumeTierBody">
+                    <tr><td colspan="5" class="text-zinc-500">Sign in to load volume tiers…</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- Sticky cart bar -->
+          <div id="portalCartBar" class="mb-8 rounded-xl border border-emerald-500/30 bg-zinc-950/95 px-4 py-4 shadow-lg shadow-black/40 sm:px-6">
+            <p id="pricingNote" class="mb-3 text-sm text-zinc-400">Add products to calculate pricing.</p>
+            <div class="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+              <div><span class="block text-zinc-500">Subtotal ex GST</span><strong id="subtotal" class="text-lg text-white">$0.00</strong></div>
+              <div><span class="block text-zinc-500">GST</span><strong id="gst" class="text-lg text-white">$0.00</strong></div>
+              <div><span class="block text-zinc-500">Shipping</span><strong id="shipping" class="text-lg text-white">$0.00</strong></div>
+              <div class="col-span-2 sm:col-span-1"><span class="block text-zinc-500">Total inc GST</span><strong id="total" class="text-xl font-bold text-emerald-400">$0.00</strong></div>
             </div>
           </div>
 
-          <section class="section order-section" id="order-checkout">
-            <div class="order-form">
-              <div class="section-heading centered">
-                <p class="eyebrow">Checkout</p>
-                <h2>Submit your order</h2>
+          <!-- Checkout -->
+          <section id="order-checkout" class="mb-10 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 sm:p-8">
+            <div class="mb-6 text-center">
+              <p class="text-xs font-semibold uppercase tracking-widest text-emerald-400">Checkout</p>
+              <h2 class="mt-1 text-xl font-bold text-white sm:text-2xl">Submit your order</h2>
+            </div>
+
+            <fieldset class="mb-6 rounded-xl border border-zinc-800 p-4 sm:p-5">
+              <legend class="px-2 text-sm font-semibold text-zinc-200">Retail stockist details</legend>
+              <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <label class="block"><span class="mb-1.5 block text-sm text-zinc-400">Business name *</span><input type="text" id="businessName" required autocomplete="organization" class="w-full min-h-[44px] rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-base text-white focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"></label>
+                <label class="block"><span class="mb-1.5 block text-sm text-zinc-400">Your full name *</span><input type="text" id="fullName" required autocomplete="name" class="w-full min-h-[44px] rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-base text-white focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"></label>
+                <label class="block"><span class="mb-1.5 block text-sm text-zinc-400">Position / role</span><input type="text" id="role" autocomplete="organization-title" class="w-full min-h-[44px] rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-base text-white focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"></label>
+                <label class="block"><span class="mb-1.5 block text-sm text-zinc-400">ABN *</span><input type="text" id="abn" required class="w-full min-h-[44px] rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-base text-white focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"></label>
+                <label class="block"><span class="mb-1.5 block text-sm text-zinc-400">Email *</span><input type="email" id="email" required autocomplete="email" class="w-full min-h-[44px] rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-base text-white focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"></label>
+                <label class="block"><span class="mb-1.5 block text-sm text-zinc-400">Phone</span><input type="tel" id="phone" autocomplete="tel" class="w-full min-h-[44px] rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-base text-white focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"></label>
+                <label class="col-span-full block"><span class="mb-1.5 block text-sm text-zinc-400">Delivery address</span><textarea id="address" rows="2" autocomplete="street-address" class="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-base text-white focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"></textarea></label>
               </div>
+            </fieldset>
 
-              <fieldset class="form-block">
-                <legend>Retail stockist details</legend>
-                <div class="form-grid">
-                  <label><span>Retail stockist / business name *</span><input type="text" id="businessName" required autocomplete="organization"></label>
-                  <label><span>Your full name *</span><input type="text" id="fullName" required autocomplete="name"></label>
-                  <label><span>Position / role</span><input type="text" id="role" autocomplete="organization-title"></label>
-                  <label><span>ABN *</span><input type="text" id="abn" required></label>
-                  <label><span>Email address *</span><input type="email" id="email" required autocomplete="email"></label>
-                  <label><span>Phone number</span><input type="tel" id="phone" autocomplete="tel"></label>
-                  <label class="wide"><span>Delivery address</span><textarea id="address" rows="2" autocomplete="street-address"></textarea></label>
-                </div>
-              </fieldset>
+            <fieldset class="mb-6 rounded-xl border border-zinc-800 p-4 sm:p-5">
+              <legend class="px-2 text-sm font-semibold text-zinc-200">Bundle option</legend>
+              <label class="mt-4 flex min-h-[44px] cursor-pointer items-start gap-3">
+                <input type="checkbox" id="starterBundle" class="mt-1 h-5 w-5 rounded border-zinc-600 bg-zinc-950 text-emerald-600 focus:ring-emerald-500">
+                <span id="starterBundleLabel" class="text-sm text-zinc-300">Starter retail stockist bundle</span>
+              </label>
+            </fieldset>
 
-              <fieldset class="form-block">
-                <legend>Bundle option</legend>
-                <label class="check-row">
-                  <input type="checkbox" id="starterBundle">
-                  <span id="starterBundleLabel">Starter retail stockist bundle</span>
-                </label>
-              </fieldset>
+            <label class="mb-6 block"><span class="mb-1.5 block text-sm text-zinc-400">Order notes</span><textarea id="notes" rows="3" placeholder="Delivery instructions, flavour mix, bulk enquiries…" class="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-3 text-base text-white placeholder:text-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"></textarea></label>
 
-              <label class="wide form-block"><span>Order notes</span><textarea id="notes" rows="3" placeholder="Delivery instructions, flavour mix requests, bulk enquiries…"></textarea></label>
+            <label class="mb-6 flex min-h-[44px] cursor-pointer items-start gap-3 text-sm text-zinc-400">
+              <input type="checkbox" id="termsAccepted" required class="mt-1 h-5 w-5 shrink-0 rounded border-zinc-600 bg-zinc-950 text-emerald-600 focus:ring-emerald-500">
+              <span>I agree to the <a href="wholesale-terms.html" target="_blank" rel="noopener" class="text-emerald-400 hover:text-emerald-300">Wholesale Terms &amp; Conditions</a>. First orders are prepaid before dispatch. <a href="credit-application.html" class="text-emerald-400 hover:text-emerald-300">Apply for credit terms</a>.</span>
+            </label>
 
-              <p class="terms-fine-print">
-                <label>
-                  <input type="checkbox" id="termsAccepted" required>
-                  <span>I have read and agree to the <a href="wholesale-terms.html" target="_blank" rel="noopener">Wholesale Terms &amp; Conditions</a>. First orders are prepaid before dispatch. <a href="credit-application.html">Apply for credit terms</a>.</span>
-                </label>
-              </p>
+            <div class="space-y-3">
+              <button type="submit" id="submitInvoiceBtn" class="w-full min-h-[44px] rounded-lg bg-emerald-600 px-4 py-3 text-base font-semibold text-white transition hover:bg-emerald-500">Request invoice by email</button>
+              <button type="button" id="submitBankTransferBtn" class="w-full min-h-[44px] rounded-lg border border-zinc-600 bg-zinc-900 px-4 py-3 text-base font-semibold text-zinc-200 transition hover:bg-zinc-800">Submit order — pay by bank transfer</button>
+            </div>
+            <p id="bankTransferHint" class="mt-3 text-sm text-zinc-500" hidden></p>
 
-              <div class="portal-payment-options">
-                <button class="button primary full-width" type="submit" id="submitInvoiceBtn">Request invoice by email</button>
-                <button class="button secondary full-width" type="button" id="submitBankTransferBtn">Submit order — pay by bank transfer</button>
-              </div>
-              <p id="bankTransferHint" class="pending-note" hidden></p>
+            <div class="paypal-checkout mt-6 rounded-xl border border-zinc-800 bg-zinc-950/50 p-4">
+              <p id="paypalNote" class="mb-3 text-sm text-zinc-400">Or pay instantly with PayPal below.</p>
+              <div id="paypalButtons"></div>
+            </div>
 
-              <div class="paypal-checkout">
-                <p id="paypalNote" class="pricing-placeholder">Or pay instantly with PayPal below.</p>
-                <div id="paypalButtons"></div>
-              </div>
-
-              <div class="order-steps">
-                <h3>How ordering works</h3>
-                <ol>
-                  <li>Enter quantities in the order sheet above.</li>
-                  <li>Request an invoice for Xero, pay by bank transfer, or use PayPal.</li>
-                  <li>We email you confirmation — reply directly if you need changes.</li>
-                </ol>
-              </div>
+            <div class="mt-8 rounded-xl border border-zinc-800/80 bg-zinc-950/30 p-5">
+              <h3 class="text-sm font-semibold text-white">How ordering works</h3>
+              <ol class="mt-3 list-decimal space-y-2 pl-5 text-sm text-zinc-400">
+                <li>Enter quantities in the order sheet above.</li>
+                <li>Request an invoice, pay by bank transfer, or use PayPal.</li>
+                <li>We email confirmation — reply directly if you need changes.</li>
+              </ol>
             </div>
           </section>
         </form>
 
-        <footer class="portal-page-footer">
-          <p class="portal-compliance-note" id="portalComplianceNote">
+        <!-- Account settings footer -->
+        <footer class="portal-page-footer mb-10 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
+          <p id="portalComplianceNote" class="text-sm leading-relaxed text-zinc-500">
             LeafLock wholesale products are supplied in line with our certified compliance standards for DIY gummy mix and humidity packs.
-            Documentation is available on request from <a href="mailto:info@leaflock.com.au">info@leaflock.com.au</a>.
+            Documentation is available on request from <a href="mailto:info@leaflock.com.au" class="text-emerald-400 hover:text-emerald-300">info@leaflock.com.au</a>.
           </p>
-          <details class="portal-account-foot">
-            <summary>Account settings</summary>
-            <div class="portal-account-grid">
-              <form id="changePasswordForm" class="order-form portal-foot-form">
-                <h3>Change password</h3>
-                <label><span>Current password</span><input type="password" id="currentPassword" required autocomplete="current-password"></label>
-                <label><span>New password</span><input type="password" id="accountNewPassword" required minlength="10" autocomplete="new-password"></label>
-                <label><span>Confirm new password</span><input type="password" id="accountConfirmPassword" required minlength="10" autocomplete="new-password"></label>
-                <p id="changePasswordError" class="form-error" hidden></p>
-                <button class="button secondary button--small" type="submit">Update password</button>
+          <details class="portal-account-foot mt-6">
+            <summary class="min-h-[44px] cursor-pointer text-sm font-semibold text-zinc-300 hover:text-white">Account settings</summary>
+            <div class="portal-account-grid mt-4 grid gap-6 lg:grid-cols-2">
+              <form id="changePasswordForm" class="rounded-xl border border-zinc-800 p-4">
+                <h3 class="text-sm font-semibold text-white">Change password</h3>
+                <div class="mt-4 space-y-3">
+                  <label class="block"><span class="mb-1 block text-xs text-zinc-500">Current password</span><input type="password" id="currentPassword" required autocomplete="current-password" class="w-full min-h-[44px] rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-base text-white"></label>
+                  <label class="block"><span class="mb-1 block text-xs text-zinc-500">New password</span><input type="password" id="accountNewPassword" required minlength="10" autocomplete="new-password" class="w-full min-h-[44px] rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-base text-white"></label>
+                  <label class="block"><span class="mb-1 block text-xs text-zinc-500">Confirm new password</span><input type="password" id="accountConfirmPassword" required minlength="10" autocomplete="new-password" class="w-full min-h-[44px] rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-base text-white"></label>
+                  <p id="changePasswordError" class="form-error" hidden></p>
+                  <button type="submit" class="min-h-[44px] rounded-lg border border-zinc-600 px-4 py-2 text-sm font-medium text-zinc-200 hover:bg-zinc-800">Update password</button>
+                </div>
               </form>
-              <form id="deleteAccountForm" class="order-form portal-foot-form portal-account-delete">
-                <h3>Delete account</h3>
-                <p class="portal-foot-note">Removes portal access for this store. Orders already placed are kept for records.</p>
-                <label><span>Confirm with your password</span><input type="password" id="deleteAccountPassword" required autocomplete="current-password"></label>
-                <p id="deleteAccountError" class="form-error" hidden></p>
-                <button class="button secondary button--small" type="submit">Delete my account</button>
+              <form id="deleteAccountForm" class="rounded-xl border border-red-900/40 bg-red-950/20 p-4">
+                <h3 class="text-sm font-semibold text-white">Delete account</h3>
+                <p class="mt-2 text-xs text-zinc-500">Removes portal access. Orders already placed are kept for records.</p>
+                <div class="mt-4 space-y-3">
+                  <label class="block"><span class="mb-1 block text-xs text-zinc-500">Confirm with your password</span><input type="password" id="deleteAccountPassword" required autocomplete="current-password" class="w-full min-h-[44px] rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-base text-white"></label>
+                  <p id="deleteAccountError" class="form-error" hidden></p>
+                  <button type="submit" class="min-h-[44px] rounded-lg border border-red-800 px-4 py-2 text-sm font-medium text-red-300 hover:bg-red-950/40">Delete my account</button>
+                </div>
               </form>
             </div>
           </details>
@@ -199,27 +449,106 @@
       </div>
     </main>
 
-    <footer class="site-footer" id="site-footer"></footer>
+    <!-- Site footer -->
+    <footer class="border-t border-zinc-800 bg-zinc-950 px-4 py-8 sm:px-6 lg:px-8">
+      <div class="mx-auto grid max-w-7xl gap-6 text-sm text-zinc-500 sm:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <strong class="text-zinc-300">LeafLock Retail Stockist Wholesale</strong>
+          <p class="mt-1">Surfers Paradise, QLD 4217</p>
+        </div>
+        <div class="flex flex-col gap-1">
+          <a href="request-access.html" class="min-h-[44px] py-1 text-emerald-400 hover:text-emerald-300">Request wholesale access</a>
+          <a href="wholesale-terms.html" class="min-h-[44px] py-1 hover:text-zinc-300">Wholesale terms</a>
+        </div>
+        <div class="flex flex-col gap-1">
+          <a href="mailto:info@leaflock.com.au" class="min-h-[44px] py-1 hover:text-zinc-300">info@leaflock.com.au</a>
+          <a href="tel:+61431295201" class="min-h-[44px] py-1 hover:text-zinc-300">0431 295 201</a>
+        </div>
+        <p class="text-xs leading-relaxed sm:col-span-2 lg:col-span-1">Approved Australian retail stockist accounts only. Not medical advice.</p>
+      </div>
+    </footer>
 
-    <div id="formSuccess" class="modal" hidden role="alertdialog">
-      <div class="modal-card">
-        <h2>Thank you!</h2>
-        <p>We've received your order and will email a confirmation + invoice within 24 hours.</p>
-        <button class="button primary" type="button" id="closeSuccess">Got it</button>
+    <!-- Success modal -->
+    <div id="formSuccess" class="modal" hidden role="alertdialog" aria-modal="true" aria-labelledby="successTitle">
+      <div class="modal-card w-full max-w-md rounded-2xl border border-zinc-700 bg-zinc-900 p-6 shadow-2xl">
+        <h2 id="successTitle" class="text-xl font-bold text-white">Thank you!</h2>
+        <p class="mt-3 text-sm text-zinc-400">We've received your order and will email a confirmation + invoice within 24 hours.</p>
+        <button type="button" id="closeSuccess" class="mt-6 w-full min-h-[44px] rounded-lg bg-emerald-600 px-4 py-3 font-semibold text-white hover:bg-emerald-500">Got it</button>
       </div>
     </div>
 
     <script src="assets/config.js"></script>
-    <script src="assets/access.js?v=20260706m"></script>
-    <script src="assets/layout.js"></script>
-    <script src="assets/portal.js?v=20260706m"></script>
+    <script src="assets/access.js?v=20260715a"></script>
+    <script src="assets/portal.js?v=20260715a"></script>
     <script>
+      /* Mobile navigation — no external dependencies */
+      (function () {
+        const btn = document.getElementById("mobileMenuBtn");
+        const menu = document.getElementById("mobileMenu");
+        if (!btn || !menu) return;
+        btn.addEventListener("click", () => {
+          const open = menu.hidden;
+          menu.hidden = !open;
+          btn.setAttribute("aria-expanded", String(open));
+        });
+        document.getElementById("mobileLogout")?.addEventListener("click", () => {
+          document.getElementById("accessLogout")?.click();
+          menu.hidden = true;
+          btn.setAttribute("aria-expanded", "false");
+        });
+      })();
+
+      /* Sync welcome banner + mobile session label when access.js updates session */
+      function refreshPortalChrome() {
+        const stockist = window.LeafLockAccess?.retailStockist?.();
+        const nameEl = document.getElementById("welcomeStockistName");
+        const mobileLabel = document.getElementById("mobileSessionLabel");
+        const mobilePanel = document.getElementById("mobileUserPanel");
+        const accountPanel = document.getElementById("portalAccountPanel");
+
+        if (window.LeafLockAccess?.isApproved?.() && stockist) {
+          const name = stockist.businessName || "Stockist";
+          if (nameEl) nameEl.textContent = name;
+          if (mobileLabel) mobileLabel.textContent = "Welcome, " + name;
+          if (mobilePanel) mobilePanel.hidden = false;
+          if (accountPanel) {
+            accountPanel.hidden = false;
+            accountPanel.classList.remove("hidden");
+            accountPanel.classList.add("flex");
+          }
+        } else {
+          if (mobilePanel) mobilePanel.hidden = true;
+        }
+      }
+
+      /* Update product count stat when portal.js loads the order sheet */
+      function countCatalogRows() {
+        const body = document.getElementById("orderSheetBody");
+        if (!body) return;
+        const rows = body.querySelectorAll("[data-sheet-row]").length;
+        const stat = document.getElementById("statActiveProducts");
+        if (stat && rows > 0) stat.textContent = String(rows);
+      }
+
+      const sheetBody = document.getElementById("orderSheetBody");
+      if (sheetBody) {
+        new MutationObserver(countCatalogRows).observe(sheetBody, { childList: true, subtree: true });
+      }
+
+      document.addEventListener("leaflock:portal-login", () => {
+        refreshPortalChrome();
+        setTimeout(countCatalogRows, 800);
+      });
+      document.addEventListener("leaflock:portal-logout", refreshPortalChrome);
+
       window.LeafLockAccess.boot().then(() => {
         window.LeafLockAccess.bindAccessForm();
+        refreshPortalChrome();
         if (window.LeafLockAccess.isApproved()) {
           document.dispatchEvent(new CustomEvent("leaflock:portal-login"));
         }
       });
     </script>
+    <script src="assets/analytics.js" defer></script>
   </body>
 </html>
