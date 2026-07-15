@@ -14,6 +14,51 @@ const testData = path.join(root, "data-test-run");
 const results = [];
 let failed = 0;
 
+async function testOrderPdfs() {
+  const { createRequire } = await import("module");
+  const require = createRequire(import.meta.url);
+  const { calculateOrder } = require("../lib/pricing.js");
+  const { expandOrderLines } = require("../lib/order-lines.js");
+  const { generateInvoicePdf, generateFulfillmentPdf } = require("../lib/order-pdf.js");
+
+  const lineItems = {
+    catalog: { "CHOP-FORB": 2 },
+    starterBundle: false,
+    singlePacks: 0,
+    threePacks: 0,
+    gummyIndividual: 0,
+    mixedCartons: 0,
+  };
+  const totals = calculateOrder(lineItems);
+  const order = {
+    id: "ord_pdf_test",
+    invoiceNumber: "INV-PDF-TEST",
+    createdAt: Date.now(),
+    retailStockistName: "PDF Test Store",
+    contact: {
+      businessName: "PDF Test Store",
+      fullName: "Tester",
+      abn: "12 345 678 901",
+      email: "test@example.com",
+      address: "1 Test St",
+    },
+    lineItems,
+    totals,
+    notes: "Test order",
+    paymentMethod: "invoice",
+    paymentTerms: "Prepaid",
+    status: "submitted",
+    paymentStatus: "unpaid",
+  };
+
+  const lines = expandOrderLines(order);
+  assert("Order PDF line expansion", lines.length > 0);
+  const invoice = await generateInvoicePdf(order);
+  const fulfillment = await generateFulfillmentPdf(order);
+  assert("Invoice PDF generated", invoice.length > 500 && invoice.slice(0, 4).toString() === "%PDF");
+  assert("Fulfillment PDF generated", fulfillment.length > 500 && fulfillment.slice(0, 4).toString() === "%PDF");
+}
+
 function assert(name, condition, detail = "") {
   if (condition) {
     results.push({ name, ok: true });
@@ -87,6 +132,9 @@ assert(
 
 const publicPricing = gummyPricingPublic();
 assert("Public API exposes freeShippingThreshold", publicPricing.freeShippingThreshold === 710);
+
+console.log("\n=== Unit: order PDFs ===");
+await testOrderPdfs();
 
 // ——— Integration tests (local server) ———
 console.log("\n=== Integration: HTTP API ===");
