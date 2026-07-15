@@ -1,5 +1,5 @@
 {
-  "exportedAt": 1784094730576,
+  "exportedAt": 1784095872735,
   "dataDir": "/var/data",
   "files": {
     "applications.json": {
@@ -62,6 +62,27 @@
     },
     "retail-stockists.json": {
       "retailStockists": [
+        {
+          "id": "retail_1784095581847_0d74f42c",
+          "businessName": "woma",
+          "email": "woma2024@gmail.com",
+          "status": "active",
+          "accessCodeHash": null,
+          "abn": "45455458420",
+          "storeReg": "",
+          "phone": "431295201",
+          "address": "",
+          "compounding": "no",
+          "bulk": "no",
+          "contactName": "lewis micheal szalay",
+          "role": "",
+          "createdAt": 1784095581847,
+          "approvedAt": 1784095581847,
+          "lastLoginAt": 1784095725252,
+          "loginCount": 1,
+          "checkoutAccessKey": "AaR8QotB6mv1SSAidF3QkRtS",
+          "mustChangePassword": false
+        },
         {
           "id": "retail_1784085248660_fc2bb098",
           "businessName": "HydroHub",
@@ -214,13 +235,13 @@
           "retailStockistId": "pharm_1783173875441_88201f0d",
           "retailStockistName": "LeafLock Test Retail Store",
           "source": "portal",
-          "status": "submitted",
+          "status": "awaiting_payment",
           "paymentMethod": "invoice",
           "paymentStatus": "unpaid",
           "paypalOrderId": null,
           "paypalCaptureId": null,
           "createdAt": 1784094581451,
-          "updatedAt": 1784094581451,
+          "updatedAt": 1784095441655,
           "contact": {
             "businessName": "LeafLock",
             "fullName": "Lewis Szalay",
@@ -311,13 +332,13 @@
           "retailStockistId": "pharm_1783173875441_88201f0d",
           "retailStockistName": "LeafLock Test Retail Store",
           "source": "portal",
-          "status": "submitted",
+          "status": "cancelled",
           "paymentMethod": "invoice",
           "paymentStatus": "unpaid",
           "paypalOrderId": null,
           "paypalCaptureId": null,
           "createdAt": 1784092227295,
-          "updatedAt": 1784092227295,
+          "updatedAt": 1784095445635,
           "contact": {
             "businessName": "LeafLock",
             "fullName": "Lewis Szalay",
@@ -1125,6 +1146,15 @@
           "retailStockistId": "pharm_1783173875441_88201f0d",
           "businessName": "LeafLock Test Retail Store",
           "ts": 1784091382701,
+          "ip": "1.156.192.27",
+          "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36",
+          "success": true
+        },
+        {
+          "id": "login_1784095725254_362fe684",
+          "retailStockistId": "retail_1784095581847_0d74f42c",
+          "businessName": "woma",
+          "ts": 1784095725254,
           "ip": "1.156.192.27",
           "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36",
           "success": true
@@ -2154,6 +2184,72 @@
         "sessionId": "c29cf939-c980-479b-82f4-b967225549b3",
         "eventName": null,
         "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
+      },
+      {
+        "id": "1784095223256-cf0run9",
+        "ts": 1784095223164,
+        "type": "pageview",
+        "path": "/request-access.html",
+        "referrer": "https://www.wholesale.leaflock.com.au/portal.html?email=info%40leaflock.com.au&passwordSet=1",
+        "utm": {},
+        "sessionId": "631c59be-87fc-4548-a50d-678809e09d02",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36"
+      },
+      {
+        "id": "1784095224963-dyeynhd",
+        "ts": 1784095224870,
+        "type": "pageview",
+        "path": "/index.html",
+        "referrer": "https://www.wholesale.leaflock.com.au/request-access.html",
+        "utm": {},
+        "sessionId": "631c59be-87fc-4548-a50d-678809e09d02",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36"
+      },
+      {
+        "id": "1784095229539-jaj4jzr",
+        "ts": 1784095229470,
+        "type": "pageview",
+        "path": "/index.html",
+        "referrer": "https://www.wholesale.leaflock.com.au/index.html",
+        "utm": {},
+        "sessionId": "631c59be-87fc-4548-a50d-678809e09d02",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36"
+      },
+      {
+        "id": "1784095230882-9ck73br",
+        "ts": 1784095230804,
+        "type": "pageview",
+        "path": "/portal.html",
+        "referrer": "https://www.wholesale.leaflock.com.au/index.html",
+        "utm": {},
+        "sessionId": "631c59be-87fc-4548-a50d-678809e09d02",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36"
+      },
+      {
+        "id": "1784095677367-2pyay6c",
+        "ts": 1784095677287,
+        "type": "pageview",
+        "path": "/set-password.html?token=HQ1Wl3IVUqYQfHJVHZuWgOv9Dj2LZ3m6tU9U25JIRz0",
+        "referrer": "android-app://com.google.android.gm/",
+        "utm": {},
+        "sessionId": "e963b86d-48e0-4c89-8e98-37fb2f756b00",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36"
+      },
+      {
+        "id": "1784095698009-b266udn",
+        "ts": 1784095697919,
+        "type": "pageview",
+        "path": "/portal.html?email=woma2024%40gmail.com&passwordSet=1",
+        "referrer": "https://www.wholesale.leaflock.com.au/set-password.html?token=HQ1Wl3IVUqYQfHJVHZuWgOv9Dj2LZ3m6tU9U25JIRz0",
+        "utm": {},
+        "sessionId": "e963b86d-48e0-4c89-8e98-37fb2f756b00",
+        "eventName": null,
+        "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36"
       }
     ],
     "meta.json": {
