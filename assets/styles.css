@@ -445,14 +445,28 @@ dd {
 
 .pricing-table-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  max-width: 100%;
   background: var(--white);
   border: 1px solid var(--line);
   border-radius: 8px;
 }
 
+/* Shown on phones only — scroll stays inside this box, not the whole page */
+.pricing-table-scroll-hint {
+  display: none;
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  background: var(--tint-strawberry);
+  border-bottom: 1px solid var(--line);
+}
+
 .pricing-table {
   width: 100%;
-  min-width: 760px;
+  min-width: 880px;
   border-collapse: collapse;
 }
 
@@ -550,7 +564,7 @@ dd {
 
 .portal-order-table {
   width: 100%;
-  min-width: 100%;
+  min-width: 880px;
 }
 
 .portal-order-table th {
@@ -2928,7 +2942,15 @@ textarea {
 }
 
 /* ——— Mobile-friendly site & portal ——— */
+body[data-nav="portal"] {
+  overflow-x: hidden;
+}
+
 @media (max-width: 768px) {
+  .pricing-table-scroll-hint {
+    display: block;
+  }
+
   .section {
     padding: 48px clamp(14px, 4vw, 24px);
   }
@@ -2954,13 +2976,20 @@ textarea {
     font-size: 0.82rem;
   }
 
-  .pricing-table {
-    min-width: 640px;
+  .pricing-table,
+  .portal-order-table {
+    min-width: 720px;
   }
 
   .portal-order-table__product {
-    min-width: 200px;
+    min-width: 180px;
     gap: 10px;
+  }
+
+  .portal-order-table__qty input {
+    min-height: 44px;
+    width: 72px;
+    font-size: 16px;
   }
 
   .portal-order-table__product img {
