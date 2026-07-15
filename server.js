@@ -35,6 +35,7 @@ const {
   sendDailyReport,
   notifyAdminNewApplication,
   notifyRetailStockistApproved,
+  notifyNewStockistWelcome,
   notifyPasswordReset,
   sendCompliancePack,
   notifyOrderConfirmation,
@@ -981,12 +982,21 @@ app.post("/api/admin/retail-stockists/:id/regenerate-checkout-key", adminAuth, (
   res.json(asRetailStockistPayload(result));
 });
 
-app.post("/api/admin/retail-stockists", adminAuth, (req, res) => {
+app.post("/api/admin/retail-stockists", adminAuth, async (req, res) => {
   const body = req.body || {};
   if (!body.businessName || !body.email) {
     return res.status(400).json({ error: "businessName and email required" });
   }
   const result = createRetailStockist(body);
+  try {
+    result.emailSent = await notifyNewStockistWelcome({
+      retailStockist: result.retailStockist,
+      setupToken: result.setupToken,
+    });
+  } catch (err) {
+    console.warn("[mail] new stockist welcome:", err.message);
+    result.emailSent = false;
+  }
   res.status(201).json(asRetailStockistPayload(result));
 });
 

@@ -32,7 +32,7 @@ async function testOrderPdfs() {
   const totals = calculateOrder(lineItems);
   const order = {
     id: "ord_pdf_test",
-    invoiceNumber: "INV-PDF-TEST",
+    invoiceNumber: "LL0715TEST",
     createdAt: Date.now(),
     retailStockistName: "PDF Test Store",
     contact: {
@@ -119,7 +119,10 @@ const bank = bankDetails();
 assert("Bank account LL PYT LTD", bank.accountName === "LL PYT LTD");
 assert("BSB 734216", bank.bsb === "734216");
 assert("PayID set", bank.payId === "0431892625");
-assert("Invoice number format", /^INV-\d{8}-/.test(invoiceNumber("ord_1_abc123", Date.now())));
+assert(
+  "Invoice number format (short ref)",
+  /^LL\d{4}[A-F0-9]{4}$/.test(invoiceNumber("ord_1750000_abc1de", Date.now())),
+);
 
 const bigCatalog = calculateOrder({
   catalog: { "GUM-90-BUN": 3 },
