@@ -9,13 +9,7 @@ services:
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /
-    disk:
-      name: retail-wholesale-data
-      mountPath: /var/data
-      sizeGB: 1
     envVars:
-      - key: DATA_DIR
-        value: /var/data
       - key: NODE_ENV
         value: production
       - key: NODE_VERSION
@@ -60,3 +54,9 @@ services:
         value: "4217"
       - key: GUMMY_CHECKOUT_ACCESS_KEY
         sync: false
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
+      - key: REMOTE_DATA_PREFIX
+        value: leaflock:retail-wholesale:v1

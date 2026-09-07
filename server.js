@@ -42,6 +42,7 @@ const {
   notifyAdminNewOrder,
   notifyAdminCreditApplication,
   emailConfigured,
+  verifyEmailTransport,
 } = require("./lib/mailer");
 const { bankDetails } = require("./lib/bank-details");
 const { verifyPassword } = require("./lib/portal-password");
@@ -116,12 +117,15 @@ const {
   readCatalogCsvText,
   categoriesToCsv,
   saveCatalogCsv,
+  parseCatalogCsv,
   catalogSourceLabel,
   catalogWritePath,
 } = require("./lib/catalog-csv");
 const { catalogForPortal, reloadCatalog } = require("./lib/wholesale-catalog");
 const auspost = require("./lib/auspost-pac");
 const gummyCheckoutAccess = require("./lib/gummy-checkout-access");
+const { flushRemoteWrites, remoteDataStatus } = require("./lib/remote-data");
+const { recordAdminAction, listAdminActions } = require("./lib/admin-audit");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4173;
@@ -211,9 +215,9 @@ app.use((req, res, next) => {
   const cspPayPal =
     " https://*.paypal.com https://*.paypalobjects.com https://c.paypal.com https://www.gstatic.com";
   const cspCore =
-    `default-src 'self'; script-src 'self' 'unsafe-inline' https://www.paypal.com https://www.sandbox.paypal.com${cspPayPal}; frame-src https://www.paypal.com https://www.sandbox.paypal.com${cspPayPal}; connect-src 'self' https://www.paypal.com https://www.sandbox.paypal.com${cspPayPal}; img-src 'self' data: https:${cspPayPal}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com`;
+    `default-src 'self'; script-src 'self' https://www.paypal.com https://www.sandbox.paypal.com${cspPayPal}; frame-src https://www.paypal.com https://www.sandbox.paypal.com${cspPayPal}; connect-src 'self' https://www.paypal.com https://www.sandbox.paypal.com${cspPayPal}; img-src 'self' data: https:${cspPayPal}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com`;
   const frameAncestors = isGummyCheckout
-    ? "frame-ancestors https://mail.google.com https://*.google.com https://leaflock.com.au https://*.leaflock.com.au *"
+    ? "frame-ancestors https://mail.google.com https://*.google.com https://leaflock.com.au https://*.leaflock.com.au"
     : "";
 
   res.setHeader("X-Content-Type-Options", "nosniff");
@@ -332,7 +336,17 @@ app.post("/api/analytics/login", (req, res) => {
   if (password !== adminPassword) {
     return res.status(401).json({ error: "Invalid password" });
   }
-  res.json({ token: createAdminToken() });
+  const token = createAdminToken();
+  res.setHeader(
+    "Set-Cookie",
+    `ll_admin_session=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=43200`,
+  );
+  res.json({ token });
+});
+
+app.post("/api/analytics/logout", adminAuth, (req, res) => {
+  res.setHeader("Set-Cookie", "ll_admin_session=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0");
+  res.status(204).end();
 });
 
 app.get("/api/analytics/live", adminAuth, (req, res) => {
@@ -859,7 +873,22 @@ app.get("/api/admin/setup-status", adminAuth, (req, res) => {
     stockistCheckoutKeys: loadRetailStockists().retailStockists.filter(
       (p) => p.status === "active" && p.checkoutAccessKey,
     ).length,
+    durableStorage: remoteDataStatus(),
   });
+});
+
+app.post("/api/admin/storage/flush", adminAuth, async (_req, res) => {
+  try {
+    const flushed = await flushRemoteWrites();
+    res.json({ ok: true, flushed, durableStorage: remoteDataStatus() });
+  } catch (err) {
+    res.status(503).json({ error: "Durable storage write failed", detail: err.message });
+  }
+});
+
+app.post("/api/admin/email/verify", adminAuth, async (_req, res) => {
+  const result = await verifyEmailTransport();
+  res.status(result.ok ? 200 : 503).json(result);
 });
 
 app.post("/api/admin/postage/quote", adminAuth, async (req, res) => {
@@ -902,6 +931,7 @@ app.post("/api/admin/catalog/upload", adminAuth, (req, res) => {
     return res.status(400).json({ error: "Could not read spreadsheet", details: saved.errors });
   }
   const reloaded = reloadCatalog();
+  recordAdminAction("catalog.upload", { itemCount: saved.itemCount, categoryCount: saved.categoryCount });
   res.json({
     ok: true,
     itemCount: saved.itemCount,
@@ -934,6 +964,7 @@ app.post("/api/admin/data/merge", adminAuth, (req, res) => {
   } catch (err) {
     console.error("[admin] post-merge retail reconcile:", err.message);
   }
+  recordAdminAction("data.merge", { changed: result.changed, results: result.results });
   res.json({
     ok: true,
     ...result,
@@ -962,12 +993,19 @@ app.post("/api/admin/applications/:id/approve", adminAuth, async (req, res) => {
     console.warn("[mail] approval notify:", err.message);
     result.emailSent = false;
   }
+  recordAdminAction("application.approve", {
+    id: req.params.id,
+    email: result.application?.email,
+    businessName: result.application?.businessName,
+    emailSent: result.emailSent,
+  });
   res.json(asRetailStockistPayload(result));
 });
 
 app.post("/api/admin/applications/:id/reject", adminAuth, (req, res) => {
   const app = rejectApplication(req.params.id);
   if (!app) return res.status(404).json({ error: "Application not found" });
+  recordAdminAction("application.reject", { id: app.id, email: app.email, businessName: app.businessName });
   res.json({ application: app });
 });
 
@@ -997,6 +1035,7 @@ app.post("/api/admin/retail-stockists", adminAuth, async (req, res) => {
     console.warn("[mail] new stockist welcome:", err.message);
     result.emailSent = false;
   }
+  recordAdminAction("stockist.create", { id: result.retailStockist?.id, email: result.retailStockist?.email, emailSent: result.emailSent });
   res.status(201).json(asRetailStockistPayload(result));
 });
 
@@ -1023,6 +1062,7 @@ app.post("/api/admin/retail-stockists/:id/send-password-reset", adminAuth, async
     result.emailSent = false;
   }
   result.resetUrl = resetUrl;
+  recordAdminAction("stockist.password_reset", { id: req.params.id, email: result.retailStockist?.email, emailSent: result.emailSent });
   res.json(asRetailStockistPayload(result));
 });
 
@@ -1032,13 +1072,16 @@ app.delete("/api/admin/retail-stockists/:id", adminAuth, (req, res) => {
   if (result.error === "demo_account") {
     return res.status(400).json({ error: "Demo account cannot be removed" });
   }
+  recordAdminAction("stockist.remove", { id: req.params.id });
   res.json(result);
 });
 
 app.patch("/api/admin/retail-stockists/:id", adminAuth, (req, res) => {
   const { status } = req.body || {};
+  if (!["active", "inactive"].includes(status)) return res.status(400).json({ error: "Invalid status" });
   const retailStockist = setRetailStockistStatus(req.params.id, status);
   if (!retailStockist) return res.status(404).json({ error: "Retail stockist not found" });
+  recordAdminAction("stockist.status", { id: req.params.id, status: retailStockist.status });
   res.json({ retailStockist });
 });
 
@@ -1090,12 +1133,33 @@ app.get("/api/admin/orders", adminAuth, (req, res) => {
 
 app.patch("/api/admin/orders/:id", adminAuth, (req, res) => {
   const { status, paymentStatus } = req.body || {};
+  const allowedStatuses = ["submitted", "awaiting_payment", "paid", "processing", "shipped", "cancelled"];
+  const allowedPaymentStatuses = ["pending", "unpaid", "paid", "refunded", "failed"];
+  if (status && !allowedStatuses.includes(status)) return res.status(400).json({ error: "Invalid order status" });
+  if (paymentStatus && !allowedPaymentStatuses.includes(paymentStatus)) return res.status(400).json({ error: "Invalid payment status" });
   const patch = {};
   if (status) patch.status = status;
   if (paymentStatus) patch.paymentStatus = paymentStatus;
   const order = updateOrder(req.params.id, patch);
   if (!order) return res.status(404).json({ error: "Order not found" });
+  recordAdminAction("order.status", { id: order.id, status: order.status, paymentStatus: order.paymentStatus });
   res.json({ order });
+});
+
+app.post("/api/admin/catalog/validate", adminAuth, (req, res) => {
+  const csv = req.body?.csv;
+  if (!csv || typeof csv !== "string") return res.status(400).json({ error: "CSV required" });
+  const parsed = parseCatalogCsv(csv);
+  res.status(parsed.ok ? 200 : 400).json({
+    ok: parsed.ok,
+    itemCount: parsed.itemCount,
+    categoryCount: parsed.categoryCount || 0,
+    errors: parsed.errors,
+  });
+});
+
+app.get("/api/admin/audit-log", adminAuth, (req, res) => {
+  res.json({ entries: listAdminActions(Number(req.query.limit) || 200) });
 });
 
 app.get("/api/admin/login-log", adminAuth, (req, res) => {

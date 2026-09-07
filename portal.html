@@ -212,13 +212,6 @@
     <script src="assets/access.js?v=20260706m"></script>
     <script src="assets/layout.js"></script>
     <script src="assets/portal.js?v=20260715c"></script>
-    <script>
-      window.LeafLockAccess.boot().then(() => {
-        window.LeafLockAccess.bindAccessForm();
-        if (window.LeafLockAccess.isApproved()) {
-          document.dispatchEvent(new CustomEvent("leaflock:portal-login"));
-        }
-      });
-    </script>
+    <script src="assets/portal-boot.js"></script>
   </body>
 </html>

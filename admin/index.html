@@ -7,7 +7,7 @@
     <title>LeafLock Admin Dashboard</title>
     <link rel="icon" type="image/svg+xml" href="../assets/brand/favicon.svg">
     <link rel="stylesheet" href="../assets/styles.css">
-    <link rel="stylesheet" href="admin.css?v=20260706c">
+    <link rel="stylesheet" href="admin.css?v=20260907a">
   </head>
   <body data-admin="true">
     <div id="loginScreen" class="login-screen">
@@ -153,6 +153,7 @@
             <h2>Retail stockist accounts</h2>
             <button type="button" id="addRetailStockistBtn" class="btn-secondary btn-small">Add retail stockist</button>
           </div>
+          <label class="filter-field"><span>Search stockists</span><input type="search" id="stockistSearch" placeholder="Business or email"></label>
           <label class="foot-note"><input type="checkbox" id="showInactiveStockists"> Show deactivated accounts</label>
           <p class="foot-note">Approved stockists sign in at <a href="/portal.html" target="_blank" rel="noopener">portal</a>. <strong>Reset password</strong> emails a reset link — they click it, set a new password, sign in. <strong>Deactivate</strong> blocks login. <strong>Remove</strong> deletes the account.</p>
           <div class="table-scroll">
@@ -207,11 +208,16 @@
         <section class="panel setup-panel">
           <h2>System status</h2>
           <ul id="setupStatus" class="setup-list"></ul>
+          <button type="button" id="verifyEmailBtn" class="btn-secondary btn-small">Test email connection</button>
+          <span id="verifyEmailResult" class="foot-note" role="status"></span>
           <p class="foot-note"><strong>Simple flow:</strong> Approve application → stockist signs in at <a href="/portal.html" target="_blank" rel="noopener">portal</a> with the password they chose when applying. No password set? Click <em>Reset password</em> — they get an email with a link.</p>
         </section>
 
         <section class="panel">
-          <h2>Orders</h2>
+          <div class="panel-head">
+            <h2>Orders</h2>
+            <label class="filter-field"><span>Filter</span><select id="orderStatusFilter"><option value="">All statuses</option><option value="submitted">Submitted</option><option value="awaiting_payment">Awaiting payment</option><option value="paid">Paid</option><option value="processing">Processing</option><option value="shipped">Shipped</option><option value="cancelled">Cancelled</option></select></label>
+          </div>
           <div class="table-scroll">
             <table class="data-table data-table--wide">
               <thead>
@@ -317,6 +323,14 @@
       </div>
     </div>
 
-    <script src="admin.js?v=20260709b"></script>
+    <div id="orderDetailModal" class="modal-overlay" hidden>
+      <div class="modal-card-admin">
+        <h2 id="orderDetailTitle">Order details</h2>
+        <pre id="orderDetailBody" class="order-detail"></pre>
+        <div class="modal-actions"><button type="button" id="closeOrderDetailModal" class="btn-secondary">Done</button></div>
+      </div>
+    </div>
+
+    <script src="admin.js?v=20260907a"></script>
   </body>
 </html>

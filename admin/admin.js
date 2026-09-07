@@ -4,6 +4,7 @@ const loginScreen = document.getElementById("loginScreen");
 const dashboard = document.getElementById("dashboard");
 const loginForm = document.getElementById("loginForm");
 const loginError = document.getElementById("loginError");
+let latestAdminOrders = [];
 
 function token() {
   return localStorage.getItem(TOKEN_KEY);
@@ -15,11 +16,13 @@ function setToken(value) {
 }
 
 async function api(path, options = {}) {
+  const authToken = token();
   const res = await fetch(path, {
     ...options,
+    credentials: "same-origin",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token()}`,
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
       ...(options.headers || {}),
     },
   });
@@ -35,6 +38,15 @@ function fmtDate(ts) {
 
 function fmtMoney(n) {
   return new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" }).format(n || 0);
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
 function loginLogAccount(entry, stockistEmailById = new Map()) {
@@ -135,6 +147,14 @@ function renderSetupStatus(status) {
     { ok: status.adminPasswordFromEnv, label: status.adminPasswordFromEnv ? "Admin password from env var" : "Using default admin password" },
     { ok: status.portalSessionSecret, label: status.portalSessionSecret ? "Portal sessions secured" : "Set PORTAL_SESSION_SECRET on Render" },
     { ok: status.adminSessionSecret, label: status.adminSessionSecret ? "Admin sessions signed (survive restarts)" : "Set ADMIN_SESSION_SECRET on Render" },
+    {
+      ok: Boolean(status.durableStorage?.configured && status.durableStorage?.lastSuccessAt && !status.durableStorage?.lastError),
+      label: status.durableStorage?.configured
+        ? status.durableStorage?.lastError
+          ? `Durable storage error: ${status.durableStorage.lastError}`
+          : `Durable storage connected${status.durableStorage.pendingWrites ? ` (${status.durableStorage.pendingWrites} write pending)` : ""}`
+        : "Durable storage is not configured",
+    },
     { ok: status.httpsOnly, label: status.httpsOnly ? "HTTPS security headers active" : "Dev mode" },
     { ok: status.complianceDocuments, label: status.complianceDocuments ? "Compliance PDFs ready (NDA + pack + TM cert)" : "Compliance PDFs missing on server" },
     { ok: (status.catalogItems || 0) > 0, label: `Order form catalogue: ${status.catalogItems || 0} products (${status.catalogSource || "unknown"})` },
@@ -143,7 +163,7 @@ function renderSetupStatus(status) {
     { ok: true, label: "Wholesale prices: portal login & private checkout links only (not public SEO)" },
   ];
   list.innerHTML = items
-    .map((i) => `<li><span class="${i.ok ? "setup-ok" : "setup-warn"}">${i.ok ? "✓" : "!"}</span> ${i.label}</li>`)
+    .map((i) => `<li><span class="${i.ok ? "setup-ok" : "setup-warn"}">${i.ok ? "✓" : "!"}</span> ${escapeHtml(i.label)}</li>`)
     .join("");
 }
 
@@ -158,17 +178,17 @@ async function refreshTraffic() {
   document.getElementById("accessViews").textContent = live.accessRequests;
   document.getElementById("lastUpdated").textContent = `Updated ${new Date().toLocaleString("en-AU")}`;
 
-  document.getElementById("highlights").innerHTML = week.highlights.map((h) => `<li>${h}</li>`).join("");
+  document.getElementById("highlights").innerHTML = week.highlights.map((h) => `<li>${escapeHtml(h)}</li>`).join("");
 
   renderTable(
     document.getElementById("topPages"),
     week.topPages,
-    (r) => `<tr><td>${r.path}</td><td>${r.count}</td></tr>`,
+    (r) => `<tr><td>${escapeHtml(r.path)}</td><td>${escapeHtml(r.count)}</td></tr>`,
   );
   renderTable(
     document.getElementById("topSources"),
     week.topSources,
-    (r) => `<tr><td>${r.source}</td><td>${r.count}</td></tr>`,
+    (r) => `<tr><td>${escapeHtml(r.source)}</td><td>${escapeHtml(r.count)}</td></tr>`,
   );
   renderDailyChart(document.getElementById("dailyChart"), week.daily);
 }
@@ -255,6 +275,33 @@ async function updateOrderStatus(id, status) {
   await refreshWholesale();
 }
 
+function openOrderDetail(id) {
+  const order = latestAdminOrders.find((item) => item.id === id);
+  if (!order) return;
+  const lines = order.totals?.catalogLines || [];
+  const contact = order.contact || {};
+  const body = [
+    `Date: ${fmtDate(order.createdAt)}`,
+    `Stockist: ${order.retailStockistName || contact.businessName || "—"}`,
+    `Invoice: ${order.invoiceNumber || order.id}`,
+    `Payment: ${order.paymentMethod || "—"} / ${order.paymentStatus || "—"}`,
+    `Status: ${order.status || "—"}`,
+    `Total: ${fmtMoney(order.totals?.total)}`,
+    "",
+    `Contact: ${contact.fullName || "—"}`,
+    `Email: ${contact.email || "—"}`,
+    `Phone: ${contact.phone || "—"}`,
+    `Ship to: ${contact.address || "—"}`,
+    "",
+    "Items:",
+    ...(lines.length ? lines.map((line) => `${line.qty} × ${line.sku} — ${line.name} (${fmtMoney(line.lineTotal)})`) : ["No detailed lines stored."]),
+    order.notes ? `\nNotes: ${order.notes}` : "",
+  ];
+  document.getElementById("orderDetailTitle").textContent = order.invoiceNumber || "Order details";
+  document.getElementById("orderDetailBody").textContent = body.join("\n");
+  document.getElementById("orderDetailModal").hidden = false;
+}
+
 function openAddStockistModal() {
   const modal = document.getElementById("addStockistModal");
   const form = document.getElementById("addStockistForm");
@@ -324,6 +371,7 @@ async function refreshWholesale() {
   }
   const stockistList = await api("/api/admin/retail-stockists");
   const orders = await api("/api/admin/orders");
+  latestAdminOrders = orders.orders || [];
   const loginLog = await api("/api/admin/login-log?limit=50");
 
   const pendingCount = summary.pendingApplications || 0;
@@ -343,10 +391,10 @@ async function refreshWholesale() {
             const extras = [a.bulk === "yes" ? "bulk supply" : "", a.notes].filter(Boolean).join(" · ");
             return `<tr class="row-pending">
         <td>${fmtDate(a.createdAt)}</td>
-        <td>${a.businessName}${extras ? `<br><small>${extras}</small>` : ""}</td>
-        <td>${a.fullName}<br><small>${a.abn}${a.storeReg ? ` · ${a.storeReg}` : ""}</small></td>
-        <td>${a.email}</td>
-        <td><span class="badge badge--${a.status}">${a.status}</span></td>
+        <td>${escapeHtml(a.businessName)}${extras ? `<br><small>${escapeHtml(extras)}</small>` : ""}</td>
+        <td>${escapeHtml(a.fullName)}<br><small>${escapeHtml(a.abn)}${a.storeReg ? ` · ${escapeHtml(a.storeReg)}` : ""}</small></td>
+        <td>${escapeHtml(a.email)}</td>
+        <td><span class="badge badge--${escapeHtml(a.status)}">${escapeHtml(a.status)}</span></td>
         <td class="actions-cell">${actions}</td>
       </tr>`;
           })
@@ -364,16 +412,16 @@ async function refreshWholesale() {
     pharmBody,
     visibleStockists,
     (p) => `<tr class="${p.status === "inactive" ? "row-muted" : ""}">
-      <td>${p.businessName}</td>
-      <td>${p.email}</td>
-      <td><span class="badge badge--${p.status}">${p.status}</span></td>
+      <td>${escapeHtml(p.businessName)}</td>
+      <td>${escapeHtml(p.email)}</td>
+      <td><span class="badge badge--${escapeHtml(p.status)}">${escapeHtml(p.status)}</span></td>
       <td>${p.passwordSet ? '<span class="badge badge--active">Ready</span>' : '<span class="badge badge--pending">No password</span>'}</td>
       <td>${p.loginCount || 0}</td>
       <td>${fmtDate(p.lastLoginAt)}</td>
       <td class="actions-cell">
-        <button class="btn-inline" data-action="reset-password" data-id="${p.id}">Reset password</button>
-        <button class="btn-inline btn-muted" data-action="toggle-status" data-id="${p.id}" data-status="${p.status}">${p.status === "active" ? "Deactivate" : "Activate"}</button>
-        <button class="btn-inline btn-muted" data-action="remove-stockist" data-id="${p.id}" data-name="${p.businessName}">Remove</button>
+        <button class="btn-inline" data-action="reset-password" data-id="${escapeHtml(p.id)}">Reset password</button>
+        <button class="btn-inline btn-muted" data-action="toggle-status" data-id="${escapeHtml(p.id)}" data-status="${escapeHtml(p.status)}">${p.status === "active" ? "Deactivate" : "Activate"}</button>
+        <button class="btn-inline btn-muted" data-action="remove-stockist" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(p.businessName)}">Remove</button>
       </td>
     </tr>`,
   );
@@ -384,12 +432,13 @@ async function refreshWholesale() {
     orders.orders,
     (o) => `<tr>
       <td>${fmtDate(o.createdAt)}</td>
-      <td>${o.retailStockistName || o.contact?.businessName || "—"}</td>
+      <td>${escapeHtml(o.retailStockistName || o.contact?.businessName || "—")}</td>
       <td>${fmtMoney(o.totals?.total)}</td>
-      <td>${o.paymentMethod || "—"} / ${o.paymentStatus || "—"}</td>
-      <td><span class="badge badge--${o.status}">${o.status}</span></td>
+      <td>${escapeHtml(o.paymentMethod || "—")} / ${escapeHtml(o.paymentStatus || "—")}</td>
+      <td><span class="badge badge--${escapeHtml(o.status)}">${escapeHtml(o.status)}</span></td>
       <td>
-        <select class="status-select" data-action="order-status" data-id="${o.id}">
+        <button class="btn-inline" data-action="view-order" data-id="${escapeHtml(o.id)}">View</button>
+        <select class="status-select" data-action="order-status" data-id="${escapeHtml(o.id)}" data-current="${escapeHtml(o.status)}">
           <option value="submitted" ${o.status === "submitted" ? "selected" : ""}>submitted</option>
           <option value="awaiting_payment" ${o.status === "awaiting_payment" ? "selected" : ""}>awaiting_payment</option>
           <option value="paid" ${o.status === "paid" ? "selected" : ""}>paid</option>
@@ -410,7 +459,7 @@ async function refreshWholesale() {
     loginLog.entries,
     (e) => `<tr>
       <td>${fmtDate(e.ts)}</td>
-      <td>${loginLogAccount(e, stockistEmailById)}</td>
+      <td>${escapeHtml(loginLogAccount(e, stockistEmailById))}</td>
       <td>${e.success ? "✓ Success" : "✗ Failed"}</td>
     </tr>`,
     3,
@@ -437,6 +486,7 @@ document.getElementById("tabWholesale")?.addEventListener("click", async (event)
     else if (action === "reset-password") await sendPasswordReset(id);
     else if (action === "toggle-status") await toggleRetailStockistStatus(id, btn.dataset.status);
     else if (action === "remove-stockist") await removeRetailStockist(id, btn.dataset.name);
+    else if (action === "view-order") openOrderDetail(id);
   } catch (err) {
     alert(err.message || "Action failed");
   }
@@ -445,11 +495,38 @@ document.getElementById("tabWholesale")?.addEventListener("click", async (event)
 document.getElementById("tabWholesale")?.addEventListener("change", async (event) => {
   const select = event.target.closest('[data-action="order-status"]');
   if (!select) return;
+  const previous = select.dataset.current || "submitted";
+  const next = select.value;
+  if (!confirm(`Change this order from ${previous} to ${next}?`)) {
+    select.value = previous;
+    return;
+  }
+  select.disabled = true;
   try {
-    await updateOrderStatus(select.dataset.id, select.value);
+    await updateOrderStatus(select.dataset.id, next);
   } catch (err) {
+    select.value = previous;
+    select.disabled = false;
     alert(err.message || "Could not update order");
   }
+});
+
+function applyAdminFilters() {
+  const stockistQuery = String(document.getElementById("stockistSearch")?.value || "").trim().toLowerCase();
+  document.querySelectorAll("#retailStockistsTable tr").forEach((row) => {
+    row.hidden = Boolean(stockistQuery) && !row.textContent.toLowerCase().includes(stockistQuery);
+  });
+  const orderStatus = document.getElementById("orderStatusFilter")?.value || "";
+  document.querySelectorAll("#ordersTable tr").forEach((row) => {
+    const select = row.querySelector('[data-action="order-status"]');
+    row.hidden = Boolean(orderStatus) && select?.value !== orderStatus;
+  });
+}
+
+document.getElementById("stockistSearch")?.addEventListener("input", applyAdminFilters);
+document.getElementById("orderStatusFilter")?.addEventListener("change", applyAdminFilters);
+document.getElementById("closeOrderDetailModal")?.addEventListener("click", () => {
+  document.getElementById("orderDetailModal").hidden = true;
 });
 
 function setOrderPreviewContext({ businessName, email, emailSent, needsManualSetup } = {}) {
@@ -485,14 +562,14 @@ async function refreshOrderPreview() {
     const pricing = await api("/api/admin/order-form-preview");
     const rows = [];
     for (const section of pricing.orderSheet || []) {
-      rows.push(`<tr class="pricing-table__category"><td colspan="6"><strong>${section.label}</strong></td></tr>`);
+      rows.push(`<tr class="pricing-table__category"><td colspan="6"><strong>${escapeHtml(section.label)}</strong></td></tr>`);
       for (const item of section.items) {
         const img = item.image?.startsWith("http")
           ? item.image
           : `/${String(item.image || "").replace(/^\//, "")}`;
         rows.push(`<tr>
-          <td>${item.sku}</td>
-          <td class="portal-order-table__product"><img src="${img}" alt="" width="40" height="40" loading="lazy"><span>${item.name}</span></td>
+          <td>${escapeHtml(item.sku)}</td>
+          <td class="portal-order-table__product"><img src="${escapeHtml(img)}" alt="" width="40" height="40" loading="lazy"><span>${escapeHtml(item.name)}</span></td>
           <td>${fmtMoney(item.wholesale)}</td>
           <td>${fmtMoney(item.rrp)}</td>
           <td>${item.moqLabel || "—"}</td>
@@ -505,11 +582,11 @@ async function refreshOrderPreview() {
       tiers.innerHTML = (pricing.volumeTiers || [])
         .map(
           (t) => `<tr>
-            <td>${t.product}</td>
+            <td>${escapeHtml(t.product)}</td>
             <td>${fmtMoney(t.standard)}</td>
-            <td>${t.threshold}</td>
+            <td>${escapeHtml(t.threshold)}</td>
             <td>${fmtMoney(t.volumePrice)}</td>
-            <td>${t.applies}</td>
+            <td>${escapeHtml(t.applies)}</td>
           </tr>`,
         )
         .join("");
@@ -531,7 +608,15 @@ function switchTab(name) {
 document.querySelectorAll(".dash-tab").forEach((tab) => {
   tab.addEventListener("click", async () => {
     switchTab(tab.dataset.tab);
-    if (tab.dataset.tab === "wholesale") await refreshWholesale();
+    if (tab.dataset.tab === "wholesale") {
+      setStatText("activeRetailStockists", "…");
+      setStatText("ordersToday", "…");
+      const stockistBody = document.getElementById("retailStockistsTable");
+      const orderBody = document.getElementById("ordersTable");
+      if (stockistBody) stockistBody.innerHTML = '<tr><td colspan="7">Loading stockists…</td></tr>';
+      if (orderBody) orderBody.innerHTML = '<tr><td colspan="6">Loading orders…</td></tr>';
+      await refreshWholesale();
+    }
     if (tab.dataset.tab === "orderform") await refreshOrderPreview();
   });
 });
@@ -588,7 +673,7 @@ loginForm.addEventListener("submit", async (event) => {
       return;
     }
     const data = await res.json();
-    setToken(data.token);
+    setToken(null);
     loginError.hidden = true;
     showDashboard();
     await refreshTraffic();
@@ -600,7 +685,12 @@ loginForm.addEventListener("submit", async (event) => {
 
 checkHost();
 
-document.getElementById("logoutBtn").addEventListener("click", () => {
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  try {
+    await api("/api/analytics/logout", { method: "POST" });
+  } catch {
+    /* local logout still proceeds */
+  }
   setToken(null);
   showLogin();
 });
@@ -619,6 +709,21 @@ document.getElementById("sendReportBtn").addEventListener("click", async () => {
     btn.disabled = false;
     btn.textContent = "Email report now";
   }, 3000);
+});
+
+document.getElementById("verifyEmailBtn")?.addEventListener("click", async () => {
+  const button = document.getElementById("verifyEmailBtn");
+  const result = document.getElementById("verifyEmailResult");
+  button.disabled = true;
+  if (result) result.textContent = "Checking…";
+  try {
+    await api("/api/admin/email/verify", { method: "POST" });
+    if (result) result.textContent = "Email connection is working.";
+  } catch {
+    if (result) result.textContent = "Email connection failed. Password resets and invoices will not send until this is fixed.";
+  } finally {
+    button.disabled = false;
+  }
 });
 
 function renderCatalogStatus(info) {
@@ -670,8 +775,18 @@ document.getElementById("catalogFileInput")?.addEventListener("change", async (e
   }
   try {
     const csv = await file.text();
+    const validation = await api("/api/admin/catalog/validate", {
+      method: "POST",
+      body: JSON.stringify({ csv }),
+    });
+    if (!confirm(`Spreadsheet check passed: ${validation.itemCount} products in ${validation.categoryCount} categories. Replace the live catalogue now?`)) {
+      if (statusEl) statusEl.textContent = "Upload cancelled — live catalogue unchanged.";
+      input.value = "";
+      return;
+    }
     const res = await fetch("/api/admin/catalog/upload", {
       method: "POST",
+      credentials: "same-origin",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token()}`,
