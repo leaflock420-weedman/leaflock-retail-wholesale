@@ -43,6 +43,7 @@ const {
   notifyAdminCreditApplication,
   emailConfigured,
   verifyEmailTransport,
+  sendEmailTest,
 } = require("./lib/mailer");
 const { bankDetails } = require("./lib/bank-details");
 const { verifyPassword } = require("./lib/portal-password");
@@ -888,6 +889,15 @@ app.post("/api/admin/storage/flush", adminAuth, async (_req, res) => {
 
 app.post("/api/admin/email/verify", adminAuth, async (_req, res) => {
   const result = await verifyEmailTransport();
+  if (result.ok) {
+    try {
+      result.delivered = await sendEmailTest();
+    } catch (err) {
+      result.ok = false;
+      result.delivered = false;
+      result.error = err.message;
+    }
+  }
   res.status(result.ok ? 200 : 503).json(result);
 });
 
