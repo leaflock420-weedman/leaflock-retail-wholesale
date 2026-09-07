@@ -1170,13 +1170,13 @@ app.get("/api/admin/login-log", adminAuth, (req, res) => {
 
 // ——— Daily report cron ———
 
-async function maybeSendDailyReport() {
+async function maybeSendDailyReport({ force = false } = {}) {
   const now = new Date();
-  if (now.getHours() !== REPORT_HOUR) return;
+  if (!force && now.getHours() !== REPORT_HOUR) return { sent: false, reason: "outside-report-hour" };
 
   const meta = loadMeta();
   const todayKey = now.toISOString().slice(0, 10);
-  if (meta.lastDailyReport === todayKey) return;
+  if (meta.lastDailyReport === todayKey) return { sent: false, reason: "already-sent" };
 
   const summary = summarize({ days: 1 });
   const dateLabel = new Date(now.getTime() - 24 * 60 * 60 * 1000).toLocaleDateString("en-AU", {
@@ -1195,7 +1195,22 @@ async function maybeSendDailyReport() {
     saveMeta({ ...meta, lastDailyReport: todayKey });
     console.log(`[analytics] Daily report emailed for ${todayKey}`);
   }
+  return { sent: Boolean(sent), reason: sent ? "sent" : "email-not-configured" };
 }
+
+app.post("/api/cron/daily-report", async (req, res) => {
+  const secret = process.env.CRON_SECRET;
+  const supplied = String(req.headers.authorization || "").replace(/^Bearer\s+/i, "");
+  if (!secret || supplied.length !== secret.length || !crypto.timingSafeEqual(Buffer.from(supplied), Buffer.from(secret))) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  try {
+    res.json(await maybeSendDailyReport({ force: true }));
+  } catch (err) {
+    console.error("[analytics] scheduled report failed:", err.message);
+    res.status(502).json({ error: "Daily report failed" });
+  }
+});
 
 setInterval(maybeSendDailyReport, 60 * 1000);
 setTimeout(maybeSendDailyReport, 5000);
