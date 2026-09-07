@@ -5,7 +5,7 @@
   "description": "LeafLock retail stockist wholesale site (separate from med.leaflock.com.au)",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node start.js",
     "dev": "node server.js",
     "deploy:render": "node scripts/render-deploy.mjs",
     "test": "node scripts/check-secrets.mjs && node scripts/run-full-test.mjs",
