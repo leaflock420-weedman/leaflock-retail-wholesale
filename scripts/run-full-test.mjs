@@ -53,6 +53,26 @@ async function testOrderPdfs() {
 
   const lines = expandOrderLines(order);
   assert("Order PDF line expansion", lines.length > 0);
+  const mixedSpecialItems = {
+    catalog: { "HP-SINGLE": 20, "GUM-90-BUN": 1 },
+    starterBundle: false,
+    singlePacks: 0,
+    threePacks: 0,
+    gummyIndividual: 0,
+    mixedCartons: 0,
+  };
+  const mixedSpecialLines = expandOrderLines({
+    lineItems: mixedSpecialItems,
+    totals: calculateOrder(mixedSpecialItems),
+  });
+  assert(
+    "Order notification includes catalogue humidity singles",
+    mixedSpecialLines.some((line) => line.sku === "HP-SINGLE" && line.qty === 20),
+  );
+  assert(
+    "Order notification retains mixed gummy carton",
+    mixedSpecialLines.some((line) => line.sku === "GUM-90-BUN" && line.qty === 1),
+  );
   const invoice = await generateInvoicePdf(order);
   const fulfillment = await generateFulfillmentPdf(order);
   assert("Invoice PDF generated", invoice.length > 500 && invoice.slice(0, 4).toString() === "%PDF");
