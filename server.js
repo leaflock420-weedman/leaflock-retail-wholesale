@@ -164,16 +164,24 @@ function asRetailStockistPayload(payload) {
   return out;
 }
 
-function dispatchOrderEmails(order, { adminLabel, confirmCustomer = false } = {}) {
-  if (!order) return;
-  notifyAdminNewOrder({ order, statusLabel: adminLabel || "New wholesale order" }).catch((err) => {
+async function dispatchOrderEmails(order, { adminLabel, confirmCustomer = false } = {}) {
+  if (!order) return { adminSent: false, customerSent: false };
+  let adminSent = false;
+  let customerSent = false;
+  try {
+    adminSent = await notifyAdminNewOrder({ order, statusLabel: adminLabel || "New wholesale order" });
+    console.log(`[mail] admin order notification ${adminSent ? "sent" : "not sent"}: ${order.invoiceNumber || order.id}`);
+  } catch (err) {
     console.warn("[mail] admin order:", err.message);
-  });
-  if (confirmCustomer && order.contact?.email) {
-    notifyOrderConfirmation({ order, contactEmail: order.contact.email }).catch((err) => {
-      console.warn("[mail] order confirmation:", err.message);
-    });
   }
+  if (confirmCustomer && order.contact?.email) {
+    try {
+      customerSent = await notifyOrderConfirmation({ order, contactEmail: order.contact.email });
+    } catch (err) {
+      console.warn("[mail] order confirmation:", err.message);
+    }
+  }
+  return { adminSent, customerSent };
 }
 
 function isGummyOnlyLineItems(lineItems) {
@@ -476,7 +484,7 @@ app.get("/api/portal/credentials", portalAuth, (req, res) => {
 
 // ——— Orders ———
 
-app.post("/api/orders", portalAuth, (req, res) => {
+app.post("/api/orders", portalAuth, async (req, res) => {
   const body = req.body || {};
   const contact = body.contact || {};
   if (!body.termsAccepted) {
@@ -522,7 +530,7 @@ app.post("/api/orders", portalAuth, (req, res) => {
   if (paymentMethod === "invoice" || paymentMethod === "bank_transfer") {
     const label =
       paymentMethod === "bank_transfer" ? "New bank transfer order" : "New invoice order";
-    dispatchOrderEmails(order, { adminLabel: label, confirmCustomer: true });
+    await dispatchOrderEmails(order, { adminLabel: label, confirmCustomer: true });
   }
 
   res.status(201).json({
@@ -644,7 +652,7 @@ app.post("/api/paypal/capture-order", portalAuth, async (req, res) => {
       paypalCaptureId: captureId,
       paidAt: Date.now(),
     });
-    dispatchOrderEmails(findOrder(order.id), {
+    await dispatchOrderEmails(findOrder(order.id), {
       adminLabel: "Paid wholesale order (PayPal)",
       confirmCustomer: true,
     });
@@ -819,7 +827,7 @@ app.post("/api/public/gummy-checkout/paypal/capture", gummyCheckoutAccess.requir
       paypalCaptureId: captureId,
       paidAt: Date.now(),
     });
-    dispatchOrderEmails(findOrder(order.id), {
+    await dispatchOrderEmails(findOrder(order.id), {
       adminLabel: "Paid gummy mix order (PayPal)",
       confirmCustomer: true,
     });
@@ -1139,6 +1147,21 @@ app.get("/api/admin/orders", adminAuth, (req, res) => {
     limit: Number(req.query.limit) || 200,
   });
   res.json({ orders });
+});
+
+app.post("/api/admin/orders/:id/resend-notification", adminAuth, async (req, res) => {
+  const order = findOrder(req.params.id);
+  if (!order) return res.status(404).json({ error: "Order not found" });
+  const result = await dispatchOrderEmails(order, {
+    adminLabel: "Order notification resent from admin",
+    confirmCustomer: false,
+  });
+  recordAdminAction("order.notification_resend", {
+    id: order.id,
+    invoiceNumber: order.invoiceNumber,
+    adminSent: result.adminSent,
+  });
+  res.status(result.adminSent ? 200 : 502).json(result);
 });
 
 app.patch("/api/admin/orders/:id", adminAuth, (req, res) => {
