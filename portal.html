@@ -139,6 +139,12 @@
 
               <label class="wide form-block"><span>Order notes</span><textarea id="notes" rows="3" placeholder="Delivery instructions, flavour mix requests, bulk enquiries…"></textarea></label>
 
+              <div class="form-block promo-code-box">
+                <label><span>Private discount or free-shipping code</span><input type="text" id="discountCode" autocomplete="off" placeholder="Enter code from LeafLock"></label>
+                <button class="button secondary" type="button" id="applyDiscountBtn">Apply code</button>
+                <p id="discountStatus" class="pending-note" aria-live="polite"></p>
+              </div>
+
               <p class="terms-fine-print">
                 <label>
                   <input type="checkbox" id="termsAccepted" required>
@@ -211,7 +217,7 @@
     <script src="assets/config.js"></script>
     <script src="assets/access.js?v=20260706m"></script>
     <script src="assets/layout.js"></script>
-    <script src="assets/portal.js?v=20260715c"></script>
+    <script src="assets/portal.js?v=20261016a"></script>
     <script src="assets/portal-boot.js"></script>
   </body>
 </html>

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Private wholesale deal | LeafLock</title>
+    <link rel="stylesheet" href="assets/styles.css">
+    <link rel="stylesheet" href="assets/private-checkout.css">
+  </head>
+  <body class="private-checkout-page">
+    <main class="private-deal-shell">
+      <a href="/" class="private-deal-brand"><img src="assets/brand/leaflock-logo.png" alt="LeafLock" width="190"></a>
+      <section class="private-deal-card" id="dealCard">
+        <p class="eyebrow">Private stockist offer</p>
+        <h1 id="offerTitle">Loading your private deal…</h1>
+        <p id="offerDescription" class="private-deal-description"></p>
+
+        <label id="customAmountWrap" hidden><span>Agreed amount ex GST (AUD)</span><input id="amountExGst" type="number" min="1" step="0.01"></label>
+        <div class="private-deal-totals">
+          <div><span>Amount ex GST</span><strong id="subtotal">$0.00</strong></div>
+          <div><span>GST</span><strong id="gst">$0.00</strong></div>
+          <div><span>Shipping</span><strong id="shipping">$0.00</strong></div>
+          <div class="total-row"><span>Total</span><strong id="total">$0.00</strong></div>
+        </div>
+
+        <form id="privateOrderForm">
+          <div class="private-deal-grid">
+            <label><span>Business name *</span><input id="businessName" required autocomplete="organization"></label>
+            <label><span>Your name *</span><input id="fullName" required autocomplete="name"></label>
+            <label><span>Email *</span><input id="email" type="email" required autocomplete="email"></label>
+            <label><span>Phone</span><input id="phone" type="tel" autocomplete="tel"></label>
+            <label class="wide"><span>Delivery address</span><textarea id="address" rows="2"></textarea></label>
+            <label class="wide"><span>Notes</span><textarea id="notes" rows="2"></textarea></label>
+          </div>
+          <label class="private-deal-terms"><input id="termsAccepted" type="checkbox" required> <span>I agree to the <a href="wholesale-terms.html" target="_blank">Wholesale Terms &amp; Conditions</a>.</span></label>
+          <div class="private-deal-actions">
+            <button class="button primary" type="submit">Send order / request invoice</button>
+            <button class="button secondary" type="button" id="bankTransferBtn">Order and pay by bank transfer</button>
+          </div>
+          <p id="checkoutStatus" aria-live="polite"></p>
+          <div id="paypalWrap" hidden>
+            <p>Or pay the agreed amount securely with PayPal:</p>
+            <div id="paypalButtons"></div>
+          </div>
+        </form>
+      </section>
+    </main>
+    <script src="assets/private-checkout.js"></script>
+  </body>
+</html>

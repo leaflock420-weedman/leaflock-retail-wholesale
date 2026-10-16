@@ -127,6 +127,7 @@ const auspost = require("./lib/auspost-pac");
 const gummyCheckoutAccess = require("./lib/gummy-checkout-access");
 const { flushRemoteWrites, remoteDataStatus } = require("./lib/remote-data");
 const { recordAdminAction, listAdminActions } = require("./lib/admin-audit");
+const promotions = require("./lib/promotions-store");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4173;
@@ -506,9 +507,16 @@ app.post("/api/orders", portalAuth, async (req, res) => {
     catalog: body.catalog && typeof body.catalog === "object" ? body.catalog : {},
   };
 
-  const totals = calculateOrder(lineItems);
+  let totals = calculateOrder(lineItems);
   if (totals.total <= 0) {
     return res.status(400).json({ error: "Order must include at least one product" });
+  }
+  let appliedPromotion = null;
+  if (body.discountCode) {
+    const applied = promotions.applyCode(body.discountCode, totals);
+    if (!applied.ok) return res.status(400).json({ error: applied.error });
+    totals = applied.totals;
+    appliedPromotion = applied.promotion;
   }
 
   const paymentMethod = body.paymentMethod || "invoice";
@@ -520,12 +528,13 @@ app.post("/api/orders", portalAuth, async (req, res) => {
     contact: { ...contact, flavours: body.flavours || "" },
     lineItems,
     totals,
-    notes: body.notes || "",
+    notes: [body.notes || "", appliedPromotion ? `Promotion: ${appliedPromotion.code}` : ""].filter(Boolean).join("\n"),
     paymentMethod,
     termsAccepted: true,
     termsVersion: TERMS_VERSION,
     paymentTerms,
   });
+  if (appliedPromotion) promotions.recordCodeUse(appliedPromotion.code);
 
   if (paymentMethod === "invoice" || paymentMethod === "bank_transfer") {
     const label =
@@ -659,6 +668,96 @@ app.post("/api/paypal/capture-order", portalAuth, async (req, res) => {
     res.json({ status: "paid", captureId });
   } catch (err) {
     console.error("[paypal] capture:", err.message);
+    res.status(502).json({ error: "Payment capture failed" });
+  }
+});
+
+app.post("/api/promotions/apply", portalAuth, (req, res) => {
+  const totals = req.body?.totals || {};
+  const safeTotals = {
+    subtotal: Math.max(0, Number(totals.subtotal) || 0),
+    gst: Math.max(0, Number(totals.gst) || 0),
+    shipping: Math.max(0, Number(totals.shipping) || 0),
+    total: Math.max(0, Number(totals.total) || 0),
+  };
+  const applied = promotions.applyCode(req.body?.code, safeTotals);
+  res.status(applied.ok ? 200 : 400).json(applied);
+});
+
+// ——— Private custom quote / deal checkout links ———
+
+app.get("/api/public/private-offer/:token", noStoreJson, (req, res) => {
+  const offer = promotions.findOfferByToken(req.params.token);
+  if (!offer) return res.status(404).json({ error: "This private deal link is invalid or inactive" });
+  res.json({ offer: promotions.publicOffer(offer), paypal: { enabled: paypal.isConfigured(), clientId: paypal.clientId(), mode: paypal.mode(), sdkBaseUrl: paypal.sdkBaseUrl() } });
+});
+
+app.post("/api/public/private-offer/:token/orders", async (req, res) => {
+  const offer = promotions.findOfferByToken(req.params.token);
+  if (!offer) return res.status(404).json({ error: "This private deal link is invalid or inactive" });
+  const body = req.body || {};
+  const contact = body.contact || {};
+  for (const field of ["businessName", "fullName", "email"]) {
+    if (!String(contact[field] || "").trim()) return res.status(400).json({ error: `Missing ${field}` });
+  }
+  if (!body.termsAccepted) return res.status(400).json({ error: "You must agree to the Wholesale Terms & Conditions." });
+  const amountExGst = offer.allowCustomAmount ? Number(body.amountExGst) : offer.amountExGst;
+  if (!Number.isFinite(amountExGst) || amountExGst < (offer.allowCustomAmount ? offer.minimumAmount : 0.01)) {
+    return res.status(400).json({ error: `Amount must be at least $${offer.minimumAmount.toFixed(2)} ex GST` });
+  }
+  const subtotal = Math.round(amountExGst * 100) / 100;
+  const gst = Math.round(subtotal * 0.1 * 100) / 100;
+  const shipping = Math.round(offer.shipping * 100) / 100;
+  const total = Math.round((subtotal + gst + shipping) * 100) / 100;
+  const paymentMethod = ["paypal", "bank_transfer", "invoice"].includes(body.paymentMethod) ? body.paymentMethod : "invoice";
+  const order = createOrder({
+    retailStockistId: null,
+    retailStockistName: contact.businessName,
+    contact,
+    lineItems: { customOfferId: offer.id, customOfferTitle: offer.title, customAmountExGst: subtotal, catalog: {} },
+    totals: { subtotal, gst, shipping, total, catalogLines: [{ sku: "PRIVATE-DEAL", name: offer.title, qty: 1, unitWholesale: subtotal, lineTotal: subtotal }] },
+    notes: [offer.description, body.notes].filter(Boolean).join("\n"),
+    paymentMethod,
+    source: "private-offer",
+    termsAccepted: true,
+    termsVersion: TERMS_VERSION,
+    paymentTerms: paymentTermsLabel(null, { paymentMethod }),
+  });
+  if (paymentMethod !== "paypal") {
+    await dispatchOrderEmails(order, { adminLabel: paymentMethod === "bank_transfer" ? "Private deal — bank transfer" : "Private quote/order", confirmCustomer: true });
+  }
+  res.status(201).json({ order: { id: order.id, invoiceNumber: order.invoiceNumber, totals: order.totals } });
+});
+
+app.post("/api/public/private-offer/:token/paypal/create", async (req, res) => {
+  const offer = promotions.findOfferByToken(req.params.token);
+  const order = findOrder(req.body?.orderId);
+  if (!offer || !order || order.source !== "private-offer" || order.lineItems?.customOfferId !== offer.id) return res.status(404).json({ error: "Private order not found" });
+  if (!paypal.isConfigured()) return res.status(503).json({ error: "PayPal not configured" });
+  try {
+    const ppOrder = await paypal.createPayPalOrder({ orderId: order.id, total: order.totals.total, description: offer.title });
+    updateOrder(order.id, { paypalOrderId: ppOrder.id, status: "awaiting_payment", paymentMethod: "paypal", paymentStatus: "pending" });
+    res.json({ paypalOrderId: ppOrder.id });
+  } catch (err) {
+    console.error("[paypal] private offer create:", err.message);
+    res.status(502).json({ error: "Could not create PayPal order" });
+  }
+});
+
+app.post("/api/public/private-offer/:token/paypal/capture", async (req, res) => {
+  const offer = promotions.findOfferByToken(req.params.token);
+  const order = findOrder(req.body?.orderId);
+  if (!offer || !order || order.source !== "private-offer" || order.lineItems?.customOfferId !== offer.id || order.paypalOrderId !== req.body?.paypalOrderId) return res.status(400).json({ error: "Private payment mismatch" });
+  try {
+    const capture = await paypal.capturePayPalOrder(req.body.paypalOrderId);
+    const paid = paypal.captureAmount(capture);
+    if (paid == null || Number(paid).toFixed(2) !== Number(order.totals.total).toFixed(2)) return res.status(400).json({ error: "Payment amount mismatch" });
+    const captureId = capture?.purchase_units?.[0]?.payments?.captures?.[0]?.id || null;
+    updateOrder(order.id, { status: "paid", paymentStatus: "paid", paypalCaptureId: captureId, paidAt: Date.now() });
+    await dispatchOrderEmails(findOrder(order.id), { adminLabel: "Paid private deal (PayPal)", confirmCustomer: true });
+    res.json({ status: "paid", captureId });
+  } catch (err) {
+    console.error("[paypal] private offer capture:", err.message);
     res.status(502).json({ error: "Payment capture failed" });
   }
 });
@@ -839,6 +938,42 @@ app.post("/api/public/gummy-checkout/paypal/capture", gummyCheckoutAccess.requir
 });
 
 // ——— Admin wholesale ———
+
+app.get("/api/admin/promotions", adminAuth, (_req, res) => res.json(promotions.load()));
+
+app.post("/api/admin/discount-codes", adminAuth, (req, res) => {
+  try {
+    const code = promotions.createCode(req.body || {});
+    recordAdminAction("promotion.code.create", { code: code.code, type: code.type });
+    res.status(201).json({ code });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.patch("/api/admin/discount-codes/:id", adminAuth, (req, res) => {
+  const code = promotions.setCodeActive(req.params.id, req.body?.active);
+  if (!code) return res.status(404).json({ error: "Code not found" });
+  res.json({ code });
+});
+
+app.post("/api/admin/private-offers", adminAuth, (req, res) => {
+  try {
+    const offer = promotions.createOffer(req.body || {});
+    const siteUrl = process.env.SITE_URL || "https://www.wholesale.leaflock.com.au";
+    const url = `${siteUrl}/private-checkout.html?offer=${encodeURIComponent(offer.token)}`;
+    recordAdminAction("promotion.offer.create", { id: offer.id, businessName: offer.businessName, amountExGst: offer.amountExGst });
+    res.status(201).json({ offer, url });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.patch("/api/admin/private-offers/:id", adminAuth, (req, res) => {
+  const offer = promotions.setOfferActive(req.params.id, req.body?.active);
+  if (!offer) return res.status(404).json({ error: "Offer not found" });
+  res.json({ offer });
+});
 
 app.get("/api/admin/wholesale/summary", adminAuth, (req, res) => {
   res.json({

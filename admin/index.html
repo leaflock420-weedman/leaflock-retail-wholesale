@@ -7,7 +7,7 @@
     <title>LeafLock Admin Dashboard</title>
     <link rel="icon" type="image/svg+xml" href="../assets/brand/favicon.svg">
     <link rel="stylesheet" href="../assets/styles.css">
-    <link rel="stylesheet" href="admin.css?v=20260907a">
+    <link rel="stylesheet" href="admin.css?v=20261016a">
   </head>
   <body data-admin="true">
     <div id="loginScreen" class="login-screen">
@@ -175,6 +175,38 @@
         </section>
 
         <section class="panel">
+          <h2>Private deals, quotes &amp; discount codes</h2>
+          <p class="foot-note">Only you can create these. Send a generated private link or code directly to the stockist.</p>
+          <div class="private-tools-grid">
+            <form id="discountCodeForm" class="admin-tool-form">
+              <h3>Create discount / shipping code</h3>
+              <label><span>Code</span><input name="code" required placeholder="WELCOME10"></label>
+              <label><span>Type</span><select name="type"><option value="percent">Percentage off</option><option value="fixed">Fixed amount off</option><option value="free_shipping">Free shipping</option></select></label>
+              <label><span>Value</span><input name="value" type="number" min="0" step="0.01" value="10"></label>
+              <label><span>Description</span><input name="description" placeholder="Getting-started offer"></label>
+              <label><span>Maximum uses (0 = unlimited)</span><input name="maxUses" type="number" min="0" step="1" value="1"></label>
+              <button class="admin-btn admin-btn--primary" type="submit">Create private code</button>
+            </form>
+            <form id="privateOfferForm" class="admin-tool-form">
+              <h3>Create custom quote / PayPal link</h3>
+              <label><span>Stockist business</span><input name="businessName" placeholder="Business name"></label>
+              <label><span>Contact name</span><input name="contactName"></label>
+              <label><span>Email</span><input name="email" type="email"></label>
+              <label><span>Deal title</span><input name="title" required value="Private wholesale deal"></label>
+              <label class="wide"><span>What is included</span><textarea name="description" rows="3" placeholder="Products, quantities and agreed terms"></textarea></label>
+              <label><span>Agreed amount ex GST</span><input name="amountExGst" type="number" min="0" step="0.01"></label>
+              <label><span>Shipping</span><input name="shipping" type="number" min="0" step="0.01" value="25"></label>
+              <label><input name="freeShipping" type="checkbox"> Free shipping</label>
+              <label><input name="allowCustomAmount" type="checkbox"> Let stockist enter the agreed PM amount</label>
+              <label><span>Minimum custom amount</span><input name="minimumAmount" type="number" min="1" step="0.01" value="1"></label>
+              <button class="admin-btn admin-btn--primary" type="submit">Generate private checkout link</button>
+            </form>
+          </div>
+          <p id="privateToolsStatus" class="foot-note" aria-live="polite"></p>
+          <div class="table-scroll"><table class="data-table data-table--wide"><thead><tr><th>Type</th><th>Code / stockist</th><th>Offer</th><th>Uses</th><th>Actions</th></tr></thead><tbody id="promotionsTable"><tr><td colspan="5">Loading…</td></tr></tbody></table></div>
+        </section>
+
+        <section class="panel">
           <h2>Order form spreadsheet</h2>
           <p class="foot-note">Download the catalogue CSV, edit in Excel, then upload. The portal order form updates straight away. Full instructions: <strong>Downloads → LeafLock-Wholesale-Complete-Guide</strong> on your PC.</p>
           <div class="catalog-actions">
@@ -331,6 +363,6 @@
       </div>
     </div>
 
-    <script src="admin.js?v=20260907a"></script>
+    <script src="admin.js?v=20261016a"></script>
   </body>
 </html>

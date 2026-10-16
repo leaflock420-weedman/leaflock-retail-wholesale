@@ -5,6 +5,7 @@
   let currentOrderId = null;
   let paypalLoaded = false;
   let sheetSkuIndex = Object.create(null);
+  let activePromotion = null;
 
   const fields = {
     starterBundle: document.querySelector("#starterBundle"),
@@ -17,6 +18,7 @@
     phone: document.querySelector("#phone"),
     address: document.querySelector("#address"),
     notes: document.querySelector("#notes"),
+    discountCode: document.querySelector("#discountCode"),
     termsAccepted: document.querySelector("#termsAccepted"),
   };
 
@@ -137,11 +139,20 @@
 
     if (fields.starterBundle?.checked) {
       const b = pricing.starterBundle;
-      totals.subtotal.textContent = money(b.subtotal);
-      totals.gst.textContent = money(b.gst);
-      totals.shipping.textContent = money(b.shipping);
-      totals.total.textContent = money(b.totalIncGstShipping);
-      totals.note.textContent = `${b.label} — fixed price inc. GST and shipping.`;
+      let subtotal = b.subtotal;
+      let shipping = b.shipping;
+      let discount = 0;
+      if (activePromotion?.type === "percent") discount = Math.round(subtotal * activePromotion.value) / 100;
+      if (activePromotion?.type === "fixed") discount = Math.min(subtotal, activePromotion.value);
+      if (activePromotion?.type === "free_shipping") shipping = 0;
+      subtotal = Math.max(0, Math.round((subtotal - discount) * 100) / 100);
+      const gst = Math.round(subtotal * pricing.gstRate * 100) / 100;
+      const total = Math.round((subtotal + gst + shipping) * 100) / 100;
+      totals.subtotal.textContent = money(subtotal);
+      totals.gst.textContent = money(gst);
+      totals.shipping.textContent = money(shipping);
+      totals.total.textContent = money(total);
+      totals.note.textContent = `${b.label}${activePromotion ? ` · ${activePromotion.code} applied` : ""}.`;
       setCartBarCompact(false);
       updateLineTotals(b.subtotal);
       return {
@@ -152,10 +163,11 @@
         mixedCartons: 1,
         catalog: {},
         catalogLines: [],
-        subtotal: b.subtotal,
-        gst: b.gst,
-        shipping: b.shipping,
-        total: b.totalIncGstShipping,
+        subtotal,
+        gst,
+        shipping,
+        total,
+        discount,
         notes: ["Starter bundle applied."],
       };
     }
@@ -169,7 +181,17 @@
     const threshold = pricing.freeShippingThreshold ?? 710;
     const shipping =
       subtotal <= 0 ? 0 : subtotal >= threshold ? 0 : pricing.shipping;
-    const total = Math.round((subtotal + gst + shipping) * 100) / 100;
+    let adjustedSubtotal = subtotal;
+    let adjustedShipping = shipping;
+    let discount = 0;
+    if (activePromotion) {
+      if (activePromotion.type === "percent") discount = Math.round(subtotal * activePromotion.value) / 100;
+      if (activePromotion.type === "fixed") discount = Math.min(subtotal, activePromotion.value);
+      if (activePromotion.type === "free_shipping") adjustedShipping = 0;
+      adjustedSubtotal = Math.max(0, Math.round((subtotal - discount) * 100) / 100);
+    }
+    const adjustedGst = Math.round(adjustedSubtotal * pricing.gstRate * 100) / 100;
+    const total = Math.round((adjustedSubtotal + adjustedGst + adjustedShipping) * 100) / 100;
 
     const notes = [];
     if (subtotal >= threshold) {
@@ -181,15 +203,16 @@
     if (catalogTotals.lines.length > 0) {
       notes.push(`${catalogTotals.lines.length} catalogue line(s) in order.`);
     }
+    if (activePromotion) notes.push(`${activePromotion.code} applied${discount ? ` — ${money(discount)} off` : " — free shipping"}.`);
     const moqIssues = moqWarnings(catalog);
     if (moqIssues.length) notes.push(...moqIssues);
     if (!notes.length) {
       notes.push(subtotal > 0 ? "Standard wholesale pricing applied." : "Add products to calculate pricing.");
     }
 
-    totals.subtotal.textContent = money(subtotal);
-    totals.gst.textContent = money(gst);
-    totals.shipping.textContent = money(shipping);
+    totals.subtotal.textContent = money(adjustedSubtotal);
+    totals.gst.textContent = money(adjustedGst);
+    totals.shipping.textContent = money(adjustedShipping);
     totals.total.textContent = money(total);
     totals.note.textContent = notes.join(" ");
     setCartBarCompact(subtotal <= 0);
@@ -203,10 +226,11 @@
       mixedCartons: 0,
       catalog,
       catalogLines: catalogTotals.lines,
-      subtotal,
-      gst,
-      shipping,
+      subtotal: adjustedSubtotal,
+      gst: adjustedGst,
+      shipping: adjustedShipping,
       total,
+      discount,
       notes,
     };
   }
@@ -334,6 +358,7 @@
       catalog: calc?.catalog ?? {},
       flavours: "",
       notes: fields.notes?.value || "",
+      discountCode: activePromotion?.code || "",
       termsAccepted: Boolean(fields.termsAccepted?.checked),
       contact: {
         businessName: fields.businessName?.value || "",
@@ -508,6 +533,32 @@
       calculateOrder();
     });
     orderSheetSearch?.addEventListener("input", (e) => filterOrderSheet(e.target.value));
+    document.getElementById("applyDiscountBtn")?.addEventListener("click", async () => {
+      const status = document.getElementById("discountStatus");
+      const code = fields.discountCode?.value?.trim();
+      if (!code) {
+        activePromotion = null;
+        if (status) status.textContent = "Code removed.";
+        calculateOrder();
+        return;
+      }
+      activePromotion = null;
+      const base = calculateOrder();
+      try {
+        const result = await window.LeafLockAccess.portalFetch("/api/promotions/apply", {
+          method: "POST",
+          body: JSON.stringify({ code, totals: base }),
+        });
+        activePromotion = result.promotion;
+        fields.discountCode.value = result.promotion.code;
+        if (status) status.textContent = result.promotion.description || `${result.promotion.code} applied.`;
+        calculateOrder();
+      } catch (err) {
+        activePromotion = null;
+        if (status) status.textContent = err.message || "Code could not be applied.";
+        calculateOrder();
+      }
+    });
   }
 
   async function loadCredentials() {
