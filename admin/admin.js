@@ -481,7 +481,7 @@ function renderPromotions(data) {
   if (!body) return;
   const rows = [];
   for (const code of data.codes || []) {
-    rows.push(`<tr class="${code.active === false ? "row-muted" : ""}"><td>Code</td><td><strong>${escapeHtml(code.code)}</strong></td><td>${escapeHtml(code.description || code.type)}${code.type !== "free_shipping" ? ` · ${code.value}${code.type === "percent" ? "%" : " AUD"}` : ""}</td><td>${code.uses || 0}${code.maxUses ? ` / ${code.maxUses}` : ""}</td><td><button class="btn-inline btn-muted" data-action="toggle-code" data-id="${code.id}" data-active="${code.active !== false}">${code.active === false ? "Reactivate" : "Deactivate"}</button></td></tr>`);
+    rows.push(`<tr class="${code.active === false ? "row-muted" : ""}"><td><span class="badge badge--${code.active === false ? "inactive" : "active"}">Code</span></td><td><strong>${escapeHtml(code.code)}</strong></td><td>${escapeHtml(code.description || code.type)}${code.type !== "free_shipping" ? ` · ${code.value}${code.type === "percent" ? "%" : " AUD"}` : ""}</td><td>${code.uses || 0}${code.maxUses ? ` / ${code.maxUses}` : ""}</td><td><button class="btn-inline" data-action="copy-code" data-code="${escapeHtml(code.code)}">Copy code</button> <button class="btn-inline btn-muted" data-action="toggle-code" data-id="${code.id}" data-active="${code.active !== false}">${code.active === false ? "Reactivate" : "Deactivate"}</button></td></tr>`);
   }
   for (const offer of data.offers || []) {
     const url = `${location.origin}/private-checkout.html?offer=${encodeURIComponent(offer.token)}`;
@@ -490,42 +490,116 @@ function renderPromotions(data) {
   body.innerHTML = rows.length ? rows.join("") : '<tr><td colspan="5">No private codes or deal links yet.</td></tr>';
 }
 
+async function refreshPromotions() {
+  const body = document.getElementById("promotionsTable");
+  if (body) body.innerHTML = '<tr><td colspan="5">Loading your private offers…</td></tr>';
+  try {
+    renderPromotions(await api("/api/admin/promotions"));
+  } catch (err) {
+    if (body) body.innerHTML = `<tr><td colspan="5">${escapeHtml(err.message || "Could not load offers")}</td></tr>`;
+  }
+}
+
+async function copyText(value) {
+  try {
+    await navigator.clipboard.writeText(value);
+    return true;
+  } catch {
+    const area = document.createElement("textarea");
+    area.value = value;
+    area.style.position = "fixed";
+    area.style.opacity = "0";
+    document.body.appendChild(area);
+    area.select();
+    const copied = document.execCommand("copy");
+    area.remove();
+    return copied;
+  }
+}
+
+function setPrivateToolsStatus(message, ok = true) {
+  const status = document.getElementById("privateToolsStatus");
+  if (!status) return;
+  status.textContent = message;
+  status.classList.toggle("admin-feedback--ok", ok);
+  status.classList.toggle("admin-feedback--error", !ok);
+}
+
 document.getElementById("discountCodeForm")?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const form = event.target;
-  const status = document.getElementById("privateToolsStatus");
+  const field = (name) => form.elements.namedItem(name);
+  const button = form.querySelector('button[type="submit"]');
+  button.disabled = true;
+  button.textContent = "Creating…";
   try {
-    const result = await api("/api/admin/discount-codes", { method: "POST", body: JSON.stringify({ code: form.code.value, type: form.type.value, value: Number(form.value.value), description: form.description.value, maxUses: Number(form.maxUses.value) }) });
-    status.textContent = `Created private code ${result.code.code}. Copy it from the list below.`;
+    const result = await api("/api/admin/discount-codes", { method: "POST", body: JSON.stringify({ code: field("code").value, type: field("type").value, value: Number(field("value").value), description: field("description").value, maxUses: Number(field("maxUses").value) }) });
+    await copyText(result.code.code);
+    setPrivateToolsStatus(`Created and copied code ${result.code.code}. Send it privately to the stockist.`);
     form.reset();
-    await refreshWholesale();
-  } catch (err) { status.textContent = err.message; }
+    updateDiscountForm();
+    await refreshPromotions();
+  } catch (err) { setPrivateToolsStatus(err.message, false); }
+  finally { button.disabled = false; button.textContent = "Create private code"; }
 });
 
 document.getElementById("privateOfferForm")?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const form = event.target;
-  const status = document.getElementById("privateToolsStatus");
+  const field = (name) => form.elements.namedItem(name);
+  const button = form.querySelector('button[type="submit"]');
+  button.disabled = true;
+  button.textContent = "Generating…";
   try {
-    const result = await api("/api/admin/private-offers", { method: "POST", body: JSON.stringify({ businessName: form.businessName.value, contactName: form.contactName.value, email: form.email.value, title: form.title.value, description: form.description.value, amountExGst: Number(form.amountExGst.value), shipping: Number(form.shipping.value), freeShipping: form.freeShipping.checked, allowCustomAmount: form.allowCustomAmount.checked, minimumAmount: Number(form.minimumAmount.value) }) });
-    await navigator.clipboard.writeText(result.url).catch(() => {});
-    status.textContent = `Private checkout link created and copied: ${result.url}`;
-    await refreshWholesale();
-  } catch (err) { status.textContent = err.message; }
+    const result = await api("/api/admin/private-offers", { method: "POST", body: JSON.stringify({ businessName: field("businessName").value, contactName: field("contactName").value, email: field("email").value, title: field("title").value, description: field("description").value, amountExGst: Number(field("amountExGst").value), shipping: Number(field("shipping").value), freeShipping: field("freeShipping").checked, allowCustomAmount: field("allowCustomAmount").checked, minimumAmount: Number(field("minimumAmount").value) }) });
+    const copied = await copyText(result.url);
+    setPrivateToolsStatus(`${copied ? "Created and copied" : "Created"} private checkout link: ${result.url}`);
+    await refreshPromotions();
+  } catch (err) { setPrivateToolsStatus(err.message, false); }
+  finally { button.disabled = false; button.textContent = "Generate & copy private link"; }
 });
 
 document.getElementById("promotionsTable")?.addEventListener("click", async (event) => {
   const button = event.target.closest("button[data-action]");
   if (!button) return;
-  if (button.dataset.action === "copy-offer") {
-    await navigator.clipboard.writeText(button.dataset.url);
-    document.getElementById("privateToolsStatus").textContent = "Private checkout link copied.";
+  if (button.dataset.action === "copy-offer" || button.dataset.action === "copy-code") {
+    const value = button.dataset.url || button.dataset.code;
+    await copyText(value);
+    setPrivateToolsStatus(button.dataset.url ? "Private checkout link copied." : `Code ${value} copied.`);
     return;
   }
   const path = button.dataset.action === "toggle-code" ? `/api/admin/discount-codes/${button.dataset.id}` : `/api/admin/private-offers/${button.dataset.id}`;
   await api(path, { method: "PATCH", body: JSON.stringify({ active: button.dataset.active !== "true" }) });
-  await refreshWholesale();
+  await refreshPromotions();
 });
+
+function updateDiscountForm() {
+  const form = document.getElementById("discountCodeForm");
+  if (!form) return;
+  const type = form.elements.namedItem("type");
+  const value = form.elements.namedItem("value");
+  const free = type.value === "free_shipping";
+  const row = form.querySelector("[data-code-value]");
+  if (row) row.hidden = free;
+  value.required = !free;
+}
+
+function updatePrivateOfferForm() {
+  const form = document.getElementById("privateOfferForm");
+  if (!form) return;
+  const custom = form.elements.namedItem("allowCustomAmount").checked;
+  const free = form.elements.namedItem("freeShipping").checked;
+  form.querySelector("[data-fixed-amount]").hidden = custom;
+  form.querySelector("[data-minimum-amount]").hidden = !custom;
+  form.querySelector("[data-shipping-amount]").hidden = free;
+  form.elements.namedItem("amountExGst").required = !custom;
+}
+
+document.querySelector('#discountCodeForm select[name="type"]')?.addEventListener("change", updateDiscountForm);
+document.querySelector('#privateOfferForm input[name="allowCustomAmount"]')?.addEventListener("change", updatePrivateOfferForm);
+document.querySelector('#privateOfferForm input[name="freeShipping"]')?.addEventListener("change", updatePrivateOfferForm);
+updateDiscountForm();
+updatePrivateOfferForm();
 
 document.getElementById("tabWholesale")?.addEventListener("click", async (event) => {
   const btn = event.target.closest("[data-action]");
@@ -655,6 +729,7 @@ function switchTab(name) {
   });
   document.getElementById("tabTraffic").hidden = name !== "traffic";
   document.getElementById("tabWholesale").hidden = name !== "wholesale";
+  document.getElementById("tabDeals").hidden = name !== "deals";
   document.getElementById("tabOrderform").hidden = name !== "orderform";
 }
 
@@ -671,6 +746,18 @@ document.querySelectorAll(".dash-tab").forEach((tab) => {
       await refreshWholesale();
     }
     if (tab.dataset.tab === "orderform") await refreshOrderPreview();
+    if (tab.dataset.tab === "deals") await refreshPromotions();
+  });
+});
+
+document.querySelectorAll("[data-go-tab]").forEach((button) => {
+  button.addEventListener("click", async () => {
+    switchTab(button.dataset.goTab);
+    if (button.dataset.goTab === "deals") await refreshPromotions();
+    if (button.dataset.goTab === "orderform") await refreshOrderPreview();
+    const target = button.dataset.focus ? document.getElementById(button.dataset.focus) : null;
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    target?.querySelector("input,select,textarea")?.focus();
   });
 });
 
@@ -909,9 +996,14 @@ document.getElementById("postageQuoteBtn")?.addEventListener("click", async () =
 });
 
 document.getElementById("refreshWholesaleBtn")?.addEventListener("click", refreshWholesale);
+document.getElementById("refreshDealsBtn")?.addEventListener("click", refreshPromotions);
 document.getElementById("showInactiveStockists")?.addEventListener("change", refreshWholesale);
 document.getElementById("refreshOrderPreviewBtn")?.addEventListener("click", refreshOrderPreview);
 document.getElementById("addRetailStockistBtn")?.addEventListener("click", openAddStockistModal);
+document.getElementById("quickAddStockist")?.addEventListener("click", () => {
+  switchTab("wholesale");
+  openAddStockistModal();
+});
 document.getElementById("addStockistForm")?.addEventListener("submit", submitAddStockistForm);
 document.getElementById("closeAddStockistModal")?.addEventListener("click", closeAddStockistModal);
 

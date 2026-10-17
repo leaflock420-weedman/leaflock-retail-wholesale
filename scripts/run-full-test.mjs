@@ -284,6 +284,38 @@ try {
   assert("Admin setup status", r.res.status === 200);
   assert("Catalog items listed", (r.body.catalogItems || 0) > 0);
 
+  r = await json(`${base}/api/admin/discount-codes`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ code: "START10", type: "percent", value: 10, maxUses: 2 }),
+  });
+  assert("Admin creates private discount code", r.res.status === 201 && r.body.code?.code === "START10");
+
+  r = await json(`${base}/api/promotions/apply`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${portalToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ code: "START10", totals: { subtotal: 100, gst: 10, shipping: 25, total: 135 } }),
+  });
+  assert("Portal validates private discount code", r.res.status === 200 && r.body.totals?.total === 124);
+
+  r = await json(`${base}/api/admin/private-offers`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ businessName: "Private Deal Test", title: "PM starter deal", amountExGst: 100, freeShipping: true }),
+  });
+  assert("Admin creates private checkout link", r.res.status === 201 && Boolean(r.body.offer?.token) && Boolean(r.body.url));
+  const privateOfferToken = r.body.offer?.token;
+
+  r = await json(`${base}/api/public/private-offer/${privateOfferToken}`);
+  assert("Private checkout link opens", r.res.status === 200 && r.body.offer?.title === "PM starter deal");
+
+  r = await json(`${base}/api/public/private-offer/${privateOfferToken}/orders`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ paymentMethod: "invoice", termsAccepted: true, contact: { businessName: "Private Deal Test", fullName: "Buyer", email: "private@example.com" } }),
+  });
+  assert("Private quote creates itemised order", r.res.status === 201 && r.body.order?.totals?.total === 110);
+
   r = await fetch(`${base}/api/admin/catalog/download`, {
     headers: { Authorization: `Bearer ${adminToken}` },
   });

@@ -7,7 +7,7 @@
     <title>LeafLock Admin Dashboard</title>
     <link rel="icon" type="image/svg+xml" href="../assets/brand/favicon.svg">
     <link rel="stylesheet" href="../assets/styles.css">
-    <link rel="stylesheet" href="admin.css?v=20261016a">
+    <link rel="stylesheet" href="admin.css?v=20261017a">
   </head>
   <body data-admin="true">
     <div id="loginScreen" class="login-screen">
@@ -48,6 +48,7 @@
       <nav class="dash-tabs" role="tablist">
         <button type="button" class="dash-tab active" data-tab="traffic" role="tab">Traffic</button>
         <button type="button" class="dash-tab" data-tab="wholesale" role="tab">Stockists &amp; orders</button>
+        <button type="button" class="dash-tab" data-tab="deals" role="tab">Deals &amp; discounts</button>
         <button type="button" class="dash-tab" data-tab="orderform" role="tab">Order form preview</button>
       </nav>
 
@@ -74,6 +75,13 @@
             <span class="stat-label">Access requests today</span>
             <strong id="accessViews">0</strong>
           </article>
+        </section>
+
+        <section class="admin-quick-actions" aria-label="Quick actions">
+          <button type="button" class="quick-action" data-go-tab="deals" data-focus="privateOfferForm"><strong>New private deal</strong><span>Create a quote or PayPal link</span></button>
+          <button type="button" class="quick-action" data-go-tab="deals" data-focus="discountCodeForm"><strong>New discount code</strong><span>Discount or free shipping</span></button>
+          <button type="button" class="quick-action" id="quickAddStockist"><strong>Add stockist</strong><span>Create an approved account</span></button>
+          <button type="button" class="quick-action" data-go-tab="orderform"><strong>Check order form</strong><span>Preview prices and products</span></button>
         </section>
 
         <section class="panel">
@@ -175,38 +183,6 @@
         </section>
 
         <section class="panel">
-          <h2>Private deals, quotes &amp; discount codes</h2>
-          <p class="foot-note">Only you can create these. Send a generated private link or code directly to the stockist.</p>
-          <div class="private-tools-grid">
-            <form id="discountCodeForm" class="admin-tool-form">
-              <h3>Create discount / shipping code</h3>
-              <label><span>Code</span><input name="code" required placeholder="WELCOME10"></label>
-              <label><span>Type</span><select name="type"><option value="percent">Percentage off</option><option value="fixed">Fixed amount off</option><option value="free_shipping">Free shipping</option></select></label>
-              <label><span>Value</span><input name="value" type="number" min="0" step="0.01" value="10"></label>
-              <label><span>Description</span><input name="description" placeholder="Getting-started offer"></label>
-              <label><span>Maximum uses (0 = unlimited)</span><input name="maxUses" type="number" min="0" step="1" value="1"></label>
-              <button class="admin-btn admin-btn--primary" type="submit">Create private code</button>
-            </form>
-            <form id="privateOfferForm" class="admin-tool-form">
-              <h3>Create custom quote / PayPal link</h3>
-              <label><span>Stockist business</span><input name="businessName" placeholder="Business name"></label>
-              <label><span>Contact name</span><input name="contactName"></label>
-              <label><span>Email</span><input name="email" type="email"></label>
-              <label><span>Deal title</span><input name="title" required value="Private wholesale deal"></label>
-              <label class="wide"><span>What is included</span><textarea name="description" rows="3" placeholder="Products, quantities and agreed terms"></textarea></label>
-              <label><span>Agreed amount ex GST</span><input name="amountExGst" type="number" min="0" step="0.01"></label>
-              <label><span>Shipping</span><input name="shipping" type="number" min="0" step="0.01" value="25"></label>
-              <label><input name="freeShipping" type="checkbox"> Free shipping</label>
-              <label><input name="allowCustomAmount" type="checkbox"> Let stockist enter the agreed PM amount</label>
-              <label><span>Minimum custom amount</span><input name="minimumAmount" type="number" min="1" step="0.01" value="1"></label>
-              <button class="admin-btn admin-btn--primary" type="submit">Generate private checkout link</button>
-            </form>
-          </div>
-          <p id="privateToolsStatus" class="foot-note" aria-live="polite"></p>
-          <div class="table-scroll"><table class="data-table data-table--wide"><thead><tr><th>Type</th><th>Code / stockist</th><th>Offer</th><th>Uses</th><th>Actions</th></tr></thead><tbody id="promotionsTable"><tr><td colspan="5">Loading…</td></tr></tbody></table></div>
-        </section>
-
-        <section class="panel">
           <h2>Order form spreadsheet</h2>
           <p class="foot-note">Download the catalogue CSV, edit in Excel, then upload. The portal order form updates straight away. Full instructions: <strong>Downloads → LeafLock-Wholesale-Complete-Guide</strong> on your PC.</p>
           <div class="catalog-actions">
@@ -281,6 +257,45 @@
               <tbody id="loginLogTable"></tbody>
             </table>
           </div>
+        </section>
+      </div>
+
+      <div id="tabDeals" class="tab-panel" hidden role="tabpanel">
+        <section class="deals-hero">
+          <div><p class="eyebrow">Private sales tools</p><h2>Help a stockist get started</h2><p>Create a normal checkout code, or create a private quote link with a fixed or stockist-entered PM amount.</p></div>
+          <div class="deals-privacy"><strong>Private by design</strong><span>Only someone with your code or unique link can use the offer.</span></div>
+        </section>
+        <div class="private-tools-grid">
+          <form id="discountCodeForm" class="admin-tool-form">
+            <span class="tool-step">Option 1</span><h3>Discount or free-shipping code</h3>
+            <p class="form-help">For a normal portal order. Tell the stockist the code privately.</p>
+            <label><span>Code</span><input name="code" required placeholder="WELCOME10" autocomplete="off"></label>
+            <label><span>Offer type</span><select name="type"><option value="percent">Percentage off</option><option value="fixed">Fixed amount off</option><option value="free_shipping">Free shipping</option></select></label>
+            <label data-code-value><span>Discount value</span><input name="value" type="number" min="0" step="0.01" value="10"></label>
+            <label><span>Note for you</span><input name="description" placeholder="Getting-started offer"></label>
+            <label><span>Maximum uses</span><input name="maxUses" type="number" min="0" step="1" value="1"><small>Use 1 for one stockist, or 0 for unlimited.</small></label>
+            <button class="admin-btn admin-btn--primary" type="submit">Create private code</button>
+          </form>
+          <form id="privateOfferForm" class="admin-tool-form">
+            <span class="tool-step">Option 2</span><h3>Custom quote or PayPal link</h3>
+            <p class="form-help">For a custom bundle or a deal agreed by private message.</p>
+            <label><span>Stockist business</span><input name="businessName" placeholder="Business name"></label>
+            <label><span>Contact name</span><input name="contactName"></label>
+            <label><span>Email</span><input name="email" type="email"></label>
+            <label><span>Deal title</span><input name="title" required value="Private wholesale deal"></label>
+            <label class="wide"><span>What is included</span><textarea name="description" rows="3" placeholder="Products, quantities and agreed terms"></textarea></label>
+            <label data-fixed-amount><span>Agreed amount ex GST</span><input name="amountExGst" type="number" min="0" step="0.01" placeholder="0.00"></label>
+            <label data-shipping-amount><span>Shipping</span><input name="shipping" type="number" min="0" step="0.01" value="25"></label>
+            <label class="check-row"><input name="freeShipping" type="checkbox"> Free shipping</label>
+            <label class="check-row"><input name="allowCustomAmount" type="checkbox"> Let stockist enter the agreed PM amount</label>
+            <label data-minimum-amount hidden><span>Minimum custom amount</span><input name="minimumAmount" type="number" min="1" step="0.01" value="1"></label>
+            <button class="admin-btn admin-btn--primary" type="submit">Generate &amp; copy private link</button>
+          </form>
+        </div>
+        <p id="privateToolsStatus" class="admin-feedback" aria-live="polite"></p>
+        <section class="panel">
+          <div class="panel-head"><div><h2>Your active and previous offers</h2><p class="foot-note">Copy, deactivate or reactivate without deleting history.</p></div><button type="button" id="refreshDealsBtn" class="btn-secondary btn-small">Refresh</button></div>
+          <div class="table-scroll"><table class="data-table data-table--wide"><thead><tr><th>Type</th><th>Code / stockist</th><th>Offer</th><th>Uses</th><th>Actions</th></tr></thead><tbody id="promotionsTable"><tr><td colspan="5">Loading…</td></tr></tbody></table></div>
         </section>
       </div>
 
@@ -363,6 +378,6 @@
       </div>
     </div>
 
-    <script src="admin.js?v=20261016a"></script>
+    <script src="admin.js?v=20261017a"></script>
   </body>
 </html>
